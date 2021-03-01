@@ -6,7 +6,7 @@
  ex) 스트럿츠 프레임워크(STRUTS Framework), 스프링 프레임워크(Spring Framework), 앵귤러 JS(Angular JS) 등
  
  ## 프론트엔드에서 사용하는 프레임워크
- - Angular, React, Vue.js → 프론트엔드 3대장으로 불림
+ Angular, React, Vue.js → 프론트엔드 3대장으로 불림
 
 #### Angular
 - 작성해야 하는 자바스크립트의 코드 길이를 줄여 직관적으로 소스를 이해할 수 있게한다.
