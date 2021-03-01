@@ -5,7 +5,7 @@
 - 개발에 필요한 화면구현, DB연동, 개발환경들에 공통적인 부분을 제공함으로써 개발 시간과 리소스 비용을 절감해 생산성을 높여주는 것
  ex) 스트럿츠 프레임워크(STRUTS Framework), 스프링 프레임워크(Spring Framework), 앵귤러 JS(Angular JS) 등
  
- ### 프론트엔드에서 사용하는 프레임워크
+ ## 프론트엔드에서 사용하는 프레임워크
  - Angular, React, Vue.js → 프론트엔드 3대장으로 불림
 
 #### Angular
