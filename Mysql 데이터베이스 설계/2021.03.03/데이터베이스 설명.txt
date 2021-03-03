@@ -1,0 +1,50 @@
+	Idea_List (내 아이디어)
+idea_title 제목
+idea_date 작성일
+user_id 누가 썼는지
+
+	Question_Board (문의게시판)
+q_board_num 번호
+q_board_title 제목
+q_board_name 작성자
+q_board_date 작성일
+user_id 누가 썼는지
+
+	Interest_Board (관심 사업)
+interest_num 번호
+interest_title 제목
+interest_date 작성일
+user_id 누가 관심 있어하는지
+
+	Point_Information (포인트현황)
+get_point 현재 보유 포인트
+total_stack_point 총 누적 포인트
+use_point 사용 포인트
+user_id 누구 포인트인지
+
+	Use_Poing_Inform(사용내역)
+use_inform 사용내역
+use_point 사용포인트
+use_date 일시
+user_id 누구 포인트인지
+
+	Save_Point_Inform(적립내역)
+save_inform 적립내역
+save_point 적립포인트
+save_date 일시
+user_id 누구 포인트인지
+
+	MyIdea_Board(내 아이디어)
+idea_title 제목
+idea_date 작성일
+
+	Notice_Board(공지사항)
+n_board_num 번호
+n_board_title 제목
+n_board_date 작성일
+
+	Public_Notice_Board(공고정보게시판)
+p_board_num 번호
+p_board_title 제목
+p_board_date 작성일
+board_url 출처 링크 바로가기
