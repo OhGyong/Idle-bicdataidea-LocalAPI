@@ -1,4 +1,4 @@
-# 우분투에서 Node.js 설치하기
+# 우분투에서 Node.js와 Angular 설치하기
 
 ## 1. 준비
 소스코드 빌드가 빌요하기 때문에 빌드 환경설치
@@ -15,3 +15,6 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 ## Node.js 설치
 > nvm install '버전'
 예를 들면 nvm install 12.18.2
+
+## Angular 설치
+> # npm install -g @angular/cli
