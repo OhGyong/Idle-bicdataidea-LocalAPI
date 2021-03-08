@@ -33,7 +33,8 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 > ng serve --open
 
 만약 실행단계에서 안되면 아래 명령어로 뚫어줘야 함
-> sudo iptables -I INPUT 5 -i ens3 -p tcp —dport 4201 -m state —state NEW,ESTABLISHED -j ACCEPT
+> sudo iptables -L
+> sudo iptables -I INPUT 5 -i ens3 -p tcp --dport 4201 -m state --state NEW,ESTABLISHED -j ACCEPT
 
 
 
