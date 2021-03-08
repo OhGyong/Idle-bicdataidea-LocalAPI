@@ -11,3 +11,7 @@ NVM 설치
 NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적용을 해줘야 한다.
 > source ~/.bashrc 
 이후로 NVM 명령을 사용할 수 있게된다.
+
+## Node.js 설치
+> nvm install '버전'
+예를 들면 nvm install 12.18.2
