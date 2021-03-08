@@ -29,7 +29,7 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 
 프로젝트 실행(Angular CLI 실행)
 > ng serve
-> ng serve --port '포트번호'
+>  --port '포트번호'
 
 예를들면 ng serve --host 0.0.0.0 --port 4201
 > ng serve --open
