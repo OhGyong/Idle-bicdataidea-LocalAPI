@@ -18,3 +18,7 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 
 ## Angular 설치
 > npm install -g @angular/cli
+
+
+### Angular 명령어
+cd '프로젝트 이름'
