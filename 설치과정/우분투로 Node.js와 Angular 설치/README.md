@@ -17,4 +17,4 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 예를 들면 nvm install 12.18.2
 
 ## Angular 설치
-> # npm install -g @angular/cli
+> npm install -g @angular/cli
