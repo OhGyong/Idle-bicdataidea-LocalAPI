@@ -60,6 +60,6 @@ SHOW VARIABLES LIKE 'validate_password%';     패스워드 권한 보기
 SET GLOBAL validate_password.policy=LOW;  패스워드 정책변경
 
 3. 외부접속 설정
-- 외부 접속 설정
+- 외부 접속 설정 및 저장
   - GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;   ex) GRANT ALL PRIVILEGES ON *.* TO 'giyong2'@'%' WITH GRANT OPTION;
-
+  - 
