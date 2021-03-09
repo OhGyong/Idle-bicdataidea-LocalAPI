@@ -38,6 +38,10 @@ NVM의 Path는 이미 유저 계정의 bash 설정 파일에 들어있지만 적
 > sudo iptables -L
 
 > sudo iptables -I INPUT 5 -i ens3 -p tcp --dport 4201 -m state --state NEW,ESTABLISHED -j ACCEPT
+> 
+## Angular CLI 프로젝트 브라우저
+생성한 인스턴스 공용IP주소://port 번호
+>IP주소://4201
 
 
 
