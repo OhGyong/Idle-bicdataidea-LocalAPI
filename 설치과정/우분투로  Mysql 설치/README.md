@@ -35,7 +35,7 @@ Mysql 프롬프트 시작됨
 ## 우분투 Mysql <-> 로컬 workbench 연결 ( 외부접속 허용)
 1. 우분투 외부접속 허용 설정
 - 포트 3306 허용 해주기
-  - sudo iptables -I INPUT 5 -i ens3 -p tcp --dport 4201 -m state --state NEW,ESTABLISHED -j ACCEPT
+  - sudo iptables -I INPUT 5 -i ens3 -p tcp --dport 3306 -m state --state NEW,ESTABLISHED -j ACCEPT
   - sudo iptables -L  
 
 - root 계정 접속, mysqld.cnf 파일 경로로 이동 mysql.cnf 파일 변경
