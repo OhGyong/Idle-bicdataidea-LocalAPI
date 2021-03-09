@@ -61,4 +61,5 @@ SET GLOBAL validate_password.policy=LOW;  패스워드 정책변경
 
 3. 외부접속 설정
 - 외부 접속 설정
-  - grant all privieges on *.* to 'user'@'%' identified by '비밀번호'   ex) grant all privieges on *.* to 'giyong'@'%' identified by '1234'
+  - GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;   ex) GRANT ALL PRIVILEGES ON *.* TO 'giyong2'@'%' WITH GRANT OPTION;
+
