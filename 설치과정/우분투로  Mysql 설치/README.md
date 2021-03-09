@@ -55,7 +55,7 @@ Mysql 프롬프트 시작됨
 
 만약에 mysql 패스워드 권한으로 실패가 계속 난다면 확인해서 권환을 낮춰주어야 한다.
 
-SELECT user,plugin,host FROM mysql.user;     패스워드 권한 보기
+SHOW VARIABLES LIKE 'validate_password%';     패스워드 권한 보기
 
 SET GLOBAL validate_password.policy=LOW;  패스워드 정책변경
 
