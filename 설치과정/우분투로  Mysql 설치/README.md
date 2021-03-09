@@ -35,6 +35,6 @@ Mysql 프롬프트 시작됨
 ## 우분투 Mysql <-> 로컬 workbench 연결 ( 외부접속 허용)
 1. 우분투 외부접속 허용 설정
 - root 계정 접속, mysqld.cnf 파일 경로로 이동 mysql.cnf 파일 변경
- - sudo su
- - cd /etc/mysql/mysql.conf.d
- - vi mysqld.cnf
+  - sudo su
+  - cd /etc/mysql/mysql.conf.d
+  - vi mysqld.cnf
