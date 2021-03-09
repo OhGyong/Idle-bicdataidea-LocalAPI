@@ -22,6 +22,9 @@ Mysql 실행
 
 ## Mysql 접속
 > $sudo /usr/bin/mysql -u root -pd
+ 
+>sudo mysql -u root -p
+
 이후 비밀번호 입력 창 뜨는데 우분투 비번과 동일하다.
 
 Mysql 프롬프트 시작됨
