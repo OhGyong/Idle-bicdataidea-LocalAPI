@@ -1,5 +1,10 @@
 # 우분투에서 Mysql 설치하기
 
+## Mysql 사전준비
+>sudo apt-get update
+>sudo apt-get install mysql-server
+>sudo mysql_secure_installation
+
 ## Mysql-server 설치
 > $sudo apt-get update
 
