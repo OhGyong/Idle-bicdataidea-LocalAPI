@@ -1,11 +1,5 @@
 # API 기능설계
 
-* HTTP 메서드
-    * POST 생성
-    * GET 조회
-    * DELETE 삭제
-    * PUT 업데이트
-
 * 상태 코드
     * 2xx → 보통 200으로 사용, 클라이언트의 요청을 서버가 정상적으로 처리
         * 201 → 클라이언트의 요청을 서버가 정상적으로 처리했고 새로운 리소스가 생김
@@ -23,6 +17,19 @@
     * 5xx → 서버 오류로 인해 요청을 수행할 수 없음
 
 
+* URL 규칙
+    * 마지막에 `/`를 포함하지 않는다.
+    * `_` 대신 `-`를 사용한다.
+    * 소문자를 사용한다.
+    * 동작(행위)은 포함시키지 않는다.
+    
+* HTTP Headers
+    * `application/json`을 우선으로 제공한다.
+
+* HTTP methods
+    * POST(생성), GET(조회), PUT(업데이트), DELETE(삭제) 4가지는 반드시 제공한다.
+
+
 
 ## 회원 관련API
 
@@ -30,24 +37,26 @@
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/Idle/login
+    [POST] http://{IP}:{PORT}/idle/login
 
 * **PARAM**
-    |KEY|VALUE|
-    |--------|--------|
-    |member_email|사용자 이메일|
-    |member_name|사용자 이름|
-    |member_sex|사용자 성별|
-    |member_birth|사용자 생년월일|
-    |member_company|사용자 소속|
-    |member_state|사용자 거주지|
-    |member_ban|사용자 정지여부|
-    |member_pw|사용자 비밀번호|
-    |member_phone|사용자 핸드폰번호|
-    |member_point|사용자 포인트|
-    |save_point|누적 포인트|
-    |use_point|사용 포인트|
-    |member_rank|포인트 순위|
+```(json)
+{    
+    "member_email" : 사용자 이메일,
+    "member_name" : 사용자 이름,
+    "member_sex" : 사용자 성별,
+    "member_birth" : 사용자 생년월일,
+    "member_company" : 사용자 소속,
+    "member_state" : 사용자 거주지,
+    "member_ban" : 사용자 정지여부,
+    "member_pw" : 사용자 비밀번호,
+    "member_phone" : 사용자 핸드폰번호,
+    "member_point" : 사용자 포인트,
+    "save_point" : 누적 포인트,
+    "use_point" : 사용 포인트,
+    "member_rank" : 포인트 순위,
+}
+```
 
 * **동작설명**
 
@@ -57,13 +66,18 @@
 
     <_동일한 아이디가 없거나 파라미터에 null 값이 없는 경우_>
 
-    `{login_result:true}`
+    * **Code:** 200 </br>
+    `{login_result:"회원가입에 성공하셨습니다."}`
 
 * **실패시 응답**
 
     <_동일한 아니디가 있거나, 파라미터에 null 값이 존재하는 경우_>
 
-    `{login_result:false}`
+    * **Code:** 400 </br>
+    `{login_result:"동일한 아이디가 있습니다. "}`    
+        OR</br>
+    `{login_result:"빈 항목이 있습니다."}`
+
 
 ---
 
@@ -71,12 +85,14 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/Idle/members/has_same_id
+    [GET] http://{IP}:{PORT}/idle/members/has-same-id
 
 * **PARAM**
-    |KEY|VALUE|
-    |--------|--------|
-    |입력한 이메일|사용자 이메일|
+    ```(json)
+    {
+        "same_email" : 사용자 이메일
+    }
+    ```
 
 * **동작설명**
 
@@ -86,13 +102,15 @@
 
     <_입력된 이메일이 member 테이블의 사용자 이메일과 동일한 경우_>
 
-    `{has_same_id:true}`
+     * **Code:** 200 </br>
+    `{has_same_id:"동일한 아이디가 있습니다."}`
 
 * **실패시 응답**
 
     <_입력된 이메일이 member 테이블의 사용자 이메일에 들어있지 않는 경우_>
 
-    `{has_same_id:false}`
+    * **Code:** 400 </br>
+    `{has_same_id:"중복되는 아이디가 없습니다."}`
 
 ---
 
@@ -100,16 +118,19 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/Idle/members/sign_out
+    [DELETE] http://{IP}:{PORT}/idle/members/sign-out
 
 * **PARAM**
-    |KEY|VALUE|
-    |--------|--------|
-    |탈퇴 사용자 이메일|사용자 이메일|
-    |탈퇴 사용자 이름|사용자 이름|
-    |탈퇴 사용자 성별|사용자 성별|
-    |탈퇴 사용자 생년월일|사용자 생년월일|
-    |탈퇴 일자|사용자가 탈퇴한 일자|
+    ```(json)
+    {
+        "out_member_email" : 사용자 이메일
+        "out_member_name" : 사용자 이름
+        "out_sex" : 사용자 성별
+        "out_birth" : 사용자 생년월일
+        "out_date" : 사용자가 탈퇴한 일자
+    }
+    ```
+ 
 
 * **동작설명**
     
@@ -119,13 +140,15 @@
 
     <_탈퇴 버튼을 눌렀을 경우_>
 
-    `{sign_out:true}`
+    * **Code:** 200 </br>
+    `{sign_out:"정상적으로 계정이 삭제되었습니다."}`
 
 * **실패 시 응답**
 
     <_연결이 끊어지거나 전송이 실패한 경우_>
 
-    `{sign_out:false}`
+    * **Code:** 400 </br>
+    `{sign_out:"회원탈퇴에 실패하였습니다."}`
 
 ---
 
@@ -133,15 +156,36 @@
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/Idle/members/ban
+    [PUT] http://{IP}:{PORT}/idle/members/ban
 
 * **PARAM**
+    ```(json)
+    {
+        "member_email" : 사용자 이메일
+        "member_ban_reason" : 정지사유
+        "member_ban_date" : 정지일자
+        "admin_email" : 관리자 이메일
+    }
+    ```
 
 * **동작설명**
 
+    관리자가 정지를 하려는 사용자의 member 테이블을 조회해서 member_ban 값을 1로 변경
+
 * **성공 시 응답**
 
+    <_관리자가 사용자의 정지 번호를 바꾼 경우_>
+
+    * **Code:** 200 </br>
+    `{member_ban:"정상적으로 계정이 삭제되었습니다."}`
+
 * **실패 시 응답**
+
+    <_연결이 끊어지거나 전송이 실패한 경우_>
+
+    * **Code:** 400 </br>
+    `{member_ban:"회원정지에 실패하였습니다."}`
+
 
 ---
 
@@ -149,8 +193,50 @@
 
 * **URL**
 
-* **PARAM**
+    [POST]] http://{IP}:{PORT}/idle/signin
 
+* **PARAM**
+    ```(json)
+    {
+        "member_email" : 사용자 이메일
+        "member_pw" : 사용자 비밀번호
+    }
+    ```
+
+* **동작설명**
+    
+    member 테이블에서 입력된 사용자 이메일을 조회해서 사용자 비밀번호가 일치하는지 확인
+
+* **성공 시 응답**
+
+    <_이메일과 비밀번호가 일치한 경우_>
+
+    * **Code:** 200 </br>
+    `{signin:"정상적으로 로그인되었습니다."}`
+
+* **실패 시 응답**
+
+    <_이메일과 비밀번호가 일치하지 않은 경우_>
+
+    * **Code:** 400 </br>
+    `{signin:"비밀번호가 일치하지 않습니다."}`
+
+---
+
+### 로그아웃
+
+* **URL**
+
+    [DELETE]] http://{IP}:{PORT}/idle/logout
+
+* **PARAM**
+     ```(json)
+    {
+        "member_email" : 사용자 이메일
+        "member_pw" : 사용자 비밀번호
+    }
+    ```
+    
 * **동작설명**
 
 * **성공 시 응답**
@@ -159,7 +245,7 @@
 
 ---
 
-### 로그아웃
+### 비밀번호 찾기
 
 * **URL**
 
@@ -173,4 +259,33 @@
 
 ---
 
-### 
+### 회원가입 전 이용약관 동의
+
+* **URL**
+
+* **PARAM**
+
+* **동작설명**
+
+* **성공 시 응답**
+
+* **실패 시 응답**
+
+---
+
+### 회원 포인트 관리
+
+* **URL**
+
+* **PARAM**
+
+* **동작설명**
+
+* **성공 시 응답**
+
+* **실패 시 응답**
+
+---
+
+
+
