@@ -48,7 +48,7 @@
     "member_birth" : 사용자 생년월일,
     "member_company" : 사용자 소속,
     "member_state" : 사용자 거주지,
-    "member_ban" : 0 ,
+    "member_ban" : 0,
     "member_pw" : 사용자 비밀번호,
     "member_phone" : 사용자 핸드폰번호
 }
