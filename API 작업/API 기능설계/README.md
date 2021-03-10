@@ -37,36 +37,66 @@
 
 * **성공시 응답**
 
-    `login_result:true`
+    <_동일한 아이디가 없거나 파라미터에 null 값이 없는 경우_>
+
+    `{login_result:true}`
 
 * **실패시 응답**
 
-    `login_result:false`
+    <_동일한 아니디가 있거나, 파라미터에 null 값이 존재하는 경우_>
 
+    `{login_result:false}`
+
+---
 
 ### 동일 아이디 확인
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/Idle/member/has_same_id
+    [GET] http://{IP}:{PORT}/Idle/members/has_same_id
 
 * **PARAM**
     |KEY|VALUE|
     |--------|--------|
-    |입력된 이메일|사용자 이메일|
+    |입력한 이메일|사용자 이메일|
 
 * **동작설명**
 
-    member 테이블에서 사용자 이메일을 조회하여 입력된 이메일과 비교하여 동일한 아이디가 있는지 확인한다.
+    member 테이블에서 사용자 이메일을 조회하여 입력한 이메일과 비교하여 동일한 아이디가 있는지 확인한다.
 
 * **성공시 응답**
 
     <_입력된 이메일이 member 테이블의 사용자 이메일과 동일한 경우_>
 
-    `has_same_id:true`
+    `{has_same_id:true}`
 
 * **실패시 응답**
 
     <_입력된 이메일이 member 테이블의 사용자 이메일에 들어있지 않는 경우_>
 
-    `has_same_id:false`
+    `{has_same_id:false}`
+
+---
+
+### 회원탈퇴
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/Idle/members/sign_out
+
+* **PARAM**
+    |KEY|VALUE|
+    |--------|--------|
+    |탈퇴 사용자 이메일|사용자 이메일|
+    |탈퇴 사용자 이름|사용자 이름|
+    |탈퇴 사용자 성별|사용자 성별|
+    |탈퇴 사용자 생년월일|사용자 생년월일|
+    |탈퇴 일자|사용자가 탈퇴한 일자|
+
+* **동작설명**
+    
+    사용자가 회원탈퇴를 할 경우, member 테이블에서 사용자의 이메일, 이름, 성별, 생년월일을 조회하고 탈퇴한 일자를 뽑아서 member_sign_out에 추가한다.
+
+* **성공 시 응답**
+
+    <_탈퇴 버튼을 눌렀을 경우 _>
