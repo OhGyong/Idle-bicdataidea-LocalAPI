@@ -14,20 +14,21 @@
     [POST] http://{IP}:{PORT}/Idle/login
 
 * **PARAM**
-
-    KEY=member_email , VALUE=사용자 이메일
-    KEY=member_name , VALUE=사용자 이름
-    KEY=member_sex, VALUE=사용자 성별
-    KEY=member_birth, VALUE=사용자 생년월일
-    KEY=member_company, VALUE=사용자 소속
-    KEY=member_state, VALUE=사용자 거주지
-    KEY=member_ban, VALUE=사용자 정지여부
-    KEY=member_pw, VALUE=사용자 비밀번호
-    KEY=member_phone, VALUE=사용자 핸드폰번호
-    KEY=member_point, VALUE=사용자 포인트
-    KEY=save_point, VALUE=누적 포인트
-    KEY=use_point, VALUE=사용 포인트
-    KEY=member_rank, VALUE= 포인트 순위
+    |KEY|VALUE|
+    |--------|--------|
+    |member_email|VALUE=사용자 이메일|
+    |member_name|VALUE=사용자 이름|
+    |member_sex|VALUE=사용자 성별|
+    |member_birth|VALUE=사용자 생년월일|
+    |member_company|VALUE=사용자 소속|
+    |member_state|VALUE=사용자 거주지|
+    |member_ban|VALUE=사용자 정지여부|
+    |member_pw|VALUE=사용자 비밀번호|
+    |member_phone|VALUE=사용자 핸드폰번호|
+    |member_point|VALUE=사용자 포인트|
+    |save_point|VALUE=누적 포인트|
+    |use_point|VALUE=사용 포인트|
+    |member_rank|VALUE= 포인트 순위|
 
 * **동작설명**
 
