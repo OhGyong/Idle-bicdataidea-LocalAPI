@@ -34,6 +34,10 @@
 
     동일아이디가 있는지, 파라미터에 null 값이 있는지 확인 후, member 테이블에 추가한다.
 
-* **응답**
+* **성공 시 응답**
 
-    login_result라는 키에 성공시 true, 실패시 false를 반환한다.
+    `login_result:true`
+
+* **실패 시 응답**
+
+    `login_result:false`
