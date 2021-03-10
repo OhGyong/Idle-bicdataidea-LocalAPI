@@ -10,7 +10,7 @@
 ### 회원가입
 URL : [POST] http://{IP}:{PORT}/Idle/login
 
-PARAM :
+PARAM :</br>
  {
     KEY=member_email , VALUE=사용자 이메일 </br>
     KEY=member_name , VALUE=사용자 이름 </br>
