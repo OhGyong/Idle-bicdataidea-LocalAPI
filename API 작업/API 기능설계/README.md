@@ -7,12 +7,12 @@
     * PUT 업데이트
 ## 회원 관련API
 
-
 ### 회원가입
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/Idle/login </br>
+    [POST] http://{IP}:{PORT}/Idle/login
+
 * **PARAM**
 
     KEY=member_email , VALUE=사용자 이메일
@@ -27,11 +27,12 @@
     KEY=member_point, VALUE=사용자 포인트
     KEY=save_point, VALUE=누적 포인트
     KEY=use_point, VALUE=사용 포인트
-    KEY=member_rank, VALUE= 포인트 순위</br>
+    KEY=member_rank, VALUE= 포인트 순위
 
 * **동작설명**
 
-    동일아이디가 있는지, 파라미터에 null 값이 있는지 확인 후, member 테이블에 추가한다.</br>
+    동일아이디가 있는지, 파라미터에 null 값이 있는지 확인 후, member 테이블에 추가한다.
+
 * **응답**
 
     login_result라는 키에 성공시 true, 실패시 false를 반환한다.
