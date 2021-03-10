@@ -16,19 +16,19 @@
 * **PARAM**
     |KEY|VALUE|
     |--------|--------|
-    |member_email|VALUE=사용자 이메일|
-    |member_name|VALUE=사용자 이름|
-    |member_sex|VALUE=사용자 성별|
-    |member_birth|VALUE=사용자 생년월일|
-    |member_company|VALUE=사용자 소속|
-    |member_state|VALUE=사용자 거주지|
-    |member_ban|VALUE=사용자 정지여부|
-    |member_pw|VALUE=사용자 비밀번호|
-    |member_phone|VALUE=사용자 핸드폰번호|
-    |member_point|VALUE=사용자 포인트|
-    |save_point|VALUE=누적 포인트|
-    |use_point|VALUE=사용 포인트|
-    |member_rank|VALUE= 포인트 순위|
+    |member_email|사용자 이메일|
+    |member_name|사용자 이름|
+    |member_sex|사용자 성별|
+    |member_birth|사용자 생년월일|
+    |member_company|사용자 소속|
+    |member_state|사용자 거주지|
+    |member_ban|사용자 정지여부|
+    |member_pw|사용자 비밀번호|
+    |member_phone|사용자 핸드폰번호|
+    |member_point|사용자 포인트|
+    |save_point|누적 포인트|
+    |use_point|사용 포인트|
+    |member_rank|포인트 순위|
 
 * **동작설명**
 
