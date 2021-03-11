@@ -267,6 +267,70 @@
 
 ---
 
+### 회원 랭킹
+
+* **URL**
+
+[POST] http://{IP}:{PORT}/idle/rank
+
+* **PARM**
+
+    ```(json)
+    {
+        "member_rank" : 포인트 순위
+        "member_name" : 사용자 이름
+        "member_save_point" : 누적 포인트
+    }
+    ```
+
+* **동작설명**
+
+    member 테이블의 누적 포인트를 이용하여 순위를 매긴다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{rank:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{rank:"Error"}`
+
+---
+
+### 관심사업
+
+* **URL**
+
+[POST] http://{IP}:{PORT}/idle/members/marked
+
+* **PARM**
+
+    ```(json)
+    {
+        "member_rank" : 포인트 순위
+    }
+    ``` ㅡ
+
+* **동작설명**
+
+    공고정보게시판에서 즐겨찾기를 누르면 
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{rank:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{rank:"Error"}`
+
+---
+
+
+
 ## 관리자 관련 API
 
 ### 관리자 가입
@@ -511,6 +575,8 @@
 ---
 
 
+
+
 ## 포인트 관련 API
 
 ### 관리자의 포인트 부여
@@ -575,6 +641,9 @@
     `{give_point:"포인트 사용에 실패하였습니다."}`
 
 ---
+
+
+
 
 ## 게시물 관련 API
 
@@ -709,12 +778,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_answer:"Success."}`
+    `{cs_delete:"Success."}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs_answer:"Error."}`
+    `{cs_delete:"Error."}`
 
 ---
 
@@ -821,12 +890,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_answer:"Success."}`
+    `{notice_delete:"Success."}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs_answer:"Error."}`
+    `{notice_delete:"Error."}`
 
 ---
 
@@ -933,12 +1002,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_answer:"Success."}`
+    `{anno_delete:"Success."}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_answer:"Error."}`
+    `{anno_delete:"Error."}`
 
 ---
 
@@ -971,6 +1040,121 @@
 
     * **Code:** 400 </br>
     `{idea_write:"Error."}`
+
+---
+
+### 아이디어 수정할 때
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/board/idea/udpate
+
+* **PARAM**
+
+    ```(json)
+    {
+        "idea_title" : 수정한 아이디어 제목
+        "idea_contents" : 수정한 아이디어 내용
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공고정보게시물을 수정하면 수정한 제목, 내용, 링크가 cs 테이블에 추가
+
+    수정전의 내용은 cs_log 테이블에 기록
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_update:"게시물이 수정되었습니다."}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_update:"Error"}`
+
+---   
+
+### 아이디어 열어 볼 때
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/idea
+
+
+* **동작설명**
+
+    게시물을 클릭
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno:"Success."}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno:"본인의 아이디어만 열람할 수 있습니다."}`
+
+---
+
+### 아이디어 삭제
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/idle/board/idea/delete
+
+* **동작설명**
+
+    관리자 또는 회원이 게시물을 삭제하면 idea_log 테이블의 삭제 여부 값을 1로 변경
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_delete:"Success."}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_delete:"Error."}`
+
+---
+
+
+
+## 고객센터 API
+
+### 고객센터 내용 작성하기
+
+* **URL**
+
+    [POST] http://{IP}:{PORT}/idle/contact
+
+* **PARAM**
+
+    ```(json)
+    {
+        "email" : 문의자 이메일
+        "contact_title" : 문의 제목
+        "contact_contents" : 문의 내용
+    }
+    ```
+
+
+* **동작설명**
+
+    contact 테이블에 값이 기록
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno:"Success."}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno:"본인의 아이디어만 열람할 수 있습니다."}`
 
 ---
 
