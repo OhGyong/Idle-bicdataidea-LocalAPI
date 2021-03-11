@@ -248,7 +248,7 @@
 
     * **Code:** 400 </br>
     `{find_password:"이메일을 입력하세요."}`
-    OR</br>
+    </br>OR</br>
     `{find_password:"해당 이메일이 없습니다."}`
 
 ---
@@ -280,7 +280,7 @@
 
     * **Code:** 400 </br>
     `{rest_password:"비밀번호는 필수입니다."}`
-    OR</br>
+    </br>OR</br>
     `{rest_password:"잘못된 접근입니다."}`
 
 ---
