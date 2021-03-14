@@ -26,8 +26,11 @@
 * HTTP Headers
     * `application/json`을 우선으로 제공한다.
 
-* HTTP methods
-    * POST(생성), GET(조회), PUT(업데이트), DELETE(삭제) 4가지는 반드시 제공한다.
+* HTTP methods 4가지
+    * POST(생성, 쓰기) : 서버에 주어진 리소스의 정보를 요청한다.
+    * GET(조회, 읽기) : 서버에 리소스를 제출한다.
+    * PUT(업데이트, 수정) : 서버에 리소스를 제출한다.(POST와 달리 리소스 갱신 시 사용)
+    * DELETE(삭제) : 서버에 주어진 리소스를 삭제 요청한다.
 
 
 
@@ -44,7 +47,7 @@
 {    
     "member_email" : 사용자 이메일,
     "member_name" : 사용자 이름,
-    "member_sex" : 사용자 성별,
+    "member_gender" : 사용자 성별,
     "member_birth" : 사용자 생년월일,
     "member_company" : 사용자 소속,
     "member_state" : 사용자 거주지,
@@ -1012,7 +1015,7 @@
 ---
 
 
- ### 아이디어 올리기
+### 아이디어 올리기
 
  * **URL**
 
