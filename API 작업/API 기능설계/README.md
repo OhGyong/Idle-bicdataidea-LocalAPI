@@ -132,7 +132,7 @@
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/idle/sign-up/email-check/해시키
+    [GET]] http://{IP}:{PORT}/idle/sign-up/email-check/해시키
 
 * **동작설명**
 
@@ -163,7 +163,7 @@
     {
         "member_id" : 사용자 이메일
     }
-    ``` ㅡ
+    ```
 
 * **동작설명**
 
@@ -285,7 +285,7 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/sign-out
+    [DELETE] http://{IP}:{PORT}/idle/member-delete
 
 * **동작설명**
     
@@ -294,12 +294,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_sign_out:"Success"}`
+    `{member_delete:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_sign_out:"Error"}`
+    `{member_delete:"Error"}`
 
 ---
 
@@ -405,15 +405,15 @@
 
 ---
 
-### 관심사업
+### 관심사업 등록
 
 * **URL**
 
-[GET] http://{IP}:{PORT}/idle/mypage/marked
+[GET] http://{IP}:{PORT}/idle/mypage/marked-on
 
 * **동작설명**
 
-    공고정보게시판에서 즐겨찾기를 눌러서 추가한 게시물들을 inter_anno 테이블에서 가져온다. 
+    공고정보게시판에서 즐겨찾기를 눌러서 inter_anno 테이블에서 anno_id를 조회하여 게시물을 가져온다. 
 
 * **성공 시 응답**
 
@@ -427,13 +427,38 @@
 
 ---
 
+### 관심사업 해제
+
+* **URL**
+
+[GET] http://{IP}:{PORT}/idle/mypage/marked-off
+
+* **동작설명**
+
+    게시물을 즐겨찾기 해제하면 inter_anno 테이블에서 해당 게시물을 지운다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{rank:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{rank:"Error"}`
+
+---
+
+
+
+
 ## 관리자 관련 API
 
-### 관리자 가입
+### 관리자 등록
 
   * **URL**
 
-[POST] http://{IP}:{PORT}/idle/admin-signup/fillout
+[POST] http://{IP}:{PORT}/idle/admins/enroll/fillout
 
 * **PARAM**
 
@@ -441,7 +466,7 @@
     {
         "admin_email" : 사용자 이메일,
         "admin_name" : 사용자 이름,
-        "admin_sex" : 사용자 성별,
+        "admin_gender" : 사용자 성별,
         "admin_birth" : 사용자 생년월일,
         "admin_state" : 사용자 거주지,
         "admin_pw" : 사용자 비밀번호,
@@ -453,7 +478,7 @@
 
     admin 테이블에서 동일 이메일가 있는지, 파라미터에 null 값이 있는지 확인 후, 없으면 admin 테이블에 추가한다.
 
-    관리자가입 시간은 admin_log 테이블에 추가
+    관리자 등록 시간은 admin_log 테이블에 추가
 
 * **성공 시 응답**
 
@@ -474,6 +499,7 @@
     [GET] http://{IP}:{PORT}/idle/admins/has-same-id
 
 * **PARAM**
+
     ```(json)
     {
         "same_email" : 관리자 이메일
@@ -500,21 +526,22 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/admin/sign-out
+    [DELETE] http://{IP}:{PORT}/idle/admins/admin-delete
 
 * **동작설명**
     
-    관리자가 탈퇴를 할 경우, admin 테이블에서 관리자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 admin_sign_out 테이블에 추가한다. 이후 admin 테이블에서 해당 사용자를 지운다.
+    관리자가 탈퇴를 할 경우, admin 테이블에서 관리자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 admin_sign_out 테이블에 추가한다.</br> 
+    이후 admin 테이블에서 해당 사용자를 지운다.
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{amdin_sign_out:"Success"}`
+    `{admin_delete:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{admin_sign_out:"Error"}`
+    `{admin_delete:"Error"}`
 
 ---
 
@@ -523,9 +550,10 @@
 
 * **URL**
 
-    [POST]] http://{IP}:{PORT}/idle/admin/signin
+    [POST]] http://{IP}:{PORT}/idle/admins/signin
 
 * **PARAM**
+
     ```(json)
     {
         "admin_email" : 관리자 이메일
@@ -579,7 +607,7 @@
 
 * **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/admin/member-list
+    [GET]] http://{IP}:{PORT}/idle/admins/member-list
 
 * **동작설명**
 
@@ -602,7 +630,7 @@
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/admin/ban
+    [PUT] http://{IP}:{PORT}/idle/admins/ban
 
 * **PARAM**
 
@@ -632,7 +660,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/member-log
+    [GET] http://{IP}:{PORT}/idle/admins/member-log
 
 * **PARAM**
     ```(json)
@@ -661,7 +689,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/admin-log
+    [GET] http://{IP}:{PORT}/idle/admins/admin-log
 
 * **PARAM**
 
@@ -691,7 +719,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/cs-log
+    [GET] http://{IP}:{PORT}/idle/admins/cs-log
 
 * **PARAM**
     ```(json)
@@ -720,7 +748,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/notice-log
+    [GET] http://{IP}:{PORT}/idle/admins/notice-log
 
 * **PARAM**
 
@@ -750,7 +778,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/contact-log
+    [GET] http://{IP}:{PORT}/idle/admins/contact-log
 
 * **PARAM**
 
@@ -780,7 +808,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/idea-log
+    [GET] http://{IP}:{PORT}/idle/admins/idea-log
 
 * **PARAM**
     ```(json)
@@ -809,7 +837,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admin/anno-log
+    [GET] http://{IP}:{PORT}/idle/admins/anno-log
 
 * **PARAM**
 
@@ -844,7 +872,7 @@
 
 * **URL**
 
-    [PUT]] http://{IP}:{PORT}/idle/admin/point-process
+    [PUT]] http://{IP}:{PORT}/idle/admins/point-process
 
 * **PARAM**
 
@@ -913,7 +941,251 @@
 
 
 
-## 게시물 관련 API
+## 회원 관점 게시물 관련 API
+
+### 공고정보 게시판 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/announcement
+
+* **동작설명**
+
+    공고정보 게시판으로 가는 버튼을 클릭하면 anno 테이블에서 게시물들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{announcement:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{announcement:"Error"}`
+
+---
+
+### 공고정보 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/announcement/anno-look
+
+* **동작설명**
+
+    공고정보 게시물을 클릭하면 anno 테이블에서 공고내용을 펼침
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_look:"Error"}`
+
+---
+
+### 공고정보 게시판 출처 링크 바로가기
+
+* **URL**
+
+    [GET]] http://{IP}:{PORT}/idle/board/announcement/anno-link
+
+* **동작설명**
+
+    출처 링크 바로가기를 누르면 anno 테이블에서 anno_link를 불러와서 해당 링크로 이동
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_link:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_link:"Error"}`
+
+---
+
+### 공고정보 게시판 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/announcement?검색어
+
+* **동작설명**
+
+    사용자가 단어를 입력하면 anno 테이블에서 해당 제목이 들어간 게시물들을 나열
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_search:"Error"}`
+
+---
+
+### 공지사항 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/notice
+
+* **동작설명**
+
+    공지사항으로 가는 버튼을 클릭하면 notice 테이블에서 게시물들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice:"Error"}`
+
+---
+
+### 공지사항 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/notice/게시물 번호
+
+* **동작설명**
+
+    게시물을 클릭하면 notice 테이블에서 해당 게시물 정보를 가져와서 열어줌
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_look:"Error"}`
+
+---
+
+### 공지사항 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/notice?검색어
+
+* **동작설명**
+
+    사용자가 단어를 입력하면 notice 테이블에서 해당 제목이 들어간 게시물들을 나열
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_search:"Error"}`
+
+---
+
+### 공지사항 게시물 첨부파일 다운로드
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/notice/download
+
+* **동작설명**
+
+    첨부파일을 클릭하면 notice_file_dir 테이블에서 첨부파일 경로를 찾아서 다운로드
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_download:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_download:"Error"}`
+
+---
+
+### 문의게시판 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/cs
+
+* **동작설명**
+
+    문의게시판으로 가는 버튼을 클릭하면 cs 테이블에서 게시물들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{cs:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{cs:"Error"}`
+
+---
+
+### 문의게시판 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/cs/게시물 번호
+
+* **동작설명**
+
+    게시물을 클릭하면 cs 테이블에서 해당 게시물 정보를 가져와서 열어줌 </br>
+    단, 비밀글 여부가 1인 경우 자기 계정인 경우에만 볼 수 있음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{cs_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{cs_look:"Error"}`
+
+---
+
+### 문의게시판 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/cs?검색어
+
+* **동작설명**
+
+    사용자가 단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열
+    단, 비밀이라고 치면 비밀글이여도 검색어에 나오지 않음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{cs_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{cs_search:"Error"}`
+
+---
 
 ### 문의게시판 올릴 때
 
@@ -934,7 +1206,8 @@
 
 * **동작설명**
 
-    회원이 문의게시판을 올리면 내용, 제목, 비밀글 여부가 cs 테이블에 추가되고 첨부파일은 cs_file_dir에 기록
+    회원이 문의게시판을 올리면 내용, 제목, 비밀글 여부가 cs 테이블에 추가되고 첨부파일은 cs_file_dir에 기록 </br>
+    비밀글이 체크되면 제목에 '[비밀]' 이 붙음
 
 * **성공 시 응답**
 
@@ -1058,6 +1331,120 @@
     `{cs_delete:"Error"}`
 
 ---
+
+### 아이디어 올리기
+
+ * **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/idea/write
+
+* **PARAM**
+
+    ```(json)
+    {
+        "idea_title" : 아이디어 제목
+        "idea_contents" : 아이디어 내용
+    }
+    ```
+
+* **동작설명**
+
+    회원이 아이디어를 올리면 일괄적으로 500p를 받아서 얻은 포인트와 적립 날짜, 제목, 내용을 idea 테이블에 기록</br>
+    member 테이블의 사용자 포인트, 누적포인트에도 기록</br>
+    `사용자 포인트=사용자 포인트+500`
+    `누적 포인트=누적 포인트+500`
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_write}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_write:"Error"}`
+
+---
+
+### 아이디어 수정할 때
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/board/idea/udpate
+
+* **PARAM**
+
+    ```(json)
+    {
+        "update_idea_title" : 수정한 아이디어 제목
+        "update_idea_contents" : 수정한 아이디어 내용
+    }
+    ```
+
+* **동작설명**
+
+    사용자가 내용을 수정하면 idea_log 테이블에서 수정 전 내용과 수정일이 기록되고 idae 테이블에는 수정한 내용이 기록
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_update:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_update:"Error"}`
+
+---   
+
+### 아이디어 열어 볼 때
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/idea
+
+
+* **동작설명**
+
+    게시물을 클릭
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno:"Error"}`
+
+---
+
+### 아이디어 삭제
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/idle/board/idea/delete
+
+* **동작설명**
+
+    관리자 또는 회원이 게시물을 삭제하면 idea_log 테이블의 삭제 여부 값을 1로 변경
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_delete:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_delete:"Error"}`
+
+---
+
+
+
+## 관리자 관점 게시물 관련 API
 
 ### 공지사항 올리기
 
@@ -1285,115 +1672,6 @@
     `{anno_delete:"Error"}`
 
 ---
-
-
-### 아이디어 올리기
-
- * **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/idea/write
-
-* **PARAM**
-
-    ```(json)
-    {
-        "idea_title" : 아이디어 제목
-        "idea_contents" : 아이디어 내용
-    }
-    ```
-
-* **동작설명**
-
-    회원이 아이디어를 올리면 일괄적으로 500p를 받아서 얻은 포인트와 적립 날짜, 제목, 내용을 idea 테이블에 기록</br>
-    member 테이블의 사용자 포인트, 누적포인트에도 기록</br>
-    `사용자 포인트=사용자 포인트+500`
-    `누적 포인트=누적 포인트+500`
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_write}:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_write:"Error"}`
-
----
-
-### 아이디어 수정할 때
-
-* **URL**
-
-    [PUT] http://{IP}:{PORT}/idle/board/idea/udpate
-
-* **PARAM**
-
-    ```(json)
-    {
-        "update_idea_title" : 수정한 아이디어 제목
-        "update_idea_contents" : 수정한 아이디어 내용
-    }
-    ```
-
-* **동작설명**
-
-    사용자가 내용을 수정하면 idea_log 테이블에서 수정 전 내용과 수정일이 기록되고 idae 테이블에는 수정한 내용이 기록
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_update:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_update:"Error"}`
-
----   
-
-### 아이디어 열어 볼 때
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/idea
-
-
-* **동작설명**
-
-    게시물을 클릭
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno:"Error"}`
-
----
-
-### 아이디어 삭제
-
-* **URL**
-
-    [DELETE] http://{IP}:{PORT}/idle/board/idea/delete
-
-* **동작설명**
-
-    관리자 또는 회원이 게시물을 삭제하면 idea_log 테이블의 삭제 여부 값을 1로 변경
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno_delete:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno_delete:"Error"}`
 
 ---
 
