@@ -1431,36 +1431,3 @@
 
     * **Code:** 400 </br>
     `{anno:"Error"}`
-
----
-
-### 고객센터 내용 답변
-
-* **URL**
-
-    [POST] http://{IP}:{PORT}/idle/admin/contact
-
-* **PARAM**
-
-    ```(json)
-    {
-       "admin_contact_title" : 답변제목
-       "admin_contact_contents" : 답변내용
-    }
-    ```
-    
-* **동작설명**
-
-       
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno:"Error"}`
-
----
