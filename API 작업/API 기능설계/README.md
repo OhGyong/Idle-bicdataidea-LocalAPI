@@ -349,38 +349,6 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{signup_agree:"이용약관에 동의 하였습니다."}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{signup_agree:"이용약관에 동의 해주세요"}`
-
----
-
-### 회원 랭킹
-
-* **URL**
-
-[POST] http://{IP}:{PORT}/idle/rank
-
-* **PARM**
-
-    ```(json)
-    {
-        "member_rank" : 포인트 순위
-        "member_name" : 사용자 이름
-        "member_save_point" : 누적 포인트
-    }
-    ```
-
-* **동작설명**
-
-    member 테이블의 누적 포인트를 이용하여 순위를 매긴다.
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
     `{rank:"Success"}`
 
 * **실패 시 응답**
@@ -433,9 +401,6 @@
     `{rank:"Error"}`
 
 ---
-
-
-
 
 ## 관리자 관련 API
 
@@ -589,14 +554,6 @@
 
     [GET]] http://{IP}:{PORT}/idle/admin/findpassword
 
-* **PARAM**
-
-    ```(json)
-    {
-        "admin_email" : 사용자 이메일
-    }
-    ```
-
 * **동작설명**
 
     이메일을 작성해서 보내면 admin 테이블에서 해당 이메일을 조회하여 일치하는지 확인하고 일치하는 이메일이 있으면 메일 전송
@@ -605,38 +562,6 @@
 
     * **Code:** 200 </br>
     `{admin_find_password}:"이메일을 보냈습니다."}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_find_password:"이메일을 입력하세요."}`
-    </br>OR</br>
-    `{admin_find_password:"해당 이메일이 없습니다."}`
-
----
-
-### 관리자 비밀번호 재설정
-
-* **URL**
-
-    [PUT]] http://{IP}:{PORT}/idle/admin/reset-password
-
-* **PARAM**
-
-    ```(json)
-    {
-        "admin_pw" : 사용자 비밀번호
-    }
-    ```
-
-* **동작설명**
-
-    새 비밀번호를 입력하면 admin 테이블의 admin_pw 값을 입력한 값으로 변경한다.
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_rest_password:"비밀번호가 변경되었습니다."}`
 
 * **실패 시 응답**
 
@@ -657,7 +582,6 @@
     ```(json)
     {
         "member_ban_reason" : 정지사유
-        "member_email" : 사용자 이메일
     }
     ```
 
@@ -948,22 +872,9 @@
 
 ---
 
-* **동작설명**
 
-    1000포인트당 1만원의 상품권으로 교환 가능</br>
-    자신의 포인트에서 
-    
-* **성공 시 응답**
 
-    * **Code:** 200 </br>
-    `{giftcard:"Success"}`
 
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{giftcard:"Error"}`
-
----
 ## 게시물 관련 API
 
 ### 문의게시판 올릴 때
@@ -1062,7 +973,6 @@
     ```(json)
     {
         "cs_answer" : 답변 내용
-        "cs_title" : 답변 제목
     }
     ```
 
@@ -1463,8 +1373,7 @@
         "contact_contents" : 문의 내용
     }
     ```
-
-
+    
 * **동작설명**
 
     contact 테이블에 값이 기록
