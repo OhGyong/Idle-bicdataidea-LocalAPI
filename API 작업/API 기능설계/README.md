@@ -641,6 +641,14 @@
 
     [GET]] http://{IP}:{PORT}/idle/admins/member-list?검색어
 
+* **PARAM**
+
+    ```(json)
+    {
+        "member_inform" : 회원 이메일 or 이름
+    }
+    ```
+
 * **동작설명**
 
     사용자 이메일 or 이름 (둘 중 하나)을 검색하면 해당 member 테이블에서 해당 사용자를 표시
@@ -687,11 +695,33 @@
 
 ---
 
-### 회원 로그 조회
+### 회원 로그 화면
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/member-log
+    [GET] http://{IP}:{PORT}/idle/admins/log/member
+
+* **동작설명**
+
+    member_log 테이블에서 사용자 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_log:"Error"}` 
+
+---
+
+### 회원 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/log/member?검색어
 
 * **PARAM**
     ```(json)
@@ -707,20 +737,42 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_log}:"Success"}`
+    `{member_log_search}:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_log:"Error"}` 
+    `{member_log_search:"Error"}` 
 
 ---
 
-### 관리자 로그 조회
+### 관리자 로그 화면
 
 * **URL**
 
     [GET] http://{IP}:{PORT}/idle/admins/admin-log
+
+* **동작설명**
+
+    admin_log 테이블에서 사용자 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_log:"Error"}` 
+
+---
+
+### 관리자 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/admin-log?검색어
 
 * **PARAM**
 
@@ -737,12 +789,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{admin_log}:"Success"}`
+    `{admin_log_search}:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{admin_log:"Error"}` 
+    `{admin_log_search:"Error"}` 
 
 ---
 
