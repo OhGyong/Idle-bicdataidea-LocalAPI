@@ -58,22 +58,19 @@
 
 * **동작설명**
 
-    member 테이블에서 동일 이메일가 있는지, 파라미터에 null 값이 있는지 확인 후, 없으면 member 테이블에 추가한다.
+    member 테이블에서 동일 이메일이 있는지, 이메일 인즘검사를 했는지, 파라미터에 null 값이 있는지 확인 후 문제가 없으면 member 테이블에 추가한다.
 
-    회원가입 시간은 member_log 테이블에 추가
+    회원가입 시간은 member_log, member_login_log 테이블에 추가
 
 * **성공시 응답**
 
     * **Code:** 200 </br>
-    `{member_login_result:"회원가입에 성공하셨습니다."}`
+    `{member_login_result:"Success"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_login_result:"동일한 이메일이 있습니다. "}`    
-        OR</br>
-    `{member_login_result:"빈 항목이 있습니다."}`
-
+    `{member_login_result:"Error"}`    
 
 ---
 
@@ -81,7 +78,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/members/has-same-id
+    [GET] http://{IP}:{PORT}/idle/members/has-same-email
 
 * **PARAM**
     ```(json)
@@ -92,21 +89,19 @@
 
 * **동작설명**
 
-    member 테이블에서 사용자 이메일을 조회하여 입력한 이메일과 비교하여 동일한 이메일이 있는지 확인한다.
-
-    email_auth 테이블에서 해시키 값을 생성해서 `idle/email_check/해시키` url을 해당 이메일로 전송한다.
-
+    member 테이블에서 사용자 이메일을 조회하여 입력한 이메일과 비교하여 동일한 이메일이 있는지 확인한다. </br>
+    email_auth 테이블에서 해시키 값을 생성해서 `idle/email_check/해시키` url을 해당 이메일로 전송한다. </br>
     전송한 다음 유효기간을 설정하여 재설정이 되면 값을 1로 바꾸고 기간이 지나면 폐기처리하여 값을 1로 바꾼다.
 
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_has_same_id:"Success"}`
+    `{member_has_same_email:"Success"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_has_same_id:"Error"}`
+    `{member_has_same_email:"Error"}`
 
 ---
 
@@ -114,11 +109,12 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/email-check/해시키
+    [POST] http://{IP}:{PORT}/idle/sign-up/email-check/해시키
 
 * **동작설명**
 
-    수신 이메일을 받아서 이메일 입력칸에 넣어준다.
+    수신 이메일을 받아서 이메일 입력칸에 넣어준다. </br>
+    (기존에 입력한 이메일이 겹쳐서 써질 수 있기 때문에 텍스트를 한번 지우고 넣는다.)
 
 * **성공시 응답**
 
@@ -132,40 +128,11 @@
 
 ---
 
-### 회원 비밀번호 재확인 
-
-* **URL**
-
-    [POST] http://{IP}:{PORT}/idle/members/check-password
-
-* **PARM**
-
-    ```(json)
-    {
-        "member_pw" : 사용자 비밀번호
-    }
-    ``` ㅡ
-
-* **동작설명**
-
-    비밀번호 입력시 member 테이블에서 비밀번호가 일치하는지 확인
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{check_password}:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{check_password:"Error"}`
-
----
-
 ### 회원 비밀번호 찾기
 
 * **URL**
 
-[POST] http://{IP}:{PORT}/idle/find-password
+    [GET] http://{IP}:{PORT}/idle/find-password
 
 * **PARM**
 
@@ -216,14 +183,42 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_rest_password:"비밀번호가 변경되었습니다."}`
+    `{member_rest_password:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_rest_password:"비밀번호는 필수입니다."}`
-    </br>OR</br>
-    `{member_rest_password:"잘못된 접근입니다."}`
+    `{member_rest_password:"Error"}`
+
+---
+
+### 회원 비밀번호 재확인 (회원정보수정 전)
+
+* **URL**
+
+    [POST] http://{IP}:{PORT}/idle/update/check-password
+
+* **PARM**
+
+    ```(json)
+    {
+        "member_pw" : 사용자 비밀번호
+    }
+    ``` 
+
+* **동작설명**
+
+    비밀번호 입력시 member 테이블에서 비밀번호가 일치하는지 확인
+    
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{check_password}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{check_password:"Error"}`
 
 ---
 
@@ -231,7 +226,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/members/update
+    [PUT] http://{IP}:{PORT}/idle/members/update
 
 * **PARAM**
     ```(json)
@@ -267,7 +262,7 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/members/sign-out
+    [DELETE] http://{IP}:{PORT}/idle/sign-out
 
 * **동작설명**
     
@@ -276,12 +271,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_sign_out:"정상적으로 계정이 삭제되었습니다."}`
+    `{member_sign_out:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_sign_out:"회원탈퇴에 실패하였습니다."}`
+    `{member_sign_out:"Error"}`
 
 ---
 
@@ -308,14 +303,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_signin:"정상적으로 로그인되었습니다."}`
+    `{member_signin:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_signin:"비밀번호가 일치하지 않습니다."}`
-    </br>OR</br>
-    `{member_signin:"정지중인 계정입니다."}`
+    `{member_signin:"Error"}`
 
 ---
 
@@ -324,6 +317,8 @@
 * **URL**
 
     [POST]]] http://{IP}:{PORT}/idle/logout
+    </br>OR</br>
+    [DELETE]]] http://{IP}:{PORT}/idle/logout
 
 * **동작설명**
 
@@ -438,6 +433,10 @@
     `{rank:"Error"}`
 
 ---
+
+
+
+
 ## 관리자 관련 API
 
 ### 관리자 가입
@@ -856,6 +855,7 @@
 * **URL**
 
     [PUT] http://{IP}:{PORT}/idle/admin/anno-log
+
 * **PARAM**
     ```(json)
     {
@@ -881,35 +881,36 @@
 
 ## 포인트 관련 API
 
-### 관리자의 포인트 부여
+### 관리자의 포인트 부여 및 회수
 
 * **URL**
 
-    [PUT]] http://{IP}:{PORT}/idle/admin/give-point
+    [PUT]] http://{IP}:{PORT}/idle/admin/point-process
 
 * **PARAM**
 
     ```(json)
     {
-        "add_point" : 얻은 포인트
+        "admin_point" : 포인트 점수
     }
     ```
 
 * **동작설명**
 
-    관리자가 아이디어를 보고 포인트를 부여하여 idea 테이블에 파라미터 값 추가.
-
-    포인트가 추가되면 member 테이블의 사용자 포인트, 누적 포인트도 추가.
-
+    관리자가 아이디어를 보고 포인트를 부여하거나 회수한다. </br>
+    idea 테이블에서 </br>
+    `사용자 포인트=사용자 포인트+admin_point`
+    `누적 포인트=누적 포인트+admin_point` 기록된다. </br>
+    
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{give_point:"? 포인트를 주었습니다."}`
+    `{point_process:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{give_point:"포인트 지급에 실패하였습니다."}`
+    `{point_process:"Error"}`
 
 ---
 
@@ -917,7 +918,7 @@
 
 * **URL**
 
-    [PUT]] http://{IP}:{PORT}/idle/members/use-point
+    [PUT]] http://{IP}:{PORT}/idle/use-point
 
 * **PARAM**
 
@@ -929,24 +930,40 @@
 
 * **동작설명**
 
-    회원이 포인트를 사용하면 member 테이블에 사용한 포인트가 기록.
-    </br>point 테이블은 .....
-
+    1000포인트 당 상품권 1만원으로 변경 가능 </br>
+    회원이 포인트를 입력하면 member 테이블에서 </br>
+    `사용자 포인트=사용자 포인트-사용 포인트`
+    `사용 포인트=사용 포인트+사용 포인트(PARAM)` 기록된다. </br>
+    point 테이블에서는 사용 날짜와 내역이 기록
+    
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{give_point:"? 포인트를 사용하였습니다."}`
+    `{use-point:"? 포인트를 사용하였습니다."}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{give_point:"포인트 사용에 실패하였습니다."}`
+    `{use-point:"포인트 사용에 실패하였습니다."}`
 
 ---
 
+* **동작설명**
 
+    1000포인트당 1만원의 상품권으로 교환 가능</br>
+    자신의 포인트에서 
+    
+* **성공 시 응답**
 
+    * **Code:** 200 </br>
+    `{giftcard:"Success"}`
 
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{giftcard:"Error"}`
+
+---
 ## 게시물 관련 API
 
 ### 문의게시판 올릴 때
@@ -1332,6 +1349,10 @@
 * **동작설명**
 
     회원이 아이디어를 올리면 idea 테이블에 기록
+
+    일괄적으로 500p를 받아서 얻은 포인트와 적립 날짜에 기록
+
+    member 테이블의 사용자 포인트, 누적포인트에도 기록
 
 * **성공 시 응답**
 
