@@ -74,7 +74,7 @@
 
 ---
 
-### 회원동일 이메일 확인
+### 회원 동일한 이메일 있는지 확인
 
 * **URL**
 
@@ -91,15 +91,172 @@
 
     member 테이블에서 사용자 이메일을 조회하여 입력한 이메일과 비교하여 동일한 이메일이 있는지 확인한다.
 
+    email_auth 테이블에서 해시키 값을 생성해서 `idle/email_check/해시키` url을 해당 이메일로 전송한다.
+
+    전송한 다음 유효기간을 설정하여 재설정이 되면 값을 1로 바꾸고 기간이 지나면 폐기처리하여 값을 1로 바꾼다.
+
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_has_same_id:"동일한 이메일이 있습니다."}`
+    `{member_has_same_id:"Success"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_has_same_id:"중복되는 이메일이 없습니다."}`
+    `{member_has_same_id:"Error"}`
+
+---
+
+### 회원 이메일 인증
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/email-check/해시키
+
+* **동작설명**
+
+    수신 이메일을 받아서 이메일 입력칸에 넣어준다.
+
+* **성공시 응답**
+
+     * **Code:** 200 </br>
+    `{email_check:"Success"}`
+
+* **실패시 응답**
+
+    * **Code:** 400 </br>
+    `{email_check:"Error"}`
+
+---
+
+### 회원 비밀번호 재확인 
+
+* **URL**
+
+    [POST] http://{IP}:{PORT}/idle/members/check-password
+
+* **PARM**
+
+    ```(json)
+    {
+        "member_pw" : 사용자 비밀번호
+    }
+    ``` ㅡ
+
+* **동작설명**
+
+    비밀번호 입력시 member 테이블에서 비밀번호가 일치하는지 확인
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{check_password}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{check_password:"Error"}`
+
+---
+
+### 회원 비밀번호 찾기
+
+* **URL**
+
+[POST] http://{IP}:{PORT}/idle/find-password
+
+* **PARM**
+
+    ```(json)
+    {
+        "member_id" : 사용자 이메일
+    }
+    ``` ㅡ
+
+* **동작설명**
+
+    사용자 이메일을 입력하고 비밀번호 찾기를 누르면 member 테이블에서 일치하는 이메일이 있는지 조회한다.
+
+    pw_find 테이블에서 비밀번호 키 값을 생성하여 `idle/reset_password/해시키` url을 해당 이메일로 전송한다.
+
+    전송한 다음 유효기간을 설정하여 재설정이 되면 값을 1로 바꾸고 기간이 지나면 폐기처리하여 값을 1로 바꾼다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{find_password}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{find_password:"Error"}`
+
+---
+
+### 회원 비밀번호 재설정
+
+* **URL**
+
+    [PUT]] http://{IP}:{PORT}/idle/reset-password/해시키
+
+* **PARAM**
+
+    ```(json)
+    {
+        "member_pw" : 사용자 비밀번호
+    }
+    ```
+
+* **동작설명**
+
+    새 비밀번호를 입력하면 member 테이블의 member_pw 값을 입력한 값으로 변경한다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_rest_password:"비밀번호가 변경되었습니다."}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_rest_password:"비밀번호는 필수입니다."}`
+    </br>OR</br>
+    `{member_rest_password:"잘못된 접근입니다."}`
+
+---
+
+### 회원정보 수정
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/members/update
+
+* **PARAM**
+    ```(json)
+    {
+        "member_email" : 사용자 이메일,
+        "member_name" : 사용자 이름,
+        "member_pw" : 사용자 비밀번호,
+        "member_sex" : 사용자 성별,
+        "member_birth" : 사용자 생년월일,
+        "member_phone" : 사용자 핸드폰번호
+        "member_company" : 사용자 소속,
+        "member_state" : 사용자 거주지
+    }
+    ```
+
+* **동작설명**
+
+    회원정보수정창에서 입력받은 값으로 member 테이블의 값을 수정한다.
+
+* **성공시 응답**
+
+     * **Code:** 200 </br>
+    `{member_update}:"Success"}`
+
+* **실패시 응답**
+
+    * **Code:** 400 </br>
+    `{member_update:"Error"}`
 
 ---
 
@@ -181,70 +338,6 @@
 
 ---
 
-### 회원 비밀번호 찾기
-
-* **URL**
-
-    [GET]] http://{IP}:{PORT}/idle/findpassword
-
-* **PARAM**
-
-    ```(json)
-    {
-        "member_email" : 사용자 이메일
-    }
-    ```
-
-* **동작설명**
-
-    이메일을 작성해서 보내면 member 테이블에서 해당 이메일을 조회하여 일치하는지 확인하고 일치하는 이메일이 있으면 메일 전송
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_find_password}:"이메일을 보냈습니다."}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_find_password:"이메일을 입력하세요."}`
-    </br>OR</br>
-    `{member_find_password:"해당 이메일이 없습니다."}`
-
----
-
-### 회원 비밀번호 재설정
-
-* **URL**
-
-    [PUT]] http://{IP}:{PORT}/idle/reset-password
-
-* **PARAM**
-
-    ```(json)
-    {
-        "member_pw" : 사용자 비밀번호
-    }
-    ```
-
-* **동작설명**
-
-    새 비밀번호를 입력하면 member 테이블의 member_pw 값을 입력한 값으로 변경한다.
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_rest_password:"비밀번호가 변경되었습니다."}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_rest_password:"비밀번호는 필수입니다."}`
-    </br>OR</br>
-    `{member_rest_password:"잘못된 접근입니다."}`
-
----
-
 ### 회원가입 전 이용약관 동의
 
 * **URL**
@@ -299,23 +392,15 @@
 
 ---
 
-### 관심사업
+### 내 아이디어
 
 * **URL**
 
-[POST] http://{IP}:{PORT}/idle/members/marked
-
-* **PARM**
-
-    ```(json)
-    {
-        "member_rank" : 포인트 순위
-    }
-    ``` ㅡ
+[POST] http://{IP}:{PORT}/idle/members/idea
 
 * **동작설명**
 
-    공고정보게시판에서 즐겨찾기를 누르면 
+    idea 테이블에서 현재 로그인한 이메일과 일치하는 이메일을 찾아서 아이디어 리스트들을 내보냄
 
 * **성공 시 응답**
 
@@ -329,8 +414,27 @@
 
 ---
 
+### 관심사업
 
+* **URL**
 
+[POST] http://{IP}:{PORT}/idle/members/marked
+
+* **동작설명**
+
+    공고정보게시판에서 즐겨찾기를 눌러서 추가한 게시물들을 inter_anno 테이블에서 가져온다. 
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{rank:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{rank:"Error"}`
+
+---
 ## 관리자 관련 API
 
 ### 관리자 가입
@@ -571,11 +675,206 @@
     * **Code:** 400 </br>
     `{member_ban:"회원정지에 실패하였습니다."}`
 
+---
+
+### 회원 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/member-log
+
+* **PARAM**
+    ```(json)
+    {
+        "member_email" : 사용자 이메일
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 사용자 이메일을 입력하면 member_log 테이블에서 일치하는 아이디를 찾아서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_log:"Error"}` 
 
 ---
 
+### 관리자 로그 조회
 
+* **URL**
 
+    [PUT] http://{IP}:{PORT}/idle/admin/admin-log
+
+* **PARAM**
+    ```(json)
+    {
+        "admin_email" : 사용자 이메일
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 관리자 이메일을 입력하면 admin_log 테이블에서 일치하는 아이디를 찾아서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_log:"Error"}` 
+
+---
+
+### 문의게시판 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/cs-log
+
+* **PARAM**
+    ```(json)
+    {
+        "cs_id" : 문의글 번호
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 문의글 번호를 입력하면 cs_log 테이블을 조회해서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{cs_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{cs_log:"Error"}` 
+
+---
+
+### 공지사항 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/notice-log
+* **PARAM**
+    ```(json)
+    {
+        "notice_id" : 공지사항 번호
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공지사항 번호를 입력하면 notice_log 테이블을 조회해서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_log:"Error"}` 
+
+---
+
+### 고객센터 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/contact-log
+* **PARAM**
+    ```(json)
+    {
+        "contact_id" : 고객센터 문의글 번호
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 고객센터 번호를 입력하면 contact_log 테이블을 조회해서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{contact_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{contact_log:"Error"}` 
+
+---
+
+### 아이디어 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/idea-log
+* **PARAM**
+    ```(json)
+    {
+        "idea_id" : 아이디어 번호
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 아이디어 번호를 입력하면 idea_log 테이블을 조회해서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log:"Error"}` 
+
+---
+
+### 공고정보 로그 조회
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admin/anno-log
+* **PARAM**
+    ```(json)
+    {
+        "anno_id" : 공고 번호
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공고 번호를 입력하면 anno_id 테이블을 조회해서 테이블의 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_id}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_id:"Error"}` 
+
+---
 
 ## 포인트 관련 API
 
