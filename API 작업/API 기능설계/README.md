@@ -904,7 +904,7 @@
 
 ---
 
-### 회원이 포인트 사용할 때
+### 회원 포인트 사용
 
 * **URL**
 
@@ -943,7 +943,7 @@
 
 ## 회원 관점 게시물 관련 API
 
-### 공고정보 게시판 화면
+### 공고정보 게시판 목록
 
 * **URL**
 
@@ -951,17 +951,18 @@
 
 * **동작설명**
 
-    공고정보 게시판으로 가는 버튼을 클릭하면 anno 테이블에서 게시물들을 가져옴
+    공고정보 게시판으로 가는 버튼을 클릭하면 anno 테이블에서 게시물들을 가져옴 </br>
+    단, anno_log 테이블에서 삭제 여부가 1인 게시물은 목록에 보이지 않음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{announcement:"Success"}`
+    `{member_announcement:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{announcement:"Error"}`
+    `{member_announcement:"Error"}`
 
 ---
 
@@ -978,12 +979,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_look:"Success"}`
+    `{member_anno_look:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_look:"Error"}`
+    `{member_anno_look:"Error"}`
 
 ---
 
@@ -1000,12 +1001,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_link:"Success"}`
+    `{member_anno_link:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_link:"Error"}`
+    `{member_anno_link:"Error"}`
 
 ---
 
@@ -1022,16 +1023,16 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_search:"Success"}`
+    `{member_anno_search:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_search:"Error"}`
+    `{member_anno_search:"Error"}`
 
 ---
 
-### 공지사항 화면
+### 공지사항 목록
 
 * **URL**
 
@@ -1039,17 +1040,18 @@
 
 * **동작설명**
 
-    공지사항으로 가는 버튼을 클릭하면 notice 테이블에서 게시물들을 가져옴
+    공지사항으로 가는 버튼을 클릭하면 notice 테이블에서 게시물들을 가져옴 </br>
+    단, notice_log 테이블에서 삭제 여부가 1인 게시물은 목록에 보이지 않음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{notice:"Success"}`
+    `{member_notice:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{notice:"Error"}`
+    `{member_notice:"Error"}`
 
 ---
 
@@ -1066,12 +1068,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{notice_look:"Success"}`
+    `{member_notice_look:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{notice_look:"Error"}`
+    `{member_notice_look:"Error"}`
 
 ---
 
@@ -1088,12 +1090,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{notice_search:"Success"}`
+    `{member_notice_search:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{notice_search:"Error"}`
+    `{member_notice_search:"Error"}`
 
 ---
 
@@ -1110,16 +1112,16 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{notice_download:"Success"}`
+    `{member_notice_download:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{notice_download:"Error"}`
+    `{member_notice_download:"Error"}`
 
 ---
 
-### 문의게시판 화면
+### 문의게시판 목록
 
 * **URL**
 
@@ -1127,17 +1129,18 @@
 
 * **동작설명**
 
-    문의게시판으로 가는 버튼을 클릭하면 cs 테이블에서 게시물들을 가져옴
+    문의게시판으로 가는 버튼을 클릭하면 cs 테이블에서 게시물들을 가져옴 </br>
+    단, cs_log 테이블에서 문의글 삭제 여부가 1인 게시물은 목록에 보이지 않음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs:"Success"}`
+    `{member_cs:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs:"Error"}`
+    `{member_cs:"Error"}`
 
 ---
 
@@ -1155,12 +1158,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_look:"Success"}`
+    `{member_cs_look:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs_look:"Error"}`
+    `{member_cs_look:"Error"}`
 
 ---
 
@@ -1172,22 +1175,22 @@
 
 * **동작설명**
 
-    사용자가 단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열
+    사용자가 단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열 </br>
     단, 비밀이라고 치면 비밀글이여도 검색어에 나오지 않음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_search:"Success"}`
+    `{member_cs_search:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs_search:"Error"}`
+    `{member_cs_search:"Error"}`
 
 ---
 
-### 문의게시판 올릴 때
+### 문의게시판 게시물 업로드
 
 * **URL**
 
@@ -1207,7 +1210,7 @@
 * **동작설명**
 
     회원이 문의게시판을 올리면 내용, 제목, 비밀글 여부가 cs 테이블에 추가되고 첨부파일은 cs_file_dir에 기록 </br>
-    비밀글이 체크되면 제목에 [비밀] 이 붙음
+    비밀글이 체크되면 제목에 [비밀글] 이 붙음
 
 * **성공 시 응답**
 
@@ -1221,7 +1224,29 @@
 
 ---
 
-### 문의게시판 수정할 때
+### 문의게시판 게시물 첨부파일 다운로드
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/board/cs/download
+
+* **동작설명**
+
+    첨부파일을 클릭하면 cs_file_dir 테이블에서 첨부파일 경로를 찾아서 다운로드
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_cs_download:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_cs_download:"Error"}`
+
+---
+
+### 문의게시판 게시물 수정
 
 * **URL**
 
@@ -1255,88 +1280,58 @@
 
 ---   
 
-### 문의게시판 열어 볼 때
+### 아이디어 플랫폼 목록
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/cs
+    [GET] http://{IP}:{PORT}/idle/board/idea
 
 * **동작설명**
 
-    게시물의 제목 부분을 클릭
+    아이디어 플랫폼으로 가는 버튼을 클릭하면 idea 테이블에서 게시물들을 가져옴 </br>
+    게시물 제목에 *** 보호 처리 </br>
+    단, idea_log 테이블에서 아이디어 삭제 여부가 1인 게시물은 목록에 보이지 않음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs:"Success"}`
+    `{member_idea:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs:"Error"}`
+    `{member_idea:"Error"}`
 
 ---
 
-### 문의게시판 답변하기
+### 아이디어 플랫폼 게시물 보기
 
 * **URL**
 
-    [POST]] http://{IP}:{PORT}/idle/board/cs/answer
-
-* **PARAM**
-
-    ```(json)
-    {
-        "cs_title" : 답변 제목
-        "cs_answer" : 답변 내용
-        "cs_file_dir" : 첨부파일
-    }
-    ```
+    [GET] http://{IP}:{PORT}/idle/board/idea/게시물 번호
 
 * **동작설명**
 
-    관리자가 문의글에 답변을 하면 내용과 제목이 idea 테이블에 기록</br>
-    (회원과 관리자의 세션이 다르기 때문에 제목을 db에서 불러와야함)
+    게시물을 클릭하면 idea 테이블에서 해당 게시물 정보를 가져와서 열어줌 </br>
+    단, 본인이 작성한 게시물만 볼 수 있음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_answer:"Success"}`
+    `{menber_idea_look:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{cs_answer:"Error"}`
+    `{menber_idea_look:"Error"}`
 
 ---
 
-### 문의게시판 삭제
-
-* **URL**
-
-    [DELETE] http://{IP}:{PORT}/idle/board/cs/delete
-
-* **동작설명**
-
-    관리자가 게시물을 삭제하면 cs_log 테이블의 삭제 여부 값을 1로 변경
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{cs_delete:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{cs_delete:"Error"}`
-
----
-
-### 아이디어 올리기
+### 아이디어 플랫폼 게시물 업로드
 
  * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/idea/write
+    [POST] http://{IP}:{PORT}/idle/board/idea/write
 
 * **PARAM**
 
@@ -1357,7 +1352,7 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{idea_write}:"Success"}`
+    `{idea_write:"Success"}`
 
 * **실패 시 응답**
 
@@ -1366,7 +1361,7 @@
 
 ---
 
-### 아이디어 수정할 때
+### 아이디어 플랫폼 게시물 수정
 
 * **URL**
 
@@ -1397,39 +1392,181 @@
 
 ---   
 
-### 아이디어 열어 볼 때
+
+
+
+## 관리자 관점 게시물 관련 API
+
+### 공고정보 게시판 목록
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/idea
-
+    [GET] http://{IP}:{PORT}/idle/admins/board/announcement
 
 * **동작설명**
 
-    게시물을 클릭
+    공고정보 게시판으로 가는 버튼을 클릭하면 anno 테이블에서 게시물들을 가져옴 </br>
+    회원 목록과 달리 삭제여부(y/n)를 표시하여 모든 게시물을 볼 수 있음
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno:"Success"}`
+    `{admin_announcement:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno:"Error"}`
+    `{admin_announcement:"Error"}`
 
 ---
 
-### 아이디어 삭제
+### 공고정보 게시물 보기
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/board/idea/delete
+    [GET] http://{IP}:{PORT}/idle/admins/board/announcement/anno-look
 
 * **동작설명**
 
-    관리자 또는 회원이 게시물을 삭제하면 idea_log 테이블의 삭제 여부 값을 1로 변경
+    공고정보 게시물을 클릭하면 anno 테이블에서 공고내용을 펼침
 
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_anno_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_anno_look:"Error"}`
+
+---
+
+### 공고정보 게시판 출처 링크 바로가기
+
+* **URL**
+
+    [GET]] http://{IP}:{PORT}/idle/admins/board/announcement/anno-link
+
+* **동작설명**
+
+    출처 링크 바로가기를 누르면 anno 테이블에서 anno_link를 불러와서 해당 링크로 이동
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_anno_link:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_anno_link:"Error"}`
+
+---
+
+### 공고정보 게시판 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/announcement?검색어
+
+* **동작설명**
+
+    단어를 입력하면 anno 테이블에서 해당 제목이 들어간 게시물들을 나열
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_anno_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_anno_search:"Error"}`
+
+---
+
+### 공고정보 게시판 게시물 업로드
+
+* **URL**
+
+    [POST] http://{IP}:{PORT}/idle/admins/board/anno/write
+
+* **PARAM**
+
+    ```(json)
+    {
+        "anno_title" : 공고 제목
+        "anno_contents" : 공고 내용
+        "anno_link" : 공고 출처 링크
+        "anno_ref" : 공고 출처
+        "anno_img_path" : 공고 내용 이미지 경로
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공지사항을 올리면 anno 테이블에 기록</br>
+    이미지는 anno_img_dir에 기록
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_write:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_write:"Error"}`
+
+---
+
+### 공고정보게시판 게시물 수정할 때
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/admins/board/anno/udpate
+
+* **PARAM**
+
+    ```(json)
+    {
+        "update_anno_title" : 수정한 공고글 제목
+        "update_anno_contents" : 수정한 공고글 내용
+        "update_anno_link" : 수정한 공고 출처 링크
+        "update_anno_ref" : 수정한 공고 출처
+        "update_anno_img_path" : 수정한 공고 내용 이미지 경로
+
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공고정보게시물을 수정하면 수정한 제목, 내용, 링크, 출처, 이미지가 anno 테이블에서 변경됨 </br>
+    수정전의 내용은 anno_log 테이블에 기록
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_update:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_update:"Error"}`
+
+---   
+
+### 공고정보게시판 게시물 삭제
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/idle/admins/board/anno/delete
+
+* **동작설명**
+
+    관리자가 게시물을 삭제하면 anno_log 테이블의 삭제 여부를 1로 변경</br>
+    
 * **성공 시 응답**
 
     * **Code:** 200 </br>
@@ -1442,15 +1579,100 @@
 
 ---
 
-
-
-## 관리자 관점 게시물 관련 API
-
-### 공지사항 올리기
+### 공지사항 목록
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/idle/board/notice/write
+    [GET] http://{IP}:{PORT}/idle/admins/board/notice
+
+* **동작설명**
+
+    공지사항으로 가는 버튼을 클릭하면 notice 테이블에서 게시물들을 가져옴 </br>
+    회원 목록과 달리 삭제여부(y/n)를 표시하여 모든 게시물을 볼 수 있음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_notice:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_notice:"Error"}`
+
+---
+
+### 공지사항 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/notice/게시물 번호
+
+* **동작설명**
+
+    게시물을 클릭하면 notice 테이블에서 해당 게시물 정보를 가져와서 열어줌
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_notice_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_notice_look:"Error"}`
+
+---
+
+### 공지사항 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/notice?검색어
+
+* **동작설명**
+
+    단어를 입력하면 notice 테이블에서 해당 제목이 들어간 게시물들을 나열
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_notice_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_notice_search:"Error"}`
+
+---
+
+### 공지사항 게시물 첨부파일 다운로드
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/notice/download
+
+* **동작설명**
+
+    첨부파일을 클릭하면 notice_file_dir 테이블에서 첨부파일 경로를 찾아서 다운로드
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_notice_download:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_notice_download:"Error"}`
+
+---
+
+### 공지사항 업로드
+
+* **URL**
+
+    [POST] http://{IP}:{PORT}/idle/admins/board/notice/write
 
 * **PARAM**
 
@@ -1483,7 +1705,7 @@
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/board/notice/udpate
+    [PUT] http://{IP}:{PORT}/idle/admins/board/notice/udpate
 
 * **PARAM**
 
@@ -1497,8 +1719,7 @@
 
 * **동작설명**
 
-    관리자가 공지사항을 수정하면 수정한 내용과 제목이 notice 테이블에 기록
-
+    관리자가 공지사항을 수정하면 수정한 내용과 제목이 notice 테이블에 기록 </br>
     수정전의 내용과 날짜는 notice_log 테이블에 기록
 
 * **성공 시 응답**
@@ -1513,33 +1734,11 @@
 
 ---
 
-### 공지사항 열어 볼 때
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/notice
-
-* **동작설명**
-
-    게시물의 제목 부분을 클릭
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{notice:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{notice:"Error"}`
-
----
-
 ### 공지사항 삭제
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/board/notice/delete
+    [DELETE] http://{IP}:{PORT}/idle/admins/board/notice/delete
 
 * **동작설명**
 
@@ -1557,109 +1756,207 @@
 
 ---
 
-### 공고정보게시판 올리기
+### 문의게시판 목록
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/idle/board/anno/write
+    [GET] http://{IP}:{PORT}/idle/admins/board/cs
+
+* **동작설명**
+
+    문의게시판으로 가는 버튼을 클릭하면 cs 테이블에서 게시물들을 가져옴 </br>
+    회원 목록과 달리 삭제여부(y/n)를 표시하여 모든 게시물을 볼 수 있음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_cs:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_cs:"Error"}`
+
+---
+
+### 문의게시판 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/cs/게시물 번호
+
+* **동작설명**
+
+    게시물을 클릭하면 cs 테이블에서 해당 게시물 정보를 가져와서 열어줌 </br>
+    비밀글 상관없이 모든 게시물 볼 수 있음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_cs_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_cs_look:"Error"}`
+
+---
+
+### 문의게시판 게시물 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/cs?검색어
+
+* **동작설명**
+
+    단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열 </br>
+    단, 비밀이라고 치면 비밀글이여도 검색어에 나오지 않음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_cs_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_cs_search:"Error"}`
+
+---
+
+### 문의게시판 게시물 첨부파일 다운로드
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/cs/download
+
+* **동작설명**
+
+    첨부파일을 클릭하면 cs_file_dir 테이블에서 첨부파일 경로를 찾아서 다운로드
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_cs_download:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_cs_download:"Error"}`
+
+---
+
+### 문의게시판 답변하기
+
+* **URL**
+
+    [POST]] http://{IP}:{PORT}/idle/admins/board/cs/answer
 
 * **PARAM**
 
     ```(json)
     {
-        "anno_title" : 공고 제목
-        "anno_contents" : 공고 내용
-        "anno_link" : 공고 출처 링크
-        "anno_ref" : 공고 출처
-        "anno_img_path" : 공고 내용 이미지 경로
+        "cs_title" : 답변 제목
+        "cs_answer" : 답변 내용
+        "cs_file_dir" : 첨부파일
     }
     ```
 
 * **동작설명**
 
-    관리자가 공지사항을 올리면 anno 테이블에 기록</br>
-    이미지는 anno_img_dir에 기록
+    관리자가 문의글에 답변을 하면 내용과 제목이 idea 테이블에 기록</br>
+    (회원과 관리자의 세션이 다르기 때문에 제목을 db에서 불러와야함)
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_write:"Success"}`
+    `{cs_answer:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_write:"Error"}`
+    `{cs_answer:"Error"}`
 
 ---
 
-### 공고정보게시판 수정할 때
+### 문의게시판 삭제
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/board/anno/udpate
-
-* **PARAM**
-
-    ```(json)
-    {
-        "update_anno_title" : 수정한 공고글 제목
-        "update_anno_contents" : 수정한 공고글 내용
-        "update_anno_link" : 수정한 공고 출처 링크
-        "update_anno_ref" : 수정한 공고 출처
-        "update_anno_img_path" : 수정한 공고 내용 이미지 경로
-
-    }
-    ```
+    [DELETE] http://{IP}:{PORT}/idle/admins/board/cs/delete
 
 * **동작설명**
 
-    관리자가 공고정보게시물을 수정하면 수정한 제목, 내용, 링크, 출처, 이미지가 anno 테이블에서 변경됨 </br>
-    수정전의 내용은 anno_log 테이블에 기록
+    관리자가 게시물을 삭제하면 cs_log 테이블의 삭제 여부 값을 1로 변경
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{anno_update:"Success"}`
+    `{cs_delete:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{anno_update:"Error"}`
-
----   
-
-### 공고정보게시판 열어 볼 때
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/anno
-
-
-* **동작설명**
-
-    게시물을 클릭
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno:"Success."}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno:"Error."}`
+    `{cs_delete:"Error"}`
 
 ---
 
-### 공고정보게시판 삭제
+### 아이디어 플랫폼 목록
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/board/anno/delete
+    [GET] http://{IP}:{PORT}/idle/admins/board/idea
 
 * **동작설명**
 
-    관리자가 게시물을 삭제하면 anno_log 테이블의 삭제 여부를 1로 변경
+    아이디어 플랫폼으로 가는 버튼을 클릭하면 idea 테이블에서 게시물들을 가져옴 </br>
+    게시물 제목에 *** 보호처리 없음 </br>
+    회원 목록과 달리 삭제여부(y/n)를 표시하여 모든 게시물을 볼 수 있음
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_idea:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_idea:"Error"}`
+
+---
+
+### 아이디어 플랫폼 게시물 보기
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/board/idea/게시물 번호
+
+* **동작설명**
+
+    게시물을 클릭하면 idea 테이블에서 해당 게시물 정보를 가져와서 열어줌
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_idea_look:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_idea_look:"Error"}`
+
+---
+
+### 아이디어 플랫폼 게시물 삭제
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/idle/admins/board/idea/delete
+
+* **동작설명**
+
+    관리자가 삭제하면 idea_log 테이블의 삭제 여부 값을 1로 변경
 
 * **성공 시 응답**
 
@@ -1672,7 +1969,6 @@
     `{anno_delete:"Error"}`
 
 ---
-
 ---
 
 
@@ -1680,7 +1976,7 @@
 
 ## 고객센터 API
 
-### 고객센터 내용 작성하기
+### 고객센터 화면(내용 작성하기)
 
 * **URL**
 
@@ -1700,6 +1996,7 @@
 
     contact 테이블에 값이 기록</br>
     만약 로그인 되어있으면 해당 이메일을 기입</br>
+    제목과 내용에 글을 작성하고 완료를 누르면 관리자에게 메일 전송
 
 * **성공 시 응답**
 
