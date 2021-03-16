@@ -45,7 +45,7 @@
 
 * **동작설명**
 
-    이용약관 동의 시 다음페이지로 이동
+    이용약관에서 `[선택]`에 관한 정보를 확인을 눌렀을 때(누르면 1) 그 정보를 파라미터로 넘겨줘서 member 테이블에 기록
 
 * **성공 시 응답**
 
@@ -293,7 +293,7 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/member-delete
+    [DELETE] http://{IP}:{PORT}/idle/member-secede
 
 * **동작설명**
     
@@ -302,12 +302,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_delete:"Success"}`
+    `{member_secede:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_delete:"Error"}`
+    `{member_secede:"Error"}`
 
 ---
 
@@ -535,7 +535,7 @@
 
 * **URL**
 
-    [DELETE] http://{IP}:{PORT}/idle/admins/admin-delete
+    [DELETE] http://{IP}:{PORT}/idle/admins/admin-secede
 
 * **동작설명**
     
@@ -545,12 +545,12 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{admin_delete:"Success"}`
+    `{admin_secede:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{admin_delete:"Error"}`
+    `{admin_secede:"Error"}`
 
 ---
 
@@ -737,7 +737,7 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_log_search}:"Success"}`
+    `{member_log_search:"Success"}`
 
 * **실패 시 응답**
 
@@ -746,6 +746,28 @@
 
 ---
 
+### 회원 로그인 로그 
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/log/member/번호
+
+* **동작설명**
+
+    회원 로그 화면에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
+
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_login_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_login_log:"Error"}` 
+
+---
 ### 관리자 로그 화면
 
 * **URL**
@@ -754,12 +776,12 @@
 
 * **동작설명**
 
-    admin_log 테이블에서 사용자 로그들을 가져옴
+    admin_log 테이블에서 관리자 로그들을 가져옴
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{admin_log}:"Success"}`
+    `{admin_log:"Success"}`
 
 * **실패 시 응답**
 
@@ -789,7 +811,7 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{admin_log_search}:"Success"}`
+    `{admin_log_search:"Success"}`
 
 * **실패 시 응답**
 
@@ -798,27 +820,20 @@
 
 ---
 
-### 문의게시판 로그 조회
+### 문의게시판 로그 화면
 
 * **URL**
 
     [GET] http://{IP}:{PORT}/idle/admins/cs-log
 
-* **PARAM**
-    ```(json)
-    {
-        "cs_id" : 문의글 번호
-    }
-    ```
-
 * **동작설명**
 
-    관리자가 문의글 번호를 입력하면 cs_log 테이블을 조회해서 테이블의 값을 보냄
+    cs_log 테이블에서 문의게시판 로그들을 가져옴
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{cs_log}:"Success"}`
+    `{cs_log:"Success"}`
 
 * **실패 시 응답**
 
@@ -827,28 +842,49 @@
 
 ---
 
-### 공지사항 로그 조회
+### 문의게시판 로그 검색
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/notice-log
+    [GET] http://{IP}:{PORT}/idle/admins/cs-log?검색어
 
 * **PARAM**
-
     ```(json)
     {
-        "notice_id" : 공지사항 번호
+        "cs_title" : 문의글 제목
     }
     ```
 
 * **동작설명**
 
-    관리자가 공지사항 번호를 입력하면 notice_log 테이블을 조회해서 테이블의 값을 보냄
+    관리자가 문의글 제목을 입력하면 cs 테이블에서 일치하는 제목을 찾고 연결된 cs_log 테이블에서 테이블의 값을 보냄
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{notice_log}:"Success"}`
+    `{cs_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{cs_log_search:"Error"}` 
+
+---
+
+### 공지사항 로그 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/notice-log
+
+* **동작설명**
+
+    notice_log 테이블에서 공지사항 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_log:"Success"}`
 
 * **실패 시 응답**
 
@@ -857,28 +893,50 @@
 
 ---
 
-### 고객센터 로그 조회
+### 공지사항 로그 검색
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/contact-log
+    [GET] http://{IP}:{PORT}/idle/admins/notice-log?검색어
 
 * **PARAM**
 
     ```(json)
     {
-        "contact_id" : 고객센터 문의글 번호
+        "notice_title" : 공지사항 제목
     }
     ```
 
 * **동작설명**
 
-    관리자가 고객센터 번호를 입력하면 contact_log 테이블을 조회해서 테이블의 값을 보냄
+    관리자가 공지사항 제목을 입력하면 notice 테이블에서 일치하는 제목을 찾고 연결된 notice_log 테이블에서 값을 보냄
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{contact_log}:"Success"}`
+    `{notice_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_log_search:"Error"}` 
+
+---
+
+### 고객센터 로그 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/contact-log
+
+* **동작설명**
+
+    contact_log 테이블에서 고객센터 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{contact_log:"Success"}`
 
 * **실패 시 응답**
 
@@ -887,27 +945,50 @@
 
 ---
 
-### 아이디어 로그 조회
+### 고객센터 로그 검색
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/idea-log
+    [GET] http://{IP}:{PORT}/idle/admins/contact-log?검색어
 
 * **PARAM**
+
     ```(json)
     {
-        "idea_id" : 아이디어 번호
+        "contact_title" : 고객센터 문의글 제목
     }
     ```
 
 * **동작설명**
 
-    관리자가 아이디어 번호를 입력하면 idea_log 테이블을 조회해서 테이블의 값을 보냄
+    관리자가 고객센터 문의글 제목을 입력하면 contact 테이블에서 일치하는 제목을 찾고 연결된 contact_log에서 값을 보냄
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{idea_log}:"Success"}`
+    `{contact_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{contact_log_search:"Error"}` 
+
+---
+
+### 아이디어 로그 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/idea-log
+
+* **동작설명**
+
+    idea_log 테이블에서 아이디어 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log:"Success"}`
 
 * **실패 시 응답**
 
@@ -916,23 +997,74 @@
 
 ---
 
-### 공고정보 로그 조회
+### 아이디어 로그 검색
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/anno-log
+    [GET] http://{IP}:{PORT}/idle/admins/idea-log?검색어
 
 * **PARAM**
-
     ```(json)
     {
-        "anno_id" : 공고 번호
+        "idea_title" : 아이디어 제목
     }
     ```
 
 * **동작설명**
 
-    관리자가 공고 번호를 입력하면 anno_id 테이블을 조회해서 테이블의 값을 보냄
+    관리자가 아이디어 제목을 입력하면 idle 테이블에서 일치하는 제목을 찾고 연결된 idea_log 테이블에서 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log_search:"Error"}` 
+
+---
+
+### 공고정보 로그 화면
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/anno-log
+
+* **동작설명**
+
+    anno_log 테이블에서 공고정보 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log:"Error"}` 
+
+---
+
+### 공고정보 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/anno-log/검색어
+
+* **PARAM**
+
+    ```(json)
+    {
+        "anno_title" : 공고 제목
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공고 제목을 입력하면 anno 테이블에서 일치하는 제목을 찾고 연결된 anno_id 테이블에서 값을 보냄
 
 * **성공 시 응답**
 
