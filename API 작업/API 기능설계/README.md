@@ -371,23 +371,66 @@
 
 * **URL**
 
-[GET] http://{IP}:{PORT}/idle/mypage/point
+[GET] http://{IP}:{PORT}/idle/mypage/point/state
 
 * **동작설명**
 
-    member 테이블에서 보유 포인트, 누적 포인트, 사용 포인트 가져오고 누적 포인트를 정렬해서 랭킹에 사용</br>
-    point 테이블에서 사용 내역, 날짜 가져오기 (포인트는 직접)</br>
+    member 테이블에서 보유 포인트, 누적 포인트, 사용 포인트 가져오고 누적 포인트를 정렬해서 랭킹에 사용
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{point_state}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{point_state:"Error"}`
+
+---
+
+### 회원 포인트 사용내역
+
+* **URL**
+
+[GET] http://{IP}:{PORT}/idle/mypage/point/use
+
+* **동작설명**
+
+    point 테이블에서 사용 내역, 날짜 가져오기 </br>
+    사용한 포인트는 ??
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{point_use:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{point_use:"Error"}`
+
+---
+
+### 회원 포인트 적립내역
+
+* **URL**
+
+[GET] http://{IP}:{PORT}/idle/mypage/point/save
+
+* **동작설명**
+
     idea 테이블에서 아이디어 제목, 얻은 포인트, 적립 날짜 가져오기
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{rank:"Success"}`
+    `{point_save:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{rank:"Error"}`
+    `{point_save:"Error"}`
 
 ---
 
