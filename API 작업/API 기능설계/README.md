@@ -41,7 +41,7 @@
 
 * **URL**
 
-[GET] http://{IP}:{PORT}/idle/signup/agree
+[POST] http://{IP}:{PORT}/idle/signup/agree
 
 * **동작설명**
 
