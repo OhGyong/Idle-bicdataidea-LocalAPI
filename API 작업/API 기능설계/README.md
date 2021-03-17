@@ -101,7 +101,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/members/has-same-email
+    [GET] http://{IP}:{PORT}/idle/has-same-email
 
 * **PARAM**
     ```(json)
@@ -257,7 +257,7 @@
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/members/update
+    [PUT] http://{IP}:{PORT}/idle/update
 
 * **PARAM**
     ```(json)
