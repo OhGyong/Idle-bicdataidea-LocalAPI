@@ -101,7 +101,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/has-same-email
+    [POST] http://{IP}:{PORT}/idle/has-same-email
 
 * **PARAM**
     ```(json)
@@ -130,7 +130,7 @@
 
 * **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/sign-up/send-email
+    [POST]] http://{IP}:{PORT}/idle/sign-up/send-email
 
 * **PARAM**
     ```(json)
@@ -161,7 +161,7 @@
 
 * **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/sign-up/check-email-num
+    [POST]] http://{IP}:{PORT}/idle/sign-up/check-email-num
 
 * **PARAM**
     ```(json)
