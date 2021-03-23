@@ -41,7 +41,7 @@
 
 * **URL**
 
-[POST] http://{IP}:{PORT}/idle/signup/agree/check
+[POST] http://{IP}:{PORT}/idle/signup/agree
 
 * **동작설명**
 
@@ -294,10 +294,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 ---
 
 ### 회원정보 수정페이지
-<<<<<<< HEAD
 
-=======
->>>>>>> d6d20ca23cb1fc068b7891d5bbc041fc6f6e0ad2
 
 * **URL**
 
@@ -824,10 +821,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 ---
 
 ### 회원 로그 페이지
-<<<<<<< HEAD
 
-=======
->>>>>>> d6d20ca23cb1fc068b7891d5bbc041fc6f6e0ad2
 
 * **URL**
 
@@ -886,12 +880,8 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **동작설명**
 
-<<<<<<< HEAD
     회원 로그 페이지
     에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
-=======
-    회원 로그 페이지에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
->>>>>>> d6d20ca23cb1fc068b7891d5bbc041fc6f6e0ad2
 
 
 * **성공 시 응답**
@@ -906,10 +896,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 ### 관리자 로그 페이지
-<<<<<<< HEAD
 
-=======
->>>>>>> d6d20ca23cb1fc068b7891d5bbc041fc6f6e0ad2
 
 * **URL**
 
