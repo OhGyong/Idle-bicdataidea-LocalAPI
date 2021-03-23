@@ -41,7 +41,7 @@
 
 * **URL**
 
-[POST] http://{IP}:{PORT}/idle/signup/agree
+[POST] http://{IP}:{PORT}/idle/signup/agree/check
 
 * **동작설명**
 
@@ -293,7 +293,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원정보 수정화면
+### 회원정보 수정페이지
 
 * **URL**
 
@@ -819,7 +819,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 로그 화면
+### 회원 로그 페이지
 
 * **URL**
 
@@ -878,7 +878,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **동작설명**
 
-    회원 로그 화면에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
+    회원 로그 페이지에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
 
 
 * **성공 시 응답**
@@ -892,7 +892,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     `{member_login_log:"Error"}` 
 
 ---
-### 관리자 로그 화면
+### 관리자 로그 페이지
 
 * **URL**
 
