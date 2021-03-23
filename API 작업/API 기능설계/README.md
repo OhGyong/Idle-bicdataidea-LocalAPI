@@ -101,7 +101,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 동일한 이메일 있는지 확인
+### 회원 이메일 중복 및 폐기 확인
 
 * **URL**
 
@@ -321,7 +321,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_update}:"Success"}`
+    `{member_update:"멤버 정보: "+ rows[0]}`
 
 * **실패시 응답**
 
@@ -357,12 +357,12 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_update}:"Success"}`
+    `{member_modify:"Success"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_update:"Error"}`
+    `{member_modify:"Error"}`
 
 ---
 
@@ -426,6 +426,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
+
 ### 회원탈퇴
 
 * **URL**
@@ -434,8 +435,9 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **동작설명**
     
-    사용자가 회원탈퇴를 할 경우, member 테이블에서 사용자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 member_sign_out 테이블에 추가한다. 이후 member 테이블에서 해당 사용자를 지운다.
-
+    member 테이블에서 member_secede 값을 1로 변경시켜준다.
+    </br>일치하는 이메일 secede 값이 0인 경우
+    
 * **성공 시 응답**
 
     * **Code:** 200 </br>
