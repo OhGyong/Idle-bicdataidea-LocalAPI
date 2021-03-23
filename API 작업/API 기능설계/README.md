@@ -50,7 +50,9 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{signup_agree:"Success"}`
+    `{signup_agree:"동의(1)"}`
+    </br>OR</br>
+    `{signup_agree:"비동의(0)"}`
 
 * **실패 시 응답**
 
@@ -88,16 +90,18 @@
 * **성공시 응답**
 
     * **Code:** 200 </br>
-    `{member_login_result:"Success"}`
+    `{member_login_result:"회원가입 성공"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_login_result:"Error"}`    
+    `{member_login_result:"member 테이블 에러"}`
+    </br>OR</br>
+_    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 동일한 이메일 있는지 확인
+### 회원 이메일 중복 및 폐기 확인
 
 * **URL**
 
@@ -117,12 +121,12 @@
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_has_same_email:"Success"}`
+    `{member_has_same_email:"아이디 생성가능(동일 아이디 없음)"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_has_same_email:"Error"}`
+    `{member_has_same_email:"아이디 생성불가(동일 아이디 존재)"}`
 
 ---
 
@@ -141,19 +145,19 @@
 
 * **동작설명**
 
-    인증 버튼 누르면 난수 6자리를 생성해서 메일 전송하고 email_auth 수신이메일과 난수 6자리를 테이블에 저장한다. </br>
-    전송한 다음 유효기간을 설정하여 재설정이 되면 값을 1로 바꾸고 기간이 지나면 폐기처리하여 값을 1로 바꾼다.
-
+    인증 버튼 누르면 난수 6자리를 생성해서 메일 전송하고 email_auth 수신이메일과 난수 6자리, 유효시간까지 테이블에 저장한다. </br>
 
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{send_email:"Success"}`
+    `{send_email:"이메일 전송 성공"}`
 
 * **실패시 응답** 
 
     * **Code:** 400 </br>
-    `{send_email:"Error"}`
+    `{send_email:"db 입력 실패"}`
+    </br>OR</br>
+    `{send_email:"메일 전송 실패"}`
 
 ---
 
@@ -177,12 +181,18 @@
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{check_email_num:"Success"}`
+    `{check_email_num:"인증이 완료되었습니다."}`
 
 * **실패시 응답** 
 
     * **Code:** 400 </br>
-    `{check_email_num:"Error"}`
+    `{check_email_num:"일치하는 메일 없음"}`
+    </br>OR</br>
+    `{check_email_num:"이미 완료되었거나 폐기된 키 입니다."}`
+    </br>OR</br>
+    `{check_email_num:"키값이 다르거나 없습니다."}`
+    
+    
 
 ---
 
@@ -190,7 +200,7 @@
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/find-password
+    [POST] http://{IP}:{PORT}/idle/find-password
 
 * **PARM**
 
@@ -206,12 +216,12 @@
 
     pw_find 테이블에서 비밀번호 키 값을 생성하여 `idle/reset_password/해시키` url을 해당 이메일로 전송한다.
 
-    전송한 다음 유효기간을 설정하여 재설정이 되면 값을 1로 바꾸고 기간이 지나면 폐기처리하여 값을 1로 바꾼다.
+    전송한 다음 유효기간을 설정한다.
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{find_password}:"Success"}`
+    `{find_password}:"메일이 전송되었습니다."}`
 
 * **실패 시 응답**
 
@@ -236,20 +246,22 @@
 
 * **동작설명**
 
-    새 비밀번호를 입력하면 member 테이블의 member_pw 값을 입력한 값으로 변경한다.
+    재설정 페이지에 오게되면 폐기처리하여 dispose 값을 1로한다. </br>    
+    member 테이블의 member_pw 값을 새로 입력한 값으로 변경한다. </br>
+    재설정이 되면 pw_edit 값을 1로 변경한다.
 
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_rest_password:"Success"}`
+    `{member_rest_password:"비밀번호 재설정"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_rest_password:"Error"}`
+    `{member_rest_password:"비밀번호 재설정 "}`
 
 ---
-
+### 삭제
 ### 회원 비밀번호 재확인 (회원정보수정 전)
 
 * **URL**
@@ -268,6 +280,7 @@
 
     비밀번호 입력시 member 테이블에서 비밀번호가 일치하는지 확인
     
+    
 * **성공 시 응답**
 
     * **Code:** 200 </br>
@@ -280,11 +293,48 @@
 
 ---
 
+### 회원정보 수정페이지
+
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/idle/mypage/update
+
+* **PARAM**
+    ```(json)
+    {
+        "member_email" : 사용자 이메일,
+        "member_name" : 사용자 이름,
+        "member_pw" : 사용자 비밀번호,
+        "member_sex" : 사용자 성별,
+        "member_birth" : 사용자 생년월일,
+        "member_phone" : 사용자 핸드폰번호
+        "member_company" : 사용자 소속,
+        "member_state" : 사용자 거주지
+    }
+    ```
+
+* **동작설명**
+
+    db에서 해당회원의 이메일, 이름, 비밀번호, 성별, 생년월일, 핸드폰번호, 소속, 거주지를 가져온다
+
+* **성공시 응답**
+
+     * **Code:** 200 </br>
+    `{member_update:"멤버 정보: "+ rows[0]}`
+
+* **실패시 응답**
+
+    * **Code:** 400 </br>
+    `{member_update:"Error"}`
+
+---
+
 ### 회원정보 수정
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/update
+    [PUT] http://{IP}:{PORT}/idle/mypage/update/modify
 
 * **PARAM**
     ```(json)
@@ -307,34 +357,12 @@
 * **성공시 응답**
 
      * **Code:** 200 </br>
-    `{member_update}:"Success"}`
+    `{member_modify:"Success"}`
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_update:"Error"}`
-
----
-
-### 회원탈퇴
-
-* **URL**
-
-    [DELETE] http://{IP}:{PORT}/idle/member-secede
-
-* **동작설명**
-    
-    사용자가 회원탈퇴를 할 경우, member 테이블에서 사용자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 member_sign_out 테이블에 추가한다. 이후 member 테이블에서 해당 사용자를 지운다.
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_secede:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_secede:"Error"}`
+    `{member_modify:"Error"}`
 
 ---
 
@@ -361,14 +389,18 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{member_signin:"Success"}`
+    `{member_signin:"로그인에 성공하였습니다."}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{member_signin:"Error"}`
+    `{member_signin:"로그인에 실패하였습니다."}`
+    </br>OR</br>
+    `{member_signin:"일치하는 아이디가 없거나 비밀번호가 틀렸습니다."}`
+    
 
 ---
+
 
 ### 회원 로그아웃
 
@@ -393,6 +425,31 @@
     `{member_logout:"Error"}`
 
 ---
+
+
+### 회원탈퇴
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/idle/member-secede
+
+* **동작설명**
+    
+    member 테이블에서 member_secede 값을 1로 변경시켜준다.
+    </br>일치하는 이메일 secede 값이 0인 경우
+    
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_secede:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_secede:"Error"}`
+
+---
+
 
 ### 회원 포인트 현황
 
@@ -765,7 +822,8 @@
 
 ---
 
-### 회원 로그 화면
+### 회원 로그 페이지
+
 
 * **URL**
 
@@ -824,7 +882,8 @@
 
 * **동작설명**
 
-    회원 로그 화면에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
+    회원 로그 페이지
+    에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
 
 
 * **성공 시 응답**
@@ -838,7 +897,8 @@
     `{member_login_log:"Error"}` 
 
 ---
-### 관리자 로그 화면
+### 관리자 로그 페이지
+
 
 * **URL**
 
@@ -890,7 +950,8 @@
 
 ---
 
-### 문의게시판 로그 화면
+### 문의게시판 로그 페이지
+
 
 * **URL**
 
@@ -941,7 +1002,8 @@
 
 ---
 
-### 공지사항 로그 화면
+### 공지사항 로그 페이지
+
 
 * **URL**
 
@@ -993,7 +1055,8 @@
 
 ---
 
-### 고객센터 로그 화면
+### 고객센터 로그 페이지
+
 
 * **URL**
 
@@ -1045,7 +1108,8 @@
 
 ---
 
-### 아이디어 로그 화면
+### 아이디어 로그 페이지
+
 
 * **URL**
 
@@ -1096,7 +1160,8 @@
 
 ---
 
-### 공고정보 로그 화면
+### 공고정보 로그 페이지
+
 
 * **URL**
 
@@ -2264,7 +2329,8 @@
 
 ## 고객센터 API
 
-### 고객센터 화면(내용 작성하기)
+### 고객센터 페이지
+(내용 작성하기)
 
 * **URL**
 
