@@ -464,7 +464,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{point_state}:"Success"}`
+    `{point_state:"Success"}`
 
 * **실패 시 응답**
 
