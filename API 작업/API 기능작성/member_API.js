@@ -55,7 +55,8 @@ connection.connect();
 /**
  * 수정필요, 체크하고 안하고를 어떻게 구별해서 값을 넘기는지
  * 회원가입 전 이용약관 동의 API, http://localhost:3000/idle/signup/agree/check
- * 
+ * ---
+ * 클릭하면 1전달 클릭안하면 0전달
 */
 let member_chosen_agree=0; // 정책정보 제공을 위한 수집 및 이용에 대한 안내 동의 여부 default 값
 app.post('/idle/signup/agree', (req, res)=>{
@@ -78,9 +79,14 @@ app.post('/idle/signup/agree', (req, res)=>{
  
  
 /**
+ * 수정필요
  * 회원가입 API , http://localhost:3000/idle/signup/fillout
  * 
  * try catch 로 primary키 오류 발생 못잡음 
+ * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
+ * 2. 패스워드 해시키 변경 (crypto 사용)
+ * 3. db에 입력받은 값 member 테이블에 삽입
+ * 4. 삽입 이후의 시간 계산해서 member_log 테이블에 삽입
 */
 app.post('/idle/signup/fillout',(req, res)=>{
 
@@ -102,6 +108,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
     async function fillout_db(){
         try{
 
+            // 암호 해시키 변경
             function change_hash(){
                 const crypto =require('crypto');
                 member_value[6]= crypto.createHash('sha512').update(member_value[6]).digest('base64');   
@@ -109,37 +116,53 @@ app.post('/idle/signup/fillout',(req, res)=>{
 
             await change_hash();
 
+            // member 테이블에 입력받은 값 삽입
             var sql= 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
-            connection.query(sql, member_value, await function(err,rows,fields){
+            connection.query(sql, member_value, function(err,rows,fields){
+                /*
                 // 에러 날리기
                 if(err){
                     throw err;
                 }
-                
-            });
-            // 현재 회원가입한 날짜 
-            var now_time = new Date();
-            var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
-            var parm_time = [member_value[0], now_time];
-            connection.query(sql, parm_time, await function(err, rows, fields){
-                
-                // 에러 날리기
-                if(err){
-                    throw err;
-                }
-            });
+                */
+               if(err){
+                   return res.send('member_login_result: "member 테이블 오류"');
+               }else{
+                    // 현재 회원가입한 날짜 
+                    var now_time = new Date();
+                    // member_log 테이블에 현재 시간 삽입
+                    var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
+                    var parm_time = [member_value[0], now_time];
+                    connection.query(sql, parm_time, function(err, rows, fields){
+                        /*
+                        // 에러 날리기
+                        if(err){
+                            throw err;
+                        }
+                        */
+                        if(err){
+                            return res.send('member_login_result: "member_log 테이블 오류"');
+                        }
+                        else{
+                            res.send('member_login_result:"회원가입 성공"'); 
+                        }
+                    });
+               }
+            });   
         }catch(err){
             return res.send('member_login_result: "에러"');
         }
     }
     fillout_db();  
-    res.send('member_login_result:"회원가입 성공"'); 
 });
  
 
 /**
  * 회원 이메일 중복 및 폐기 확인, http://localhost:3000/idle/has-same-email
- *  
+ * 1. 입력된 json 값 array 사용해서 value 값만 가져오기
+ * 2. member_secede (폐기 값)이 1인지 판별위해 array에 삽입
+ * 3. member 테이블에 입력받은 이메일 값이 있거나 폐기 되었는지 확인해서 있으면 생성불가, 없으면 생성가능 응답처리
+ * 
 */
 app.post('/idle/has-same-email',(req,res) =>{
     
@@ -151,8 +174,8 @@ app.post('/idle/has-same-email',(req,res) =>{
     check_email.push(1); // 폐기 값 1
 
     // db에서 member_email 값들 가져와서 check_email 과 같은지 비교    
-    var sql = 'SELECT member_email FROM member WHERE member_email = ? OR member_secede = ?;';
-    connection.query(sql, check_email, function(err, rows, fields, result){//두번째 인자에 배열로 된 값을 넣어줄 수 있다.
+    var same_email_sql = 'SELECT member_email FROM member WHERE member_email = ? OR member_secede = ?;';
+    connection.query(same_email_sql, check_email, function(err, rows){//두번째 인자에 배열로 된 값을 넣어줄 수 있다.
         try{
             if(rows[0].member_email == check_email){
                 res.send('member_has_same_email:"아이디 생성불가(폐기된 이메일 or 동일 이메일 존재)"');
@@ -166,7 +189,11 @@ app.post('/idle/has-same-email',(req,res) =>{
 
 /**
  * 회원 이메일 인증키 보내기, http://localhost:3000/idle/sign-up/send-email
- * 
+ * 1. 난수 6자리 생성
+ * 2. json 입력받은 값 array 이용해서 value 값만 뽑아내기
+ * 3. 현재시간, 24시간 뒤 계산해서 유효기간 설정
+ * 4. 메일 보내기
+ * 5. 메일 보내면 (난수 6자리, 유효기간, 이메일) email_auth 테이블에 저장
 */
 app.post('/idle/sign-up/send-email', (req,res) =>{
     
@@ -435,8 +462,10 @@ app.put('/idle/reset-password', (req, res)=>{
         
         // 수정을 위한 회원 정보 가져오기
         var update_sql='SELECT member_email, member_name, member_pw, member_gender, member_birth, member_phone, member_company, member_state FROM member WHERE member_email=?';
-        connection.query(update_sql,mem_email, function() {
-            res.send('member_update:"Success"');
+        connection.query(update_sql,mem_email, function(err, rows) {
+            res.send('이메일:' + rows[0].member_email + ', 이름:' + rows[0].member_name + ', 비밀번호:' + rows[0].member_pw + 
+            ', 성별:' + rows[0].member_gender + ', 생년월일:' + rows[0].member_birth + ', 휴대폰번호:' + rows[0].member_phone + 
+            ', 소속:' + rows[0].member_company + ', 거주지:' + rows[0].member_state);
         })
     }catch(err){
         console.log(err)
@@ -573,61 +602,72 @@ app.put('/idle/member-secede', (req, res)=>{
 /**
  * 회원 포인트 현황, http://localhost:3000/idle/mypage/point/state
  * 1. 세션 이메일을 가지고 member 테이블에서 일치하는 이메일을 찾아 보유 포인트, 누적 포인트, 사용 포인트를 가져온다.
- * 2. member 테이블에서 누적 포인트 값을 다 가져온다.
+ * 2. member 테이블에서 누적 포인트 값을 다 가져와서 키 값으로 분류하고 내림차순 정렬
+ * 3. 정련된 값에서 나의 누적포인트랑 같은 값을 찾는다 (랭킹)
+ * 4. 랭킹 값을 테이블에 저장
+ * 5. 현재 포인트, 누적 포인트, 사용 포인트, 랭킹을 반환
  */
 app.get('/idle/mypage/point/state', (req, res)=>{
 
     try{
         var mem_email=req.session.member_email; // 세션 이메일
+        console.log("세션 이메일 : "+ mem_email)
 
         // 보유포인트, 누적포인트, 사용포인트 가져오기
         var mypoint_sql='SELECT member_point, save_point, use_point FROM member WHERE member_email=?'
         connection.query(mypoint_sql, mem_email, function(err, rows) {
 
-            var my_savepoint=rows[0].save_point; // 나의 누적포인트
+            var my_now_point = rows[0].member_point; // 현재 포인트
+            var my_save_point = rows[0].save_point; // 누적 포인트
+            var my_use_point = rows[0].use_point; // 사용 포인트
             
+            console.log("내 포인트 정보 : "+ my_now_point + " " + my_save_point + " " + my_use_point);
+
             // 회원들 누적 포인트 가져오기
             var savepoint_sql='SELECT save_point FROM member';
             connection.query(savepoint_sql, function(err, rows) {
                 
-                var member_point=new Array();
+                var member_point=new Array()
 
                 // 키 값( 포인트 값)만 빼내기
                 for(k in rows){
                     member_point.push(rows[k].save_point);
                 }
                 
+                console.log("포인트 점수 정렬 전 : " + member_point.sort());
                 // 내림차순 정렬
                 member_point.sort(function(a, b) {
-                    return b-a;
+                    return b-a; // 두 숫자의 차이가 양수인가 음수인가 이용
                 })
-                console.member_point;
+                console.log("포인트 점수 정렬 확인 : " + member_point);
 
                 // 나의 포인트 순위 찾기
                 var my_rank;
                 for(m in member_point){
-                    if(my_savepoint == member_point[m]){
+                    if(my_save_point == member_point[m]){
                         my_rank=Number(m)+1 //m이 스트링으로 되어있어서 수정
                         break;
                     }
                 }
-
+                console.log(my_rank)
+                
                 // member 테이블에 순위 업데이트
                 var myrank_sql='UPDATE member SET member_rank=? WHERE member_email=?'
                 var myrank_params=[my_rank, mem_email]
-                connection.query(myrank_sql, myrank_params, function(err, rows) {
-                    
-                    console.log(rows[0].member_rank)
+                connection.query(myrank_sql, myrank_params, function(err, rows, result) {
+
+                    res.send('현재 포인트:'+ my_now_point + ' 누적 포인트:'+ my_save_point + ' 사용 포인트:'+ my_use_point +  ' 랭킹:'+ my_rank);
                     
                 })
-            }) 
+            })  
         })
     }catch{
-
+        res.send('point_state:"Error"');
     }
-    
-
 })
+
+
+
 
 
 
