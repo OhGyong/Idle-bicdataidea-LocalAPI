@@ -518,7 +518,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 내 아이디어
+### 회원 아이디어 목록
 
 * **URL**
 
@@ -531,12 +531,12 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{rank:"Success"}`
+    `{idea_list:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{rank:"Error"}`
+    `{idea_list:"Error"}`
 
 ---
 
@@ -553,12 +553,12 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{rank:"Success"}`
+    `{anno_markon:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{rank:"Error"}`
+    `{anno_markon:"Error"}`
 
 ---
 
@@ -575,13 +575,35 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{rank:"Success"}`
+    `{anno_markoff:"Success"}`
 
 * **실패 시 응답**
 
     * **Code:** 400 </br>
-    `{rank:"Error"}`
+    `{anno_markoff:"Error"}`
 
+
+### 관심사업 목록
+
+* **URL**
+
+[GET] http://{IP}:{PORT}/idle/mypage/marked-off
+
+* **동작설명**
+
+    inter_anno 테이블, anno 테이블, anno_img_dir 테이블을 join해서 값을 가져온다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_marked:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_marked:"Error"}`
+
+---
 ---
 ---
 
