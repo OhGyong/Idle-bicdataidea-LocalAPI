@@ -42,7 +42,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
                     // member_log 테이블에 현재 시간 삽입
                     var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
                     var parm_time = [member_value[0], now_time];
-                    connection.query(sql, parm_time, function(err, rows, fields){
+                    connection.query(sql, parm_time, function(err){
                         if(err){
                             error_res={
                                 "member_login_result" : "member_log 테이블 오류"
@@ -68,3 +68,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
     fillout_db();  
 });
 ```
+
+성공 : ![image](https://user-images.githubusercontent.com/52282493/112487873-6bfe5780-8dc0-11eb-9c10-46c3cec7b1c2.png)
+
+실패: ![image](https://user-images.githubusercontent.com/52282493/112488067-95b77e80-8dc0-11eb-8bd5-2f4a6de52fd1.png)   ![image](https://user-images.githubusercontent.com/52282493/112488930-53427180-8dc1-11eb-84a0-8637a92ddf06.png)
