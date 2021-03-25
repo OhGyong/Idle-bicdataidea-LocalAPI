@@ -72,7 +72,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
 `throw err` 처리가 되어서 `catch(err)` 로 넘어가지 않음 → 포스트맨에서 응답창에 에러 </br>
 콘솔 창에서 PRIAMRY 오류라고 뜸
 
-**원인**
+**원인** </br>
 비동기 콜백이 실행될 때 catch 블록이 존재하지 않기 때문에 비동기 예외는 catch 할 수 없음</br>
 때문에 프로그램이 종료됨
 
