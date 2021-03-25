@@ -12,11 +12,11 @@ const { Cookie } = require("express-session");
 var MySQLStore = require('express-mysql-session')(session);
 
 require('dotenv').config();
-var router = module.exports = express();
+var app = module.exports = express();
 
-//var router=require('./app.js');  //내일 질문할거
+//var app=require('./app.js');  //내일 질문할거
 
-router.use(session({
+app.use(session({
     //key: 'sid', // 세션의 키 값
     secret: 'node-session', // 세션의 비밀 키(암호?)
     resave: false, // 세션을 항상 저장할 지 여부
@@ -36,7 +36,7 @@ router.use(session({
     
 }))
 
-router.use(express.json()); //json 사용하기 위해서
+app.use(express.json()); //json 사용하기 위해서
  
 const port = 3000 //포트번호
  
@@ -56,24 +56,30 @@ connection.connect();
  * [다른 방법 생각]
  * 회원가입 전 이용약관 동의 API, http://localhost:3000/idle/signup/agree/check
  * ---
- * [선택]항목 클릭하면 1전달 클릭안하면 0전달
+ * 1. [선택]항목 클릭하면 전역변수 값 agree_check 값 변경 → 회원가입 API에서 사용
+ * 2. json 응답처리
 */
 let member_chosen_agree=0; // 정책정보 제공을 위한 수집 및 이용에 대한 안내 동의 여부 default 값
-router.post('/idle/signup/agree/check', (req, res)=>{
+app.post('/idle/signup/agree/check', (req, res)=>{
      
-    console.log(11)
     // 이용약관 [선택] 항목에서 체크를 하면 json으로 1값이 넘어옴
     var agree_check=req.body.chose_check;
     console.log(agree_check)
+
     // 넘어온 값이 0인지 1인지에 따라 member_chosen_agree 값을 맞춰줌 → 회원가입에서 사용
     if(agree_check == 1){
+        
         member_chosen_agree=1;
+        
+        //json 응답
         var success_res={
             "signup_agree" : "동의(1)"
         }
         res.send(success_res);
     }else{
         member_chosen_agree=0;
+        
+        //json 응답
         var success_res={
             "signup_agree" : "비동의(0)"
         }
@@ -85,33 +91,29 @@ router.post('/idle/signup/agree/check', (req, res)=>{
 /**
  * 수정필요
  * 회원가입 API , http://localhost:3000/idle/signup/fillout
- * 
  * try catch 로 primary키 오류 발생 못잡음 
  * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
  * 2. 패스워드 해시키 변경 (crypto 사용)
  * 3. db에 입력받은 값 member 테이블에 삽입
  * 4. 삽입 이후의 시간 계산해서 member_log 테이블에 삽입
 */
-router.post('/idle/signup/fillout',(req, res)=>{
+app.post('/idle/signup/fillout',(req, res)=>{
 
     // POSTMAN에서 넘겨 받은 json을 key|value 나누는 작업
     var member_key = new Array(); 
     var member_value = new Array();
 
-    
     //Mysql workbench에서 member_ban과 chosen_agree에 default 값 0으로로 설정해야함
-    for(signup_index in req.body){
-        member_key.push(signup_index);
-        member_value.push(req.body[signup_index]);
+    for(k in req.body){
+        member_key.push(k);
+        member_value.push(req.body[k]);
     }       
-
     //회원가입 전 [선택]동의 여부
     member_key[8]='chosen_agree';
     member_value[8]=member_chosen_agree;
 
     async function fillout_db(){
         try{
-
             // 암호 해시키 변경
             function change_hash(){
                 const crypto =require('crypto');
@@ -123,12 +125,6 @@ router.post('/idle/signup/fillout',(req, res)=>{
             // member 테이블에 입력받은 값 삽입
             var sql= 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
             connection.query(sql, member_value, function(err){
-                /*
-                // 에러 날리기
-                if(err){
-                    throw err;
-                }
-                */
                if(err){
                     var error_res={
                         "member_login_result" : "member 테이블 오류"
@@ -140,13 +136,7 @@ router.post('/idle/signup/fillout',(req, res)=>{
                     // member_log 테이블에 현재 시간 삽입
                     var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
                     var parm_time = [member_value[0], now_time];
-                    connection.query(sql, parm_time, function(err, rows, fields){
-                        /*
-                        // 에러 날리기
-                        if(err){
-                            throw err;
-                        }
-                        */
+                    connection.query(sql, parm_time, function(err){
                         if(err){
                             error_res={
                                 "member_login_result" : "member_log 테이블 오류"
@@ -175,13 +165,12 @@ router.post('/idle/signup/fillout',(req, res)=>{
 
 /**
  * 회원 이메일 중복 확인, http://localhost:3000/idle/has-same-email
- * 1. 입력된 json 값 array 사용해서 value 값만 가져오기
+ * 1. 입력된 json 값 value 값만 가져오기
  * 2. member 테이블에 입력받은 이메일 값이 있는지 확인해서 있으면 생성불가, 없으면 생성가능 응답처리
- * 
 */
-router.post('/idle/has-same-email',(req,res) =>{
+app.post('/idle/has-same-email',(req,res) =>{
     
-    // 포스트맨에서 얻어온 이메일 값
+    // 사용자가 입력한 이메일 값
     var check_email=req.body.member_email;
 
     // db에서 member_email 값들 가져와서 check_email 과 같은지 비교    
@@ -207,164 +196,151 @@ router.post('/idle/has-same-email',(req,res) =>{
 /**
  * 회원 이메일 인증키 보내기, http://localhost:3000/idle/sign-up/send-email
  * 1. 난수 6자리 생성
- * 2. json 입력받은 값 array 이용해서 value 값만 뽑아내기
+ * 2. json 입력받은 값 value 값만 뽑아내기
  * 3. 현재시간, 24시간 뒤 계산해서 유효기간 설정
- * 4. 메일 보내기
+ * 4. 메일 보내기 
  * 5. 메일 보내면 (난수 6자리, 유효기간, 이메일) email_auth 테이블에 저장
 */
-router.post('/idle/sign-up/send-email', (req,res) =>{
+app.post('/idle/sign-up/send-email', (req,res) =>{
     
-
-    // 난수 6자리 생성
-    var Raondom_Key=function(min,max){
-        var ranNum = Math.floor(Math.random()*(max-min+1)) + min;
-        return ranNum;
-    }
-    const send_key=Raondom_Key(111111,999999);
-
-    //포스트맨에서 입력받은 키 값(이메일) 지정
-    var send_email=req.body.member_email
-
-    //시간 처리
-    var now_time = new Date();   // 현재시간
-    var tomorrow_time = new Date(now_time.setDate(now_time.getDate()+1)); // 내일시간
-
-    //보내는 사람 설정
-    var transporter = nodemailer.createTransport({
-        service:'gmail',
-        auth: {
-            user : process.env.GMAIL_EMAIL,
-            pass : process.env.GMAIL_PASS
+    try{
+        // 난수 6자리 생성
+        var Raondom_Key=function(min,max){
+            var ranNum = Math.floor(Math.random()*(max-min+1)) + min;
+            return ranNum;
         }
-    });
+        const send_key=Raondom_Key(111111,999999);
 
-    // 인증메일 보내기
-    transporter.sendMail({    
-        from : process.env.GMAIL_EMAIL,
-        to : process.env.NAVER_EMAIL,
-        subject : '이메일 인증키 보내기',
-        text : "인증키 입니다 : " + send_key // 난수 입력
-    }, function(err, info) {
+        // 포스트맨에서 입력받은 키 값(이메일) 지정
+        var get_email=req.body.send_email
 
-        var sql = 'INSERT INTO email_auth (email_key, email_date, rec_email) VALUES(?,?,?)';
-        var params = [send_key, tomorrow_time, send_email]; //파라미터를 값들로 줌(배열로 생성)
-        connection.query(sql, params, function(err, rows, fields){            
-            if(err){
-                var error_res={
-                    "send_email" : "db 입력 실패"
-                } 
-                return res.send(error_res); // db에 입력하는게 실패
-            } 
+        // 시간 처리
+        var now_time = new Date();   // 현재시간
+        var tomorrow_time = new Date(now_time.setDate(now_time.getDate()+1)); // 내일시간, 유효기간 설정
+
+        // 보내는 사람 설정
+        var transporter = nodemailer.createTransport({
+            service:'gmail',
+            auth: {
+                user : process.env.GMAIL_EMAIL,
+                pass : process.env.GMAIL_PASS
+            }
         });
+
+        // 인증메일 보내기
+        transporter.sendMail({    
+            from : process.env.GMAIL_EMAIL,
+            to : process.env.NAVER_EMAIL,
+            subject : '이메일 인증키 보내기',
+            text : "인증키 입니다 : " + send_key // 난수 입력
+        }, function(err){
+
+            if(err){
+                error_res={
+                    "send_email" : "메일 전송 실패"
+                    
+                } 
+                return res.send(error_res); // 메일전송 실패
+            }
+
+            // 인증키, 유효기간, 수신메일 db에 저장
+            var sql = 'INSERT INTO email_auth (email_key, email_date, rec_email) VALUES(?,?,?)';
+            var params = [send_key, tomorrow_time, get_email]; //파라미터를 값들로 줌(배열로 생성)
+            connection.query(sql, params, function(err){            
+                if(err){
+                    var error_res={
+                        "send_email" : "db 입력 실패"
+                    } 
+                    return res.send(error_res); // db에 입력 실패
+                } 
+                else{
+                    var success_res={
+                        "send_email" : get_email,
+                        "send_key" : send_key
+                    } 
+                    return res.send(success_res); // db 입력하고 보내는것까지 성공. 이메일과, 인증키 리턴(서버에서 사용)
+                }
+            }); 
+        });
+    }catch(err){
         if(err){
             error_res={
                 "send_email" : "메일 전송 실패"
             } 
-            return res.send(error_res); // 메일보내는 거 실패
+            return res.send(error_res); // 메일전송 실패
         }
-        else{
-            var success_res={
-                "send_email" : "이메일 전송 성공"
-            } 
-            return res.send(success_res); // db 입력하고 보내는것까지 성공
-        }
-    });
-
-    // 서버로도 이메일 정보 보내야함
-
+    }
 });
 
 
 /**
  * 회원 이메일 인증키 입력, http://localhost:3000/idle/sign-up/check-email-num
- * 1. 서버에서 이메일 받아오고 email_auth 테이블에서 이메일 가져와서 일치하는지 비교
- * 2. 쿼리문 → email_auth 테이블에서 수신이메일중에 인증키가 일치하는 거찾아오기
- * 2. 오늘 날짜와 비교해서 키가 폐기되었는지 확인, 인증키 값이 0인지 확인
- * 3. 인증되면 인증키는 1, 폐기 값도 1
+ * 1. 서버에서 이메일과 인증키 값을 받아서 email_auth 테이블에서 이메일과 키가 일치하고 인증값과 폐기 값이 0인 값이 있는지 확인
+ * 2. 1.조건을 만족하지 못한 경우 처리
+ * 3. 1.조건을 만족하면 현재날짜와 유효기간을 비교 ( 현재날짜가 더 크면 폐기처리)
+ * 4. 3.에서 종료가 안되면 인증이 되었다는 표시 → 인증 값과 폐기 값을 1로 업데이트
 */
-router.post('/idle/sign-up/check-email-num', (req, res)=>{
-    
-    var member_email = process.env.NAVER_EMAIL; // 임시 이메일 서버에서 받아올 이메일
-    
-    // 서버에 받아온 이메일이 db에 있는지 확인
-    var sql = 'SELECT rec_email FROM email_auth WHERE rec_email = ?;';
-    connection.query(sql, member_email, function(err, rows){
-        if(err){
-            var error_res={
-                "email_check" : "일치하는 메일 없음"
-            } 
-            return res.send(error_res); // email_auth 테이블에 일치하는 메일이 없을 때
-        }
+app.post('/idle/sign-up/check-email-num', (req, res)=>{
 
-        // 현재 날짜와 유효기간 비교해서 폐기처리
-        var now_time = [new Date()];
-        var dispose_sql = "SELECT email_dispose FROM email_auth WHERE rec_email=?" // 폐기 값
-        connection.query(dispose_sql, member_email, function(err, res){
+    try{
+        // 서버에서 얻은 이메일과 키 값
+        var check_email=req.body.check_email;
+        var check_key=req.body.check_key;
 
-            //폐기값이 0이면 현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
-            if(res[0].email_dispose == 0){
-                var time_sql = "SELECT email_date FROM email_auth WHERE rec_email=?" // 유효기간
-                connection.query(time_sql, member_email, function(err, res) {
-                    console.log(res[0].email_date)
-                    // 유효기간 현재날짜 비교
-                    if(res[0].email_date<now_time){
-                        // 폐기 값 1로 변경
-                        var set_dispose = [1];
-                        var set_dispose_sql = "UPDATE email_auth SET email_dispose=?;";
-                        connection.query(set_dispose_sql, set_dispose,function(){
-                            var error_res={
-                                "email_check" : "이미 폐기되었습니다."
-                            } 
-                            return res.send(error_res)
-                        }); 
-                    }                 
-                })
-            }
-        })
-        
-        //2 email_auth 테이블에서 받아온 이메일과 인증완료, 폐기 값이 0인 경우
-        var search_parm=[ member_email, 0, 0];
-        var search_sql = "SELECT email_key FROM email_auth WHERE rec_email=? AND email_auth_flag=? AND email_dispose=?;";
-        connection.query(search_sql, search_parm, function(err, rows){
-            if(err){
-                error_res={
-                    "email_check" : "이미 완료되었거나 폐기된 키 입니다."
-                } 
-                return res.send(error_res); // email_auth 테이블에 키 값이 인증완료나 폐기처리된 경우
-            }
-            console.log(333)
-            //console.log(rows[0].email_key);
-            var db_key = rows[0].email_key; // db에 저장된 키 값
-            
-            //회원이 입력한 키 값
-            var member_key = new Array();
-            for(k in req.body){
-                member_key.push(req.body[k])
+        // email_auth 테이블에서 이메일과 키가 일치하고 인증값과 폐기 값이 0인 값이 있을경우 현재시간과 유효기간을 비교
+        var check_email_sql = 'SELECT * FROM email_auth WHERE rec_email=? AND email_key=? AND email_auth_flag=? AND email_dispose=?;';
+        var check_email_param = [check_email, check_key, 0 , 0];
+        connection.query(check_email_sql, check_email_param, function(err, rows){
+
+            // 위 조건을 만족하지 못한경우 rows에 null 값 생성 (폐기0, 인증0, 이메일-키 일치)
+            if(err || rows==''){
+                var error_res={
+                    "email_check" : "다시 인증하시기 바랍니다."
+                }
+                return res.send(error_res);
             }
 
-            // db에 저장된 키 값과 회원이 입력한 키 값이 같으면 인증 완료
-            if(db_key == member_key){
-                console.log(444)
-                //db에 인증여부와 폐기 값을 1로 변경
-                var set_parm=[1,1,db_key];
-                var set_sql='UPDATE email_auth SET email_auth_flag=?, email_dispose=? WHERE email_key=?';
-                connection.query(set_sql, set_parm, function(err, rows){
+            var now_time = [new Date()]; // 현재시간
+
+            //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
+            if(rows[0].email_date<now_time){        
+                // 폐기 값 1로 변경
+                var set_dispose_sql = 'UPDATE email_auth SET email_dispose=? WHERE rec_email=? AND email_key=?;';
+                var set_dispose_param = [1, check_email, check_key];
+                connection.query(set_dispose_sql, set_dispose_param, function(err){
                     if(err){
-                        error_res={
-                            "email_check" : "키값이 다르거나 없습니다."
+                        var error_res={
+                            "email_check" : "폐기 값 1 업데이트 에러"
                         } 
-                        return res.send(error_res);
-                    }
-                    else{
-                        var success_res={
-                            "email_check" : "인증이 완료되었습니다."
-                        } 
-                        return res.send(success_res)
-                    }
-                })
-            }        
-        });
-    });
+                        return res.send(error_res)
+                    } 
+                }); 
+            }
+
+            // 정상으로 진행되면 인증완료와 폐기처리를 해주어야 한다. (db에 인증여부와 폐기 값을 1로 변경)
+            var set_sql='UPDATE email_auth SET email_auth_flag=?, email_dispose=? WHERE rec_email=? AND email_key=?;';
+            var set_parm=[1,1,check_email,check_key];
+            connection.query(set_sql, set_parm, function(err, rows){
+                if(err){
+                    var error_res={
+                        "email_check" : "폐기 값, 인증 값 1 업데이트 에러"
+                    } 
+                    return res.send(error_res)
+                }
+                else{
+                    var success_res={
+                        "email_check" : "인증이 완료되었습니다."
+                    } 
+                    return res.send(success_res);
+                }
+            })        
+        })
+    }catch(err){
+        error_res={
+            "email_check" : "다시 인증하시기 바랍니다."
+        }
+        return res.send(error_res);
+    }
 });
 
 
@@ -374,7 +350,7 @@ router.post('/idle/sign-up/check-email-num', (req, res)=>{
  * 2. pw_find 테이블에서 비밀번호 키 값 생성 (random 7자리 만들어서 해시화)해서 메일 전송
  * 3. 전송하면서 유효기간 설정
  */
- router.post('/idel/find-password', (req,res) =>{
+ app.post('/idel/find-password', (req,res) =>{
     
     // 포스트맨에서 받은 값
     var check_email=new Array();
@@ -452,7 +428,7 @@ router.post('/idle/sign-up/check-email-num', (req, res)=>{
  * 2. member 테이블의 member_pw 값을 새로 입력한 값으로 변경
  * 3. 비밀번호가 변경되면 pw_edit 값을 1로 변경
  */
-router.put('/idle/reset-password', (req, res)=>{
+app.put('/idle/reset-password', (req, res)=>{
     
     hash_key=req.query.hash_key // req.query.hash_key 유저 메일에서 클릭해서 넘어올때 쓴 해시키
     var params=[hash_key, 0, 0]
@@ -505,7 +481,7 @@ router.put('/idle/reset-password', (req, res)=>{
  * 2. member 테이블에서 위에서 찾은 이메일과 일치하는 정보들을 가져온다.
  * 3. json 응답처리
  */
- router.get('/idle/mypage/update', (req, res)=>{
+ app.get('/idle/mypage/update', (req, res)=>{
     try{
         
         var mem_email=[req.session.member_email]; // 세션에 있는 이메일
@@ -534,7 +510,7 @@ router.put('/idle/reset-password', (req, res)=>{
  * 2. array에 입력받은 값 저장하고 쿼리에 쓸 sql과 param 작성, db 업데이트
  * 3. json 응답
  */
-router.put('/idle/mypage/update/modify', (req, res)=>{
+app.put('/idle/mypage/update/modify', (req, res)=>{
     try{
         var mem_email=[req.session.member_email]; // 세션 이메일
         
@@ -570,7 +546,7 @@ router.put('/idle/mypage/update/modify', (req, res)=>{
  * 1. 탈퇴여부 값이 0이고 회원 이메일과 비밀번호가 일치하는 경우가 db에 존재하는지 확인
  * 2. 
  */
- router.post('/idle/signin', (req, res)=>{
+ app.post('/idle/signin', (req, res)=>{
 
     // 회원이 입력한 이메일과 비밀번호
     var member = new Array();
@@ -625,7 +601,7 @@ router.put('/idle/mypage/update/modify', (req, res)=>{
 /**
  * 회원 로그아웃, http://localhost:3000/idle/logout
  */
-router.post('/idle/logout', (req, res)=>{
+app.post('/idle/logout', (req, res)=>{
     try{
         req.session.destroy(function(){
             req.session;
@@ -650,7 +626,7 @@ router.post('/idle/logout', (req, res)=>{
  * 2. member 테이블에서 member_secede 값을 1로 변경 (애초에 secede 값이 1이면 로그인 불가)
  * 3. 세션 날리고 홈으로 이동
  */
-router.put('/idle/member-secede', (req, res)=>{
+app.put('/idle/member-secede', (req, res)=>{
 
     try{
         // 탈퇴할 이메일
@@ -693,7 +669,7 @@ router.put('/idle/member-secede', (req, res)=>{
  * 4. 랭킹 값을 테이블에 저장
  * 5. 현재 포인트, 누적 포인트, 사용 포인트, 랭킹을 json 으로 보내기
  */
-router.get('/idle/mypage/point/state', (req, res)=>{
+app.get('/idle/mypage/point/state', (req, res)=>{
 
     try{
         var mem_email=req.session.member_email; // 세션 이메일
@@ -769,7 +745,7 @@ router.get('/idle/mypage/point/state', (req, res)=>{
  * 1. 세션이메일을 가지고 point 테이블에서 사용날짜 사용내역을 가져온다. , 회원이 사용안한경우 처리
  * 2. json 응답처리
  */
-router.get('/idle/mypage/point/use', (req, res)=>{
+app.get('/idle/mypage/point/use', (req, res)=>{
 
     try{
 
@@ -806,7 +782,7 @@ router.get('/idle/mypage/point/use', (req, res)=>{
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 얻은 포인트, 적립날짜를 가져온다. (사용 포인트는 1000) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
-router.get('/idle/mypage/point/save', (req, res)=>{
+app.get('/idle/mypage/point/save', (req, res)=>{
 
     try{
         var mem_email=req.session.member_email; // 세션 이메일
@@ -841,7 +817,7 @@ router.get('/idle/mypage/point/save', (req, res)=>{
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 내용, 작성일을 가져온다. (삭제여부가 0일 때) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
-router.get('/idle/mypage/idea',(req, res)=>{
+app.get('/idle/mypage/idea',(req, res)=>{
 
     try{
         var mem_email=req.session.member_email; // 세션 이메일
@@ -879,7 +855,7 @@ router.get('/idle/mypage/idea',(req, res)=>{
  * 2. 세션 이메일 즐겨찾기 등록하면 inter_anno 테이들에 삽입
  * 3. json 응답처리
  */
-router.post('/idle/mypage/marked-on', (req, res)=>{
+app.post('/idle/mypage/marked-on', (req, res)=>{
 
     try{
         var mem_email = req.session.member_email; // 세션 이메일
@@ -917,7 +893,7 @@ router.post('/idle/mypage/marked-on', (req, res)=>{
  * 2. 세션 이메일 가지고 inter_anno 테이블에서 해당 id 찾아서 삭제
  * 3. json 응답처리
  */
-router.delete('/idle/mypage/marked-off', (req, res)=>{
+app.delete('/idle/mypage/marked-off', (req, res)=>{
    
     try{
 
@@ -954,7 +930,7 @@ router.delete('/idle/mypage/marked-off', (req, res)=>{
  * 1. 세션 이메일을 가지고 inter_anno 테이블, anno 테이블, anno_img_dir 테이블을 join해서 값을 가져온다. ( 삭제여부 값 0)
  * 2. json 응답처리
  */
-router.get('/idle/mypage/marked', (req, res)=>{
+app.get('/idle/mypage/marked', (req, res)=>{
 
     try{
 
@@ -993,7 +969,7 @@ router.get('/idle/mypage/marked', (req, res)=>{
  * 2. member 테이블에 입력받은 이메일 값이 있는지 확인해서 있으면 생성불가, 없으면 생성가능 응답처리
  * 
 */
-router.post('/idle/admins/has-same-id',(req,res) =>{
+app.post('/idle/admins/has-same-id',(req,res) =>{
     
     // 포스트맨에서 얻어온 이메일 값
     var check_email = new Array();
@@ -1020,6 +996,6 @@ router.post('/idle/admins/has-same-id',(req,res) =>{
 });
 
 
-router.listen(port, () => {
+app.listen(port, () => {
     console.log(`listen ${port}`)
 })
