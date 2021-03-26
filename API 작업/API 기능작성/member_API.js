@@ -130,7 +130,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
                         "member_login_result" : "member 테이블 오류"
                     }
                    return res.send(error_res);
-               }else{
+                }else{
                     // 현재 회원가입한 날짜 
                     var now_time = new Date();
                     // member_log 테이블에 현재 시간 삽입
@@ -150,7 +150,7 @@ app.post('/idle/signup/fillout',(req, res)=>{
                             return res.send(success_res); 
                         }
                     });
-               }
+                }
             });   
         }catch(err){
             var error_res={
@@ -258,17 +258,16 @@ app.post('/idle/sign-up/send-email', (req,res) =>{
                         "send_email" : get_email,
                         "send_key" : send_key
                     } 
-                    return res.send(success_res); // db 입력하고 보내는것까지 성공. 이메일과, 인증키 리턴(서버에서 사용)
+                    return res.send(success_res); // db 입력하고 보내는것까지 성공. 이메일과 인증키 전송(서버에서 사용)
                 }
             }); 
         });
     }catch(err){
-        if(err){
-            error_res={
-                "send_email" : "메일 전송 실패"
-            } 
-            return res.send(error_res); // 메일전송 실패
-        }
+        error_res={
+            "send_email" : "메일 전송 실패"
+        } 
+        return res.send(error_res); // 메일전송 실패
+        
     }
 });
 
@@ -283,7 +282,7 @@ app.post('/idle/sign-up/send-email', (req,res) =>{
 app.post('/idle/sign-up/check-email-num', (req, res)=>{
 
     try{
-        // 서버에서 얻은 이메일과 키 값
+        // 회원 이메일 인증키 보내기에서 얻은 이메일과 키값
         var check_email=req.body.check_email;
         var check_key=req.body.check_key;
 
@@ -303,6 +302,7 @@ app.post('/idle/sign-up/check-email-num', (req, res)=>{
             var now_time = [new Date()]; // 현재시간
 
             //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
+            var now_time = [new Date()]; // 현재시간
             if(rows[0].email_date<now_time){        
                 // 폐기 값 1로 변경
                 var set_dispose_sql = 'UPDATE email_auth SET email_dispose=? WHERE rec_email=? AND email_key=?;';
@@ -345,7 +345,7 @@ app.post('/idle/sign-up/check-email-num', (req, res)=>{
 
 
 /**
- * 회원 비밀번호 찾기, http://localhost:3000/idel/find-password
+ * 회원 비밀번호 찾기(메일전송), http://localhost:3000/idel/find-password
  * 1. 사용자가 입력한 이메일이 db에 저장되어 있는지 확인
  * 2. pw_find 테이블에서 비밀번호 키 값 생성 (random 7자리 만들어서 해시화)해서 메일 전송
  * 3. 전송하면서 유효기간 설정
@@ -353,66 +353,59 @@ app.post('/idle/sign-up/check-email-num', (req, res)=>{
  app.post('/idel/find-password', (req,res) =>{
     
     // 포스트맨에서 받은 값
-    var check_email=new Array();
-    for(k in req.body){
-        check_email.push(req.body[k])
-    }
+    var check_email=req.body.member_email;
+
     console.log("회원비밀번호 찾기 : " + check_email);
 
     // 1. 사용자가 입력한 이메일이 db에 있는지 확인
     var sql = 'SELECT member_email FROM member WHERE member_email = ?;';
     connection.query(sql, check_email, function(err, rows){
         try{
-            // db에 해당 회원이 있는것을 확인
-            if(rows[0].member_email == check_email){
-                
-                // 2.
-                // 랜덤키 생성
-                var Raondom_Key=function(min,max){
-                    var ranNum = Math.floor(Math.random()*(max-min+1)) + min;
-                    return ranNum;
+            // 2.
+            // 랜덤키 생성
+            var Raondom_Key=function(min,max){
+                var ranNum = Math.floor(Math.random()*(max-min+1)) + min;
+                return ranNum;
+            }
+
+            // 해시키처리
+            const crypto =require('crypto');
+            var hash_key= crypto.createHash('sha512').update(String(Raondom_Key(111,999))).digest('base64');
+            var hash_key = hash_key.substr(0,7); // 7자리로 짜르기
+            var regExp = /[\{\}\[\]\/?.,;:|\)*~`!^\-+<>@\#$%&\\\=\(\'\"]/gi; //특수문자 제거
+            hash_key = hash_key.replace(regExp,"");
+            console.log(hash_key)
+
+            // 유효기간 설정
+            var now_time = new Date(); // 현재시간
+            var tomorrow_time = new Date(now_time.setDate(now_time.getDate()+1)); // 내일시간
+
+            //보내는 사람 설정
+            var transporter = nodemailer.createTransport({
+                service:'gmail',
+                auth: {
+                    user : process.env.GMAIL_EMAIL,
+                    pass : process.env.GMAIL_PASS
                 }
-                // 해시키처리
-                const crypto =require('crypto');
-                var hash_key= crypto.createHash('sha512').update(String(Raondom_Key(111,999))).digest('base64');
-                // 7자리로 짜르기
-                var hash_key = hash_key.substr(0,7);
-                var regExp = /[\{\}\[\]\/?.,;:|\)*~`!^\-+<>@\#$%&\\\=\(\'\"]/gi;
-                hash_key = hash_key.replace(regExp,"");
-                console.log(hash_key)
+            });
 
-                // 유효기간 설정
-                var now_time = new Date(); // 현재시간
-                var tomorrow_time = new Date(now_time.setDate(now_time.getDate()+1)); // 내일시간
-
-                //보내는 사람 설정
-                var transporter = nodemailer.createTransport({
-                    service:'gmail',
-                    auth: {
-                        user : process.env.GMAIL_EMAIL,
-                        pass : process.env.GMAIL_PASS
-                    }
-                });
-
-                // 인증메일 보내기
-                transporter.sendMail({    
-                    from : process.env.GMAIL_EMAIL,
-                    to : process.env.NAVER_EMAIL,
-                    subject : '회원 비밀번호 찾기',
-                    text : "http://localhost:3000/idel/reset-password?hask_key=" + hash_key // 난수 입력
-                }, function(err, info) {
-
-                    var sql = 'INSERT INTO pw_find (pw_key, pw_date, member_email) VALUES(?,?,?)';
-                    var params = [hash_key, tomorrow_time, check_email]; //파라미터를 값들로 줌(배열로 생성)
+            // 받는 사람 설정, 인증메일 보내기       
+            transporter.sendMail({                       
+                from : process.env.GMAIL_EMAIL,
+                to : process.env.NAVER_EMAIL,  
+                subject : '회원 비밀번호 찾기',
+                text : "http://localhost:3000/idel/reset-password?hask_key=" + hash_key // 난수 입력   
+            }, function(err, info) {               
+                var sql = 'INSERT INTO pw_find (pw_key, pw_date, member_email) VALUES(?,?,?)';           
+                var params = [hash_key, tomorrow_time, check_email]; //파라미터를 값들로 줌(배열로 생성)
                     connection.query(sql, params);
                 });
                 var success_res={
-                    "find_password" : "이메일 전송 성공"
+                    "send_email" : check_email,
+                    "send_key" : hash_key
                 } 
-                res.send(success_res); // db 입력하고 보내는것까지 성공
-            }
+                res.send(success_res); // db 입력하고 보내는것까지 성공            
         }catch(err){
-            console.log(err);
             var error_res={
                 "find_password" : "이메일 전송 실패"
             } 
@@ -423,53 +416,89 @@ app.post('/idle/sign-up/check-email-num', (req, res)=>{
 
 
 /**
- * 회원 비밀번호 재설정, http://localhost:3000/idle/reset-password/해시키
- * 1. 이메일에서 클릭하여 재설정 페이지에 오면 pw_find 테이블 pw_dispose 값을 1로 변경
- * 2. member 테이블의 member_pw 값을 새로 입력한 값으로 변경
- * 3. 비밀번호가 변경되면 pw_edit 값을 1로 변경
+ * 회원 비밀번호 재설정, http://localhost:3000/idle/reset-password=?해시키
+ * 1. url에 있는 query 값으로 이메일과 해시값을 가져옴
+ * 2. pw_find 테이블에서 해당이메일 해시값이 일치하고 재설정 값, 폐기값이 0인 경우를 찾는다.
+ * 3. 현재날짜와 비교해서 폐기여부를 정한다.
+ * 4. 사용자가 입력한 비밀번호를 해시화하여 member 테이블에 업로드하고 재설정 값과 폐기값을 1로 변경한다.
  */
 app.put('/idle/reset-password', (req, res)=>{
     
-    hash_key=req.query.hash_key // req.query.hash_key 유저 메일에서 클릭해서 넘어올때 쓴 해시키
-    var params=[hash_key, 0, 0]
+    // 회원 비밀번호 찾기에서 응답값으로 얻은 이메일과 해시값
+    var mem_email=req.query.member_email;
+    var hash_key=req.query.hash_key; 
+
     // 해당 해시키를 가진 유저가 있는지 확인
-    var sql = 'SELECT member_email FROM pw_find WHERE pw_key=? AND pw_edit=? AND pw_dispose=?;';
-    connection.query(sql, params, function(err, rows){
+    var reset_pass_sql = 'SELECT * FROM pw_find WHERE pw_key=? AND pw_edit=? AND pw_dispose=? AND member_email=?;';
+    var reset_pass_params=[hash_key, 0, 0, mem_email]
+    console.log(reset_pass_params)
+    connection.query(reset_pass_sql, reset_pass_params, function(err, rows){
         try{
-            var mem_email = rows[0].member_email
-            var param = [1]; // pw_dispose 값 변경
-            var set_sql='UPDATE pw_find SET pw_dispose=?';
-            connection.query(set_sql, param, function(err, res){
+            // 위의 조건을 만족하지 못해서 결과가 []로 나올경우
+            if(err || rows==''){
+                var error_res={
+                    "member_rest_password" : "비밀번호 재설정 불가능"
+                } 
+                return res.send(error_res)
+            }
+            
+            //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
+            var now_time = [new Date()]; // 현재시간
+            if(rows[0].pw_date<now_time){        
+                // 폐기 값 1로 변경
+                var set_dispose_sql = 'UPDATE pw_find SET pw_dispose=? WHERE member_email=? AND pw_key=?;';
+                var set_dispose_param = [1, mem_email, hash_key];
+                connection.query(set_dispose_sql, set_dispose_param, function(err, rows){
+                    if(err || rows==''){
+                        var error_res={
+                            "email_check" : "폐기 값 1 업데이트 에러"
+                        } 
+                        return res.send(error_res)
+                    } 
+                }); 
+            }
+
+            // 비밀번호 변경 (해시화)
+            var new_password=req.body.new_password;
+            const crypto =require('crypto');
+            new_password = crypto.createHash('sha512').update(String(new_password[0])).digest('base64');
                 
-                //member_pw 값을 새로운 값으로 변경하고 pw_edit 값도 1로 변경
-                var new_password = new Array();
-                for(k in req.body){
-                    new_password.push(req.body[k])
-                }
-    
-                // 새 비밀번호를 다시 해시화
-                const crypto =require('crypto');
-                new_password = crypto.createHash('sha512').update(String(new_password[0])).digest('base64');
+            // 해시화 된 새 비밀번호 db에 저장
+            reset_pass_sql='UPDATE member SET member_pw=? WHERE member_email=?;';
+            reset_pass_params=[new_password, mem_email];
+            connection.query(reset_pass_sql, reset_pass_params, function(err,res){
+                if(err || rows==''){
+                    error_res={
+                        "member_rest_password" : "비밀번호 변경 오류"
+                    } 
+                    return res.send(error_res)
+                } 
                 
-                // 해시화 된 새 비밀번호 db에 저장
-                params=[new_password, mem_email]
-                set_sql='UPDATE member SET member_pw=? WHERE member_email=?;';
-                connection.query(set_sql, params, function(err,res){
-                    set_sql='UPDATE pw_find SET pw_edit=?';
-                    connection.query(set_sql, param, function(err, res) {      
-                    })     
-                })
+                // 재설정 값과 폐기값 1로 변경
+                reset_pass_sql='UPDATE pw_find SET pw_edit=?, pw_dispose WHERE member_email=? AND pw_key=?;';
+                reset_pass_params=[1,1,mem_email,hash_key];
+                console.log(reset_pass_params)
+                connection.query(reset_pass_sql, reset_pass_params, function(err, rows) {
+                    if(err || rows==''){
+                        error_res={
+                            "member_rest_password" : "재설정값, 폐기값 오류"
+                        } 
+                        return res.send(error_res);
+                    }
+                    else{
+                        var success_res={
+                            "member_rest_password" : "비밀번호 재설정 성공"
+                        } 
+                        return res.send(success_res);
+                    }
+                })     
             })
-            var success_res={
-                "member_rest_password" : "비밀번호 재설정 성공"
-            } 
-            res.send(success_res);
         }catch(err){
             console.log(err)
-            var error_res={
+            error_res={
                 "member_rest_password" : "비밀전호 재설정 실패"
             } 
-            res.send(error_res)
+            return res.send(error_res)
         }
     })
 })
