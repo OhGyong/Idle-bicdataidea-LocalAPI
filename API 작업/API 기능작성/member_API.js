@@ -572,8 +572,10 @@ app.put('/idle/mypage/update/modify', (req, res)=>{
 
 /**
  * 회원 로그인, http://localhost:3000/idle/signin
- * 1. 탈퇴여부 값이 0이고 회원 이메일과 비밀번호가 일치하는 경우가 db에 존재하는지 확인
- * 2. 
+ * 1. 회원이 입력한 이메일과 비밀번호를 저장
+ * 2. 입력한 비밀번호는 해시화해서 db에서 조회
+ * 3. 로그시간 업로드
+ * 4. 세션 저장
  */
  app.post('/idle/signin', (req, res)=>{
 
@@ -629,6 +631,7 @@ app.put('/idle/mypage/update/modify', (req, res)=>{
 
 /**
  * 회원 로그아웃, http://localhost:3000/idle/logout
+ * 1. destroy로 삭제
  */
 app.post('/idle/logout', (req, res)=>{
     try{
