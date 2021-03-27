@@ -1,5 +1,23 @@
 var express = require('express');
 var router = express.Router();
+
+// Mysql db 연결
+let mysql = require("mysql");
+var connection = mysql.createConnection({
+    host: process.env.DB_HOST,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASS,
+    database: "test_api",
+});
+
+connection.connect();
+
+console.log("실행은 됨")
+router.get('/good', (req,res, err)=>{
+    console.log(err)
+    res.send("테스트")
+})
+
 /**
  * [다른 방법 생각]
  * 회원가입 전 이용약관 동의 API, http://localhost:3000/idle/signup/agree/check
@@ -16,7 +34,6 @@ router.post('/idle/signup/agree/check', (req, res)=>{
 
     // 넘어온 값이 0인지 1인지에 따라 member_chosen_agree 값을 맞춰줌 → 회원가입에서 사용
     if(agree_check == 1){
-        
         member_chosen_agree=1;
         
         //json 응답
@@ -35,81 +52,6 @@ router.post('/idle/signup/agree/check', (req, res)=>{
     }
 });
  
- 
-/**
- * 수정필요
- * 회원가입 API , http://localhost:3000/idle/signup/fillout
- * try catch 로 primary키 오류 발생 못잡음 
- * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
- * 2. 패스워드 해시키 변경 (crypto 사용)
- * 3. db에 입력받은 값 member 테이블에 삽입
- * 4. 삽입 이후의 시간 계산해서 member_log 테이블에 삽입
-*/
-router.post('/idle/signup/fillout',(req, res)=>{
-
-    // POSTMAN에서 넘겨 받은 json을 key|value 나누는 작업
-    var member_key = new Array(); 
-    var member_value = new Array();
-
-    //Mysql workbench에서 member_ban과 chosen_agree에 default 값 0으로로 설정해야함
-    for(k in req.body){
-        member_key.push(k);
-        member_value.push(req.body[k]);
-    }       
-    //회원가입 전 [선택]동의 여부
-    member_key[8]='chosen_agree';
-    member_value[8]=member_chosen_agree;
-
-    async function fillout_db(){
-        try{
-            // 암호 해시키 변경
-            function change_hash(){
-                const crypto =require('crypto');
-                member_value[6]= crypto.createHash('sha512').update(member_value[6]).digest('base64');   
-            }
-
-            await change_hash();
-
-            // member 테이블에 입력받은 값 삽입
-            var sql= 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
-            connection.query(sql, member_value, function(err){
-               if(err){
-                    var error_res={
-                        "member_login_result" : "member 테이블 오류"
-                    }
-                   return res.send(error_res);
-                }else{
-                    // 현재 회원가입한 날짜 
-                    var now_time = new Date();
-                    // member_log 테이블에 현재 시간 삽입
-                    var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
-                    var parm_time = [member_value[0], now_time];
-                    connection.query(sql, parm_time, function(err){
-                        if(err){
-                            error_res={
-                                "member_login_result" : "member_log 테이블 오류"
-                            }
-                            return res.send(error_res);
-                        }
-                        else{
-                            var success_res={
-                                "member_login_result" : "회원가입 성공"
-                            }
-                            return res.send(success_res); 
-                        }
-                    });
-                }
-            });   
-        }catch(err){
-            var error_res={
-                "member_login_result" : "회원가입 실패"
-            }
-            return res.send(error_res);
-        }
-    }
-    fillout_db();  
-});
- 
 
 /**
  * 회원 이메일 중복 확인, http://localhost:3000/idle/has-same-email
@@ -124,6 +66,7 @@ router.post('/idle/has-same-email',(req,res) =>{
     // db에서 member_email 값들 가져와서 check_email 과 같은지 비교    
     var same_email_sql = 'SELECT member_email FROM member WHERE member_email=?;';
     connection.query(same_email_sql, check_email, function(err, rows){//두번째 인자에 배열로 된 값을 넣어줄 수 있다.
+        console.log(err)
         try{
             if(rows[0].member_email == check_email){
                 var error_res={
@@ -131,7 +74,8 @@ router.post('/idle/has-same-email',(req,res) =>{
                 }
                 res.send(error_res);
             }
-        }catch{
+        }catch(err){
+            console.log(err)
             var success_res={
                 "member_has_same_email" : "아이디 생성가능(동일 아이디 없음)"
             }
@@ -291,7 +235,81 @@ router.post('/idle/sign-up/check-email-num', (req, res)=>{
         return res.send(error_res);
     }
 });
+ 
+ 
+/**
+ * 수정필요
+ * 회원가입 API , http://localhost:3000/idle/signup/fillout
+ * try catch 로 primary키 오류 발생 못잡음 
+ * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
+ * 2. 패스워드 해시키 변경 (crypto 사용)
+ * 3. db에 입력받은 값 member 테이블에 삽입
+ * 4. 삽입 이후의 시간 계산해서 member_log 테이블에 삽입
+*/
+router.post('/idle/signup/fillout',(req, res)=>{
 
+    // POSTMAN에서 넘겨 받은 json을 key|value 나누는 작업
+    var member_key = new Array(); 
+    var member_value = new Array();
+
+    //Mysql workbench에서 member_ban과 chosen_agree에 default 값 0으로로 설정해야함
+    for(k in req.body){
+        member_key.push(k);
+        member_value.push(req.body[k]);
+    }       
+    //회원가입 전 [선택]동의 여부
+    member_key[8]='chosen_agree';
+    member_value[8]=member_chosen_agree;
+
+    async function fillout_db(){
+        try{
+            // 암호 해시키 변경
+            function change_hash(){
+                const crypto =require('crypto');
+                member_value[6]= crypto.createHash('sha512').update(member_value[6]).digest('base64');   
+            }
+
+            await change_hash();
+
+            // member 테이블에 입력받은 값 삽입
+            var sql= 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
+            connection.query(sql, member_value, function(err){
+               if(err){
+                    var error_res={
+                        "member_login_result" : "member 테이블 오류"
+                    }
+                   return res.send(error_res);
+                }else{
+                    // 현재 회원가입한 날짜 
+                    var now_time = new Date();
+                    // member_log 테이블에 현재 시간 삽입
+                    var sql= 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
+                    var parm_time = [member_value[0], now_time];
+                    connection.query(sql, parm_time, function(err){
+                        if(err){
+                            error_res={
+                                "member_login_result" : "member_log 테이블 오류"
+                            }
+                            return res.send(error_res);
+                        }
+                        else{
+                            var success_res={
+                                "member_login_result" : "회원가입 성공"
+                            }
+                            return res.send(success_res); 
+                        }
+                    });
+                }
+            });   
+        }catch(err){
+            var error_res={
+                "member_login_result" : "회원가입 실패"
+            }
+            return res.send(error_res);
+        }
+    }
+    fillout_db();  
+});
 
 /**
  * 회원 비밀번호 찾기(메일전송), http://localhost:3000/idel/find-password

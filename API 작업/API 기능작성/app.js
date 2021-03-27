@@ -19,22 +19,6 @@ dotenv.config({
 
 require('dotenv').config();
 
-//var express = require('express');
-
-//var mysql = require('mysql')
-
-// Mysql db 연결
-var connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASS,
-    database: "test_api",
-});
-
-connection.connect();
-
-
-
 var app = module.exports = express();
 
 app.use(session({
@@ -56,8 +40,6 @@ app.use(session({
     })
     
 }))
-
-app.use(express.json()); //json 사용하기 위해서
  
 const port = 3000 //포트번호
  
