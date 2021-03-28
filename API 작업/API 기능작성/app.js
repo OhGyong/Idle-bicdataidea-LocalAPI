@@ -10,8 +10,6 @@ dotenv.config({
 require('dotenv').config();
 
 // routes 파일 호출
-var indexapp = require('./routes/index');
-var usersapp = require('./routes/users');
 var membersapp = require('./routes/members');
 
 var app = express();
@@ -26,8 +24,6 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', indexapp);
-app.use('/users', usersapp);
 app.use('/members', membersapp)
 
 // catch 404 and forward to error handler
