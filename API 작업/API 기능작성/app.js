@@ -9,11 +9,15 @@ dotenv.config({
 })
 require('dotenv').config();
 
-// routes 파일 호출
-var membersapp = require('./routes/members');
-
 var app = express();
- 
+
+//routes 파일 호출
+//var membersapp = require('./routes/members');
+var adminsapp = require('./routes/admins');
+
+//app.use('/members', membersapp);
+app.use('/admins', adminsapp);
+
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
@@ -23,8 +27,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
-
-app.use('/members', membersapp)
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
