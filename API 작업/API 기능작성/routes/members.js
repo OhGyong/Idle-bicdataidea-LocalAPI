@@ -3,8 +3,6 @@
  */
 var express = require('express');
 var router = express.Router();
-var nodeDate = require('date-utils');
-var nodemailer = require('nodemailer');
 
 // db 연결
 var connection = require('../setting/db.js')
@@ -16,6 +14,12 @@ var trans_mail=require('../setting/mail.js')
 // 세션 연결
 var session=require('../setting/session.js')
 router.use(session)
+
+// 현재 시간
+var now_time = new Date();
+
+// 다음 날 (현재 시간 + 24시간)
+var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1)); 
 
 /**
  * [다른 방법 생각]
@@ -105,12 +109,6 @@ router.post('/idle/sign-up/send-email', (req, res) => {
         // 포스트맨에서 입력받은 키 값(이메일) 지정
         var get_email = req.body.send_email
 
-        // 시간 처리
-        var now_time = new Date();   // 현재시간
-        var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1)); // 내일시간, 유효기간 설정
-
-        
-
         // 인증메일 보내기
         trans_mail.sendMail({
             from: process.env.GMAIL_EMAIL,
@@ -184,10 +182,7 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
                 return res.send(error_res);
             }
 
-            var now_time = [new Date()]; // 현재시간
-
             //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
-            var now_time = [new Date()]; // 현재시간
             if (rows[0].email_date < now_time) {
                 // 폐기 값 1로 변경
                 var set_dispose_sql = 'UPDATE email_auth SET email_dispose=? WHERE rec_email=? AND email_key=?;';
@@ -272,8 +267,7 @@ router.post('/idle/signup/fillout', (req, res) => {
                     }
                     return res.send(error_res);
                 } else {
-                    // 현재 회원가입한 날짜 
-                    var now_time = new Date();
+                    
                     // member_log 테이블에 현재 시간 삽입
                     var sql = 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
                     var parm_time = [member_value[0], now_time];
@@ -339,10 +333,6 @@ router.post('/idel/find-password', (req, res) => {
             hash_key = hash_key.replace(regExp, "");
             console.log(hash_key)
 
-            // 유효기간 설정
-            var now_time = new Date(); // 현재시간
-            var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1)); // 내일시간
-
             // 받는 사람 설정, 인증메일 보내기       
             trans_mail.sendMail({
                 from: process.env.GMAIL_EMAIL,
@@ -397,7 +387,6 @@ router.put('/idle/reset-password', (req, res) => {
             }
 
             //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
-            var now_time = [new Date()]; // 현재시간
             if (rows[0].pw_date < now_time) {
                 // 폐기 값 1로 변경
                 var set_dispose_sql = 'UPDATE pw_find SET pw_dispose=? WHERE member_email=? AND pw_key=?;';
@@ -554,7 +543,6 @@ router.post('/idle/signin', (req, res) => {
             var mem_email = rows[0].member_email;
 
             // member_log , member_login_log 테이블에 로그인 시간 추가
-            var now_time = new Date();
             var memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
 
             //member_log  테이블 추가 (시간 업데이트)
