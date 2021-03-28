@@ -3,12 +3,15 @@
  */
 var express = require('express');
 var router = express.Router();
-let nodeDate = require('date-utils');
-let nodemailer = require('nodemailer');
+var nodeDate = require('date-utils');
+var nodemailer = require('nodemailer');
 
 // db 연결
-let connection = require('../setting/db.js')
+var connection = require('../setting/db.js')
 connection.connect();
+
+// 메일 설정
+var trans_mail=require('../setting/mail.js')
 
 // 세션 연결
 var session=require('../setting/session.js')
@@ -106,17 +109,10 @@ router.post('/idle/sign-up/send-email', (req, res) => {
         var now_time = new Date();   // 현재시간
         var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1)); // 내일시간, 유효기간 설정
 
-        // 보내는 사람 설정
-        var transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.GMAIL_EMAIL,
-                pass: process.env.GMAIL_PASS
-            }
-        });
+        
 
         // 인증메일 보내기
-        transporter.sendMail({
+        trans_mail.sendMail({
             from: process.env.GMAIL_EMAIL,
             to: process.env.NAVER_EMAIL,
             subject: '이메일 인증키 보내기',
@@ -324,6 +320,10 @@ router.post('/idel/find-password', (req, res) => {
     var sql = 'SELECT member_email FROM member WHERE member_email = ?;';
     connection.query(sql, check_email, function (err, rows) {
         try {
+            
+            if(err){
+                throw err; // 이거 먹히는거  처음봄
+            }
             // 2.
             // 랜덤키 생성
             var Raondom_Key = function (min, max) {
@@ -343,17 +343,8 @@ router.post('/idel/find-password', (req, res) => {
             var now_time = new Date(); // 현재시간
             var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1)); // 내일시간
 
-            //보내는 사람 설정
-            var transporter = nodemailer.createTransport({
-                service: 'gmail',
-                auth: {
-                    user: process.env.GMAIL_EMAIL,
-                    pass: process.env.GMAIL_PASS
-                }
-            });
-
             // 받는 사람 설정, 인증메일 보내기       
-            transporter.sendMail({
+            trans_mail.sendMail({
                 from: process.env.GMAIL_EMAIL,
                 to: process.env.NAVER_EMAIL,
                 subject: '회원 비밀번호 찾기',
