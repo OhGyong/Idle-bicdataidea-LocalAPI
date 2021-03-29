@@ -1,4 +1,5 @@
 let express = require('express');
+let  bodyParser = require('body-parser');
 let createError = require('http-errors');
 let path = require('path');
 let cookieParser = require('cookie-parser');
@@ -11,11 +12,15 @@ require('dotenv').config();
 
 var app = express();
 
+// request body undefined 에러 처리
+app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
+
 //routes 파일 호출
-//var membersapp = require('./routes/members');
+var membersapp = require('./routes/members');
 var adminsapp = require('./routes/admins');
 
-//app.use('/members', membersapp);
+app.use('/members', membersapp);
 app.use('/admins', adminsapp);
 
 // view engine setup

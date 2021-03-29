@@ -4,6 +4,7 @@ let { Cookie } = require("express-session");
 let MySQLStore = require('express-mysql-session')(session);
 
 var session_setting=session({
+
     //key: 'sid', // 세션의 키 값
     secret: 'node-session', // 세션의 비밀 키(암호?)
     resave: false, // 세션을 항상 저장할 지 여부

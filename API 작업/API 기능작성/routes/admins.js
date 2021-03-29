@@ -5,9 +5,16 @@ var express = require('express');
 var router = express.Router();
 
 // db 연결
-var connection = require('../setting/db.js')
-connection.connect();
-
+//var getConection = require('../setting/db.js');
+/*
+getConnection((conn)=>{
+    var check_email="oky7143@naver.com"
+    conn.query('SELECT member_email FROM member WHERE member_email=?;', check_email, function(err, rows){
+        console.log(rows);
+    });
+    conn.release();
+})
+*/
 // 메일 설정
 var trans_mail = require('../setting/mail.js')
 
@@ -21,11 +28,10 @@ var now_time = new Date();
 // 다음 날 (현재 시간 + 24시간)
 var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1));
 
-/**
+/** 
  *  관리자 등록 필요없음
 */
 
-console.log(11)
 /**
  * 관리자 이메일 중복 확인, http://localhost:3000/idle/admins/has-same-id
  * 1. 입력된 이메일에서 value 값(이메일)만 가져옴
@@ -35,6 +41,7 @@ console.log(11)
 router.post('/idle/has-same-id', (req, res) => {
 
     
+    connection.connect();
     // 포스트맨에서 얻어온 이메일 값
     var check_email = req.body.admin_email;
     console.log("입력 이메일 확인 : " + check_email);
