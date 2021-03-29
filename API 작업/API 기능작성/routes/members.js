@@ -44,7 +44,7 @@ router.post('/idle/signup/agree/check', (req, res) => {
 
         //json 응답
         var success_res = {
-            "signup_agree": "동의(1)"
+            signup_agree: "동의(1)"
         }
         res.send(success_res);
     } else {
@@ -52,7 +52,7 @@ router.post('/idle/signup/agree/check', (req, res) => {
 
         //json 응답
         var success_res = {
-            "signup_agree": "비동의(0)"
+            signup_agree: "비동의(0)"
         }
         res.send(success_res);
     }
@@ -77,9 +77,12 @@ router.post('/idle/has-same-email', (req, res) => {
     getConnection((conn) => {
         conn.query(same_email_sql, check_email, function (err, rows) {//두번째 인자에 배열로 된 값을 넣어줄 수 있다.
             try {
-                if (rows[0].member_email == check_email) {
+                if(err || rows==''){
+                    throw err
+                }
+                else if (rows[0].member_email == check_email) {
                     var error_res = {
-                        "member_has_same_email": "아이디 생성불가(동일 이메일 존재)"
+                        member_has_same_email: "아이디 생성불가(동일 이메일 존재)"
                     }
                     conn.release();
                     res.send(error_res);
@@ -87,7 +90,7 @@ router.post('/idle/has-same-email', (req, res) => {
             } catch (err) {
                 console.log(err)
                 var success_res = {
-                    "member_has_same_email": "아이디 생성가능(동일 아이디 없음)"
+                    member_has_same_email: "아이디 생성가능(동일 아이디 없음)"
                 }
                 res.send(success_res);
             }
@@ -128,7 +131,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
             if (err) {
                 console.log(err)
                 error_res = {
-                    "send_email": "메일 전송 실패"
+                    send_email: "메일 전송 실패"
                 }
                 return res.send(error_res); // 메일전송 실패
             }
@@ -139,7 +142,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
             getConnection((conn) => {
                 conn.query(send_email_sql, send_email_params, function (err, rows) {
                     console.log(rows)
-                    if (err) {
+                    if (err || rows =='') {
                         var error_res = {
                             "send_email": "db 입력 실패"
                         }
@@ -148,8 +151,8 @@ router.post('/idle/sign-up/send-email', (req, res) => {
                     }
                     else {
                         var success_res = {
-                            "send_email": get_email,
-                            "send_key": send_key
+                            send_email: get_email,
+                            send_key: send_key
                         }
                         return res.send(success_res); // db 입력하고 보내는것까지 성공. 이메일과 인증키 전송(서버에서 사용)
                     }
@@ -159,7 +162,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
         });
     } catch (err) {
         error_res = {
-            "send_email": "메일 전송 실패"
+            send_email: "메일 전송 실패"
         }
         return res.send(error_res); // 메일전송 실패
     }
@@ -181,35 +184,46 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
 
     getConnection(async (conn) => {
         try {
-
+            
+            var check_date; // 인증키 유효기간
             // email_auth 테이블에서 이메일과 키가 일치하고 인증값과 폐기 값이 0인 값이 있을경우 현재시간과 유효기간을 비교
             var check_email_sql = 'SELECT * FROM email_auth WHERE rec_email=? AND email_key=? AND email_auth_flag=? AND email_dispose=?;';
             var check_email_param = [check_email, check_key, 0, 0];
-            var check_date;
             await new Promise((res, rej) => {
                 conn.query(check_email_sql, check_email_param, function (err, rows) {
+                    console.log(rows)
                     if(err || rows==''){
-                        return res(rows);
+                        var err_res={
+                            check_email_num:"잘못된 키 값을 입력하였습니다."
+                        }
+                        conn.release();
+                        return rej(err_res);
                     }
                     check_date=rows[0].email_date
-                    conn.release();
-                    res(rej);
+                    res(rows);
                 });
             })
 
-            //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
+            //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)하고 종료
             if (check_date < now_time) {
                 // 폐기 값 1로 변경
                 var set_dispose_sql = 'UPDATE email_auth SET email_dispose=? WHERE rec_email=? AND email_key=?;';
                 var set_dispose_param = [1, check_email, check_key];
-                console.log("?")
+                
                 await new Promise((res,rej)=>{
-                    conn.query(set_dispose_sql, set_dispose_param, function (err) {
+                    conn.query(set_dispose_sql, set_dispose_param, function (err, rows) {
                         if (err || rows=='') {
+                            err_res={
+                                check_email_num:"email_auth 테이블 폐기처리 실패"
+                            }
                             conn.release();
-                            return res(rej);
+                            return rej(err_res)
                         }
-                        res(rows);
+                        err_res={
+                            check_email_num:"폐기된 인증키 입니다."
+                        }
+                        conn.release();
+                        return rej(err_res);
                     });    
                 })
             }
@@ -217,35 +231,31 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
             // 정상으로 진행되면 인증완료와 폐기처리를 해주어야 한다. (db에 인증여부와 폐기 값을 1로 변경)
             var set_sql = 'UPDATE email_auth SET email_auth_flag=?, email_dispose=? WHERE rec_email=? AND email_key=?;';
             var set_parm = [1, 1, check_email, check_key];
-
             await new Promise((res, rej) => {
                 conn.query(set_sql, set_parm, function (err, rows) {
-                    if (err) {
-                        console.log(err)
+                    if (err || rows=='') {
+                        err_res={
+                            check_email_num:""
+                        }
                         conn.release();
-                        return res(rej);
+                        return rej
                     }
                     return res(rows);
                 })
             }) 
             conn.release();
             var success_res = {
-                "email_check": "인증이 완료되었습니다."
+                email_check: "인증이 완료되었습니다."
             }
             return res.send(success_res);
         } catch(err) {
-            var error_res = {
-                "email_check": "실패"
-            }
-            return res.send(error_res)
+            return res.send(err)
         }
     })
-
 });
 
 
 /**
- * 수정필요
  * 회원가입 API , http://localhost:3000/idle/signup/fillout
  * try catch 로 primary키 오류 발생 못잡음 
  * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
@@ -264,64 +274,61 @@ router.post('/idle/signup/fillout', (req, res) => {
         member_key.push(k);
         member_value.push(req.body[k]);
     }
+
     //회원가입 전 [선택]동의 여부
     member_key[8] = 'chosen_agree';
     member_value[8] = member_chosen_agree;
 
-    async function fillout_db() {
-        try {
-            // 암호 해시키 변경
-            function change_hash() {
+    getConnection( async (conn) =>{
+        try{
+            //암호 해시키 변경
+            await new Promise((res, rej)=>{
                 const crypto = require('crypto');
                 member_value[6] = crypto.createHash('sha512').update(member_value[6]).digest('base64');
-            }
-
-            await change_hash();
-
-            // member 테이블에 입력받은 값 삽입
-            var member_fillout_sql = 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
-            getConnection((conn) => {
+                res()
+            });
+            
+            // member 테이블에 해당 값 넣어주기
+            await new Promise((res, rej)=>{
+                var member_fillout_sql = 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';
                 conn.query(member_fillout_sql, member_value, function (err, rows) {
                     if (err || rows == '') {
                         var error_res = {
-                            "member_login_result": "member 테이블 오류"
+                            member_login_result: "member 테이블 오류"
                         }
-                        conn.release();A
-                        return res.send(error_res);
-                    } else {
-                        // member_log 테이블에 현재 시간 삽입
-                        var sql = 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
-                        var parm_time = [member_value[0], now_time];
-                        conn.query(sql, parm_time, function (err) {
-                            if (err) {
-                                conn.release();
-                                error_res = {
-                                    "member_login_result": "member_log 테이블 오류"
-                                }
-                                conn.release();A
-                                return res.send(error_res);
-                            }
-                            else {
-                                var success_res = {
-                                    "member_login_result": "회원가입 성공"
-                                }
-                                return res.send(success_res);
-                            }
-                        });
+                        conn.release();
+                        return rej(error_res);
                     }
-                });
-                conn.release();
+                    res(rows);
+                })
             })
-        } catch (err) {
-            console.log(err)
-            var error_res = {
-                "member_login_result": "회원가입 실패"
+
+            await new Promise((res, rej)=>{
+                var singup_date_sql = 'INSERT INTO member_log (member_email,member_log_join) VALUES(?,?)';
+                var parm_time = [member_value[0], now_time];
+                conn.query(singup_date_sql, parm_time, function(err, rows){
+                    if(err || rows ==''){
+                        error_res = {
+                            member_login_result: "member_log 테이블 오류"
+                        }
+                        conn.release();
+                        return rej(error_res);
+                    }
+                    res(rows);
+                });
+            });
+
+            conn.release;
+            var success_res = {
+                member_login_result: "회원가입 성공"
             }
-            return res.send(error_res);
+            return res.send(success_res);
+        }catch(err){
+            res.send(err);
         }
-    }
-    fillout_db();
+    })
 });
+
 
 /**
  * 회원 비밀번호 찾기(메일전송), http://localhost:3000/idel/find-password
@@ -329,64 +336,90 @@ router.post('/idle/signup/fillout', (req, res) => {
  * 2. pw_find 테이블에서 비밀번호 키 값 생성 (random 7자리 만들어서 해시화)해서 메일 전송
  * 3. 전송하면서 유효기간 설정
  */
-router.post('/idel/find-password', (req, res) => {
+router.post('/idle/find-password', (req, res) => {
 
     // 포스트맨에서 받은 값
     var check_email = req.body.member_email;
 
     console.log("회원비밀번호 찾기 : " + check_email);
+    
+    getConnection( async (conn) => {
+        try {
+            console.log(22)
 
-    // 1. 사용자가 입력한 이메일이 db에 있는지 확인
-    var sql = 'SELECT member_email FROM member WHERE member_email = ?;';
-    getConnection((conn) => {
-        conn.query(sql, check_email, function (err, rows) {
-            try {
-                if (err) {
-                    throw err; // 이거 먹히는거  처음봄
-                }
-                // 2.
-                // 랜덤키 생성
-                var Raondom_Key = function (min, max) {
-                    var ranNum = Math.floor(Math.random() * (max - min + 1)) + min;
-                    return ranNum;
-                }
+            await new Promise((res, rej) => {
+                // 1. 사용자가 입력한 이메일이 db에 있는지 확인
+                var find_password_sql = 'SELECT member_email FROM member WHERE member_email = ?;';
+                conn.query(find_password_sql, check_email, function (err, rows) {
+                    if (err || rows == '') {
+                        var err_res = {
+                            find_password: "db에 해당이메일 없음"
+                        }
+                        conn.release();
+                        return rej(err_res);
+                    }
+                    res(rows);
+                })
+            })
 
-                // 해시키처리
-                const crypto = require('crypto');
-                var hash_key = crypto.createHash('sha512').update(String(Raondom_Key(111, 999))).digest('base64');
-                var hash_key = hash_key.substr(0, 7); // 7자리로 짜르기
-                var regExp = /[\{\}\[\]\/?.,;:|\)*~`!^\-+<>@\#$%&\\\=\(\'\"]/gi; //특수문자 제거
-                hash_key = hash_key.replace(regExp, "");
-                console.log("해시키: " + hash_key)
+            // 랜덤키 생성
+            var Raondom_Key = function (min, max) {
+                var ranNum = Math.floor(Math.random() * (max - min + 1)) + min;
+                return ranNum;
+            }
 
-                // 받는 사람 설정, 인증메일 보내기
-                // json으로 바꿔보기    
+            // 해시키처리
+            const crypto = require('crypto');
+            var hash_key = crypto.createHash('sha512').update(String(Raondom_Key(111, 999))).digest('base64');
+            console.log(11)
+            var hash_key = hash_key.substr(0, 7); // 7자리로 짜르기
+            var regExp = /[\{\}\[\]\/?.,;:|\)*~`!^\-+<>@\#$%&\\\=\(\'\"]/gi; //특수문자 제거
+            hash_key = hash_key.replace(regExp, "");
+            console.log("해시키: " + hash_key)
+            
+            // 받는 사람 설정, 인증메일 보내기
+            // json으로 바꿔보기    
+            await new Promise((res, rej)=>{
                 trans_mail.sendMail({
                     from: process.env.GMAIL_EMAIL,
                     to: process.env.NAVER_EMAIL,
                     subject: '회원 비밀번호 찾기',
                     text: "http://localhost:3000/idel/reset-password?hask_key=" + hash_key // 난수 입력   
                 }, function (err, info) {
-                    var sql = 'INSERT INTO pw_find (pw_key, pw_date, member_email) VALUES(?,?,?)';
-                    var params = [hash_key, tomorrow_time, check_email]; //파라미터를 값들로 줌(배열로 생성)
-                    conn.query(sql, params);
-                    conn.release;
+                    if (err) {
+                        var err_res = {
+                            find_password: "메일전송실패"
+                        }
+                        conn.release();
+                        return rej(err_res);
+                    }
+                    // 해시키, 유효기간 메일 pw_find 테이블 삽입
+                    var find_password_sql = 'INSERT INTO pw_find (pw_key, pw_date, member_email) VALUES(?,?,?)';
+                    var find_password_params = [hash_key, tomorrow_time, check_email]; //파라미터를 값들로 줌(배열로 생성)
+                    conn.query(find_password_sql, find_password_params, function(err, rows){
+                        if (err || rows == '') {
+                            console.log(err)
+                            var err_res = {
+                                find_password: "pw_find 테이블 에러"
+                            }
+                            conn.release();
+                            return rej(err_res);
+                        }
+                        res(rows);
+                    });
                 });
-                var success_res = {
-                    "send_email": check_email,
-                    "send_key": hash_key
-                }
-                res.send(success_res); // db 입력하고 보내는것까지 성공            
-            } catch (err) {
-                var error_res = {
-                    "find_password": "이메일 전송 실패"
-                }
-                res.send(error_res);
+            })
+            conn.release();
+            var success_res = {
+                send_email: check_email,
+                send_key: hash_key
             }
-        })
-        conn.release;
-    })
+            res.send(success_res); // db 입력하고 보내는것까지 성공   
+        } catch(err) {
+            res.send(err)
+        }
 
+    })
 })
 
 
@@ -402,7 +435,8 @@ router.put('/idle/reset-password', (req, res) => {
     // 회원 비밀번호 찾기에서 응답값으로 얻은 이메일과 해시값
     var mem_email = req.query.member_email;
     var hash_key = req.query.hash_key;
-
+    
+    var pw_date;
     
     getConnection(async (conn)=>{
         try{
@@ -412,87 +446,194 @@ router.put('/idle/reset-password', (req, res) => {
                 var reset_pass_params = [hash_key, 0, 0, mem_email]
                 conn.query(reset_pass_sql, reset_pass_params, function (err, rows){
                     if(err || res==''){
+                        var err_res = {
+                            email_check: "해당 회원 없음"
+                        }
                         conn.release();
-                        return res.send()
+                        return rej(err_res);
                     }
+                    pw_date=rows[0].pw_date;
                     res(rows) 
-                }   
+                })
             }) 
 
-            //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
-            if (rows[0].pw_date < now_time) {
-                // 폐기 값 1로 변경
-                var set_dispose_sql = 'UPDATE pw_find SET pw_dispose=? WHERE member_email=? AND pw_key=?;';
-                var set_dispose_param = [1, mem_email, hash_key];
-                conn.query(set_dispose_sql, set_dispose_param, function (err, rows) {
-                    if (err || rows == '') {
-                        var error_res = {
-                            "email_check": "폐기 값 1 업데이트 에러"
+            await new Promise((res, rej)=>{
+                //현재날짜와 비교해서 현재날짜가 크면 폐기처리(1로 변경)
+                if (pw_date < now_time) {
+                    // 폐기 값 1로 변경
+                    var set_dispose_sql = 'UPDATE pw_find SET pw_dispose=? WHERE member_email=? AND pw_key=?;';
+                    var set_dispose_param = [1, mem_email, hash_key];
+                    conn.query(set_dispose_sql, set_dispose_param, function (err, rows) {
+                        if (err || rows == '') {
+                            var error_res = {
+                                email_check: "폐기 값 1 업데이트 에러"
+                            }
+                            conn.release();
+                            return rej(error_res)
                         }
-                        return res.send(error_res)
-                    }
-                    conn.release;
-                });
-                
-            }
+                        var error_res = {
+                            email_check: "폐기되었습니다."
+                        }
+                        conn.release();
+                        return rej(error_res)
+                    });
+                }
+                res()
+            })
+            
+            // 비밀번호 변경 (해시화)
+            var new_password = req.body.new_password;
+            const crypto = require('crypto');
+            new_password = crypto.createHash('sha512').update(String(new_password[0])).digest('base64');
 
-        }catch{
-
-        }
-        
-                
-    
-                
-    
-                // 비밀번호 변경 (해시화)
-                var new_password = req.body.new_password;
-                const crypto = require('crypto');
-                new_password = crypto.createHash('sha512').update(String(new_password[0])).digest('base64');
-    
+            await new Promise((res, rej)=>{
                 // 해시화 된 새 비밀번호 db에 저장
                 reset_pass_sql = 'UPDATE member SET member_pw=? WHERE member_email=?;';
                 reset_pass_params = [new_password, mem_email];
-                conn.query(reset_pass_sql, reset_pass_params, function (err, rows) {
-    
+                conn.query(reset_pass_sql, reset_pass_params, function (err, rows){
                     if (err || rows == '') {
-                        error_res = {
-                            "member_rest_password": "비밀번호 변경 오류"
+                        var error_res = {
+                            email_check: "비밀번호 업데이트 실패"
                         }
-                        return res.send(error_res)
+                        conn.release();
+                        return rej(error_res)
                     }
-    
-                    // 재설정 값과 폐기값 1로 변경
-                    reset_pass_sql = 'UPDATE pw_find SET pw_edit=?, pw_dispose=? WHERE member_email=? AND pw_key=?;';
-                    reset_pass_params = [1, 1, mem_email, hash_key];
-                    console.log(reset_pass_params)
-                    conn.query(reset_pass_sql, reset_pass_params, function (err, rows) {
-                        if (err || rows == '') {
-                            console.log(err)
-                            error_res = {
-                                "member_rest_password": "재설정값, 폐기값 오류"
-                            }
-                            return res.send(error_res);
-                        }
-                        else {
-                            var success_res = {
-                                "member_rest_password": "비밀번호 재설정 성공"
-                            }
-                            return res.send(success_res);
-                        }
-                    })
-                    conn.release;
+                    res(rows);
                 })
-                conn.release;
-            } catch (err) {
-                console.log(err)
-                error_res = {
-                    "member_rest_password": "비밀전호 재설정 실패"
-                }
-                return res.send(error_res)
+            })
+
+            await new Promise((res, rej)=>{
+                // 재설정 값과 폐기값 1로 변경
+                reset_pass_sql = 'UPDATE pw_find SET pw_edit=?, pw_dispose=? WHERE member_email=? AND pw_key=?;';
+                reset_pass_params = [1, 1, mem_email, hash_key];
+                conn.query(reset_pass_sql, reset_pass_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        error_res = {
+                            member_rest_password: "재설정값, 폐기값 오류"
+                        }
+                        conn.release();
+                        return rej(error_res);
+                    }
+                    res(rows);
+                })
+            })
+            conn.release;
+            var success_res = {
+                member_rest_password: "비밀번호 재설정 성공"
             }
-        })
-        conn.release;
+            return res.send(success_res); 
+        }catch(err){
+            return res.send(err)
+        }
     })
+})
+
+
+/**
+ * 회원 로그인, http://localhost:3000/idle/signin
+ * 1. 회원이 입력한 이메일과 비밀번호를 저장
+ * 2. 입력한 비밀번호는 해시화해서 db에서 조회
+ * 3. 로그시간 업로드
+ * 4. 세션 저장
+ */
+router.post('/idle/signin', (req, res) => {
+
+    // 회원이 입력한 이메일(0)과 비밀번호(1)
+    var member = new Array();
+    for (k in req.body) {
+        member.push(req.body[k])
+    }
+
+    //비밀번호 해시화
+    const crypto = require('crypto');
+    member[1] = crypto.createHash('sha512').update(member[1]).digest('base64');
+
+    // db 연결
+    getConnection(async (conn) => {
+        try {
+            // db에 일치하는 이메일과 비밀번호가 있는지 확인
+            var login_sql = 'SELECT * FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
+            var param_member = [member[0], member[1], 0];
+            await new Promise((res, rej) => {
+                conn.query(login_sql, param_member, (err, row) => {
+                    if (err || row == '') {
+                        var login_err={
+                            member_signin:"이메일 혹은 비밀번호가 틀렸습니다."
+                        }
+                        rej(login_err)
+                    }
+                    res(row);
+                })
+            })
+        
+            // 로그인한 시간 확인, member_log 테이블 업데이트)
+            var memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
+            var parm_memberlog = [now_time, member[0]];
+            await new Promise((res,rej)=>{
+                conn.query(memberlog_sql, parm_memberlog, (err, row) => {
+                    if (err || row == '') {
+                        login_err={
+                            member_signin:"member_log 테이블 에러"
+                        }
+                        return rej(member_signin);
+                    }
+                    res(row);
+                });
+            })
+            
+            // 로그인 시간 데이터 축적, member_login_log 테이블 추가
+            var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(?,?);';
+            await new Promise((res, rej)=>{
+                conn.query(memberloginlog_sql, parm_memberlog, (err, row)=>{
+                    if (err || row == '') {
+                        login_err={
+                            member_signin:"member_login_log 테이블 에러"
+                        }
+                        return rej(member_signin);
+                    }
+                    return res(row);
+                });
+            })
+
+            //세션 저장
+            req.session.member_email = member[0];
+            req.session.save(function () {
+                var success_res = {
+                    member_signin: "로그인에 성공하였습니다."
+                }
+                conn.release();
+                //res.redirect('/home'); // 홈으로 이동하게 하자
+                return res.send(success_res) //save 함수 안에서 쓰면 안됨     
+            })
+        } catch (err) {
+            console.log(err)
+            return res.send(err)
+        }
+    })
+})
+
+
+/**
+ * 회원 로그아웃, http://localhost:3000/idle/logout
+ * 1. destroy로 삭제
+ */
+ router.post('/idle/logout', (req, res) => {
+    try {
+        req.session.destroy(function () {
+            req.session;
+            //res.redirect('/home'); // 홈으로 이동하게 하자
+            var success_res = {
+                member_logout: "로그아웃에 성공하였습니다."
+            }
+            res.send(success_res)
+        });
+    } catch {
+        var error_res = {
+            member_logout: "로그아웃에 실패하였습니다."
+        }
+        res.send(error_res)
+    }
 })
 
 
@@ -502,7 +643,7 @@ router.put('/idle/reset-password', (req, res) => {
  * 2. member 테이블에서 위에서 찾은 이메일과 일치하는 정보들을 가져온다.
  * 3. json 응답처리
  */
-router.get('/idle/mypage/update', (req, res) => {
+ router.get('/idle/mypage/update', (req, res) => {
     try {
 
         var mem_email = [req.session.member_email]; // 세션에 있는 이메일
@@ -512,18 +653,20 @@ router.get('/idle/mypage/update', (req, res) => {
         var update_sql = 'SELECT member_email, member_name, member_pw, member_gender, member_birth, member_phone, member_company, member_state FROM member WHERE member_email=?';
         getConnection((conn)=>{
             conn.query(update_sql, mem_email, function (err, rows) {
-                console.log(rows)
-                res.send(rows)
+                if(err || rows==''){
+                    var error_res = {
+                        member_update: "Error"
+                    }
+                    conn.release();
+                    rej(error_res);
+                }
+                conn.release;
+                return res.send(rows)
             })
-            conn.release;
         })
-        
     } catch (err) {
         console.log(err)
-        var error_res = {
-            "member_update": "Error"
-        }
-        res.send(error_res)
+        res.send(err)
     }
 
 })
@@ -544,105 +687,30 @@ router.put('/idle/mypage/update/modify', (req, res) => {
         for (modify_index in req.body) {
             member_modify.push(req.body[modify_index])
         }
-        console.log(member_modify)
+
         member_modify.push(mem_email) // 쿼리에 사용할 param 
 
         // 입력한 값으로 업데이트
         var modify_sql = 'UPDATE member SET member_email=?, member_name=?, member_pw=?, member_gender=?, member_birth=?, member_phone=?, member_company=?, member_state=? WHERE member_email=?'
         getConnection((conn)=>{
             conn.query(modify_sql, member_modify, function (err, rows) {
-                var success_res = {
-                    "member_modify": "수정되었습니다."
+                if(err || rows==''){
+                    var error_res = {
+                        member_modify: "수정 실패하였습니다."
+                    }
+                    conn.release();
+                    return rej(error_res);
                 }
-                res.send(success_res);
+                var success_res = {
+                    member_modify: "수정되었습니다."
+                }
+                conn.release;
+                return res.send(success_res);
             }) 
-            conn.release;
         })
-        
-    } catch {
-        var error_res = {
-            "member_modify": "수정 실패하였습니다."
-        }
-        res.send(error_res);
+    } catch(err) {
+        res.send(err);
     }
-
-
-})
-
-
-/**
- * 회원 로그인, http://localhost:3000/idle/signin
- * 1. 회원이 입력한 이메일과 비밀번호를 저장
- * 2. 입력한 비밀번호는 해시화해서 db에서 조회
- * 3. 로그시간 업로드
- * 4. 세션 저장
- */
-router.post('/idle/signin', (req, res) => {
-    console.log(11)
-    // 회원이 입력한 이메일(0)과 비밀번호(1)
-    var member = new Array();
-    for (k in req.body) {
-        member.push(req.body[k])
-    }
-
-    //비밀번호 해시화
-    const crypto = require('crypto');
-    member[1] = crypto.createHash('sha512').update(member[1]).digest('base64');
-
-    // db 연결
-    getConnection(async (conn) => {
-        try {
-            // db에 일치하는 이메일과 비밀번호가 있는지 확인
-            console.log(22)
-            var login_sql = 'SELECT * FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
-            var param_member = [member[0], member[1], 0];
-            await new Promise((res, rej) => {
-                conn.query(login_sql, param_member, (err, row) => {
-                    console.log(33)
-                    if (err || row == '') {
-                        return res.send("로긴에러")
-                    }
-                    res(row);
-                })
-            })
-        
-            console.log(44)
-
-            // 로그인한 시간 확인, member_log 테이블 업데이트)
-            var memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
-            var parm_memberlog = [now_time, member[0]];
-            await new Promise((res,rej)=>{
-                conn.query(memberlog_sql, parm_memberlog, (err, row) => {
-                    console.log(55)
-                    if (err || row == '') {
-                        return res.send("member_log 테이블 에러")
-                    }
-                    res(row);
-                });
-            })
-            
-            console.log(66)
-
-            // 로그인 시간 데이터 축적, member_login_log 테이블 추가
-            var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(?,?);';
-            await new Promise((res, rej)=>{
-                conn.query(memberloginlog_sql, parm_memberlog, (err, row)=>{
-                    console.log(77)
-                    if (err || row == '') {
-                        return res.send("member_login_log 테이블 에러")
-                    }
-                    return res(row);
-                });
-            })
-            res.send("성공")
-        } catch (err) {
-            console.log(err)
-           // return res.send(err)
-        }
-        console.log(88)
-        conn.release;
-    })
-    console.log(99)
 })
 
 
@@ -657,36 +725,36 @@ router.put('/idle/member-secede', (req, res) => {
     try {
         // 탈퇴할 이메일
         var mem_email = req.session.member_email;
-        console.log(mem_email)
 
-        // member 테이블에서 member_secede 값 1로 업데이트
-        var secede_param = [1, mem_email];
-        var secede_sql = 'UPDATE member SET member_secede=? WHERE member_email=?;';
         getConnection((conn)=>{
+            // member 테이블에서 member_secede 값 1로 업데이트
+            var secede_sql = 'UPDATE member SET member_secede=? WHERE member_email=?;';
+            var secede_param = [1, mem_email];
+            conn.query(secede_sql, secede_param, function (err, rows) {
+                if(err || rows==''){
+                    var error_res = {
+                        member_secede: "Error"
+                    }
+                    conn.release();
+                    rej(error_res)
+                }
 
-        })
-        connection.query(secede_sql, secede_param, function () {
+                //json 응답처리
+                success_res = {
+                    member_secede: "탈퇴처리 되었습니다."
+                }
 
-
-            //json 응답처리
-            success_res = {
-                "member_secede": "탈퇴처리 되었습니다."
-            }
-
-            req.session.destroy(function () {
-                req.session;
-                //res.redirect('/home'); // 홈으로 이동하게 하자
-                return res.send(success_res)
+                // 세션 삭제
+                req.session.destroy(function () {
+                    console.log(req.session)
+                    //res.redirect('/home'); // 홈으로 이동하게 하자
+                    return res.send(success_res)
+                })
             })
-
         })
     } catch (err) {
-        var error_res = {
-            "member_secede": "Error"
-        }
         return res.send(error_res)
     }
-
 })
 
 
@@ -700,71 +768,108 @@ router.put('/idle/member-secede', (req, res) => {
  */
 router.get('/idle/mypage/point/state', (req, res) => {
 
-    try {
-        var mem_email = req.session.member_email; // 세션 이메일
-        console.log("세션 이메일 : " + mem_email)
+    var mem_email = req.session.member_email; // 세션 이메일
+    console.log("세션 이메일 : " + mem_email);
 
-        // 보유포인트, 누적포인트, 사용포인트 가져오기
-        var mypoint_sql = 'SELECT member_point, save_point, use_point FROM member WHERE member_email=?'
-        connection.query(mypoint_sql, mem_email, function (err, rows) {
-
-            var my_now_point = rows[0].member_point; // 현재 포인트
-            var my_save_point = rows[0].save_point; // 누적 포인트
-            var my_use_point = rows[0].use_point; // 사용 포인트
-
-            console.log("내 포인트 정보 : " + my_now_point + " " + my_save_point + " " + my_use_point);
-
-            // 회원들 누적 포인트 가져오기
-            var savepoint_sql = 'SELECT save_point FROM member';
-            connection.query(savepoint_sql, function (err, rows) {
-
-                var member_point = new Array()
-
-                // 키 값( 포인트 값)만 빼내기
-                for (k in rows) {
-                    member_point.push(rows[k].save_point);
-                }
-
-                console.log("포인트 점수 정렬 전 : " + member_point.sort());
-                // 내림차순 정렬
-                member_point.sort(function (a, b) {
-                    return b - a; // 두 숫자의 차이가 양수인가 음수인가 이용
-                })
-                console.log("포인트 점수 정렬 확인 : " + member_point);
-
-                // 나의 포인트 순위 찾기
-                var my_rank;
-                for (m in member_point) {
-                    if (my_save_point == member_point[m]) {
-                        my_rank = Number(m) + 1 //m이 스트링으로 되어있어서 수정
-                        break;
+    var my_now_point, my_save_point, my_use_point; // 표현할 점수 변수 선언
+    var member_point = new Array() // 회원들 간 점수 비교에 사용할 배열
+    var my_rank; // 나의 랭킹
+    
+    getConnection(async (conn)=>{
+        try{
+            
+            // 현재 세션의 이메일을 사용하여 포인트 정보 가져오기
+            await new Promise((res, rej)=>{
+                // 보유포인트, 누적포인트, 사용포인트 가져오기
+                var mypoint_sql = 'SELECT member_point, save_point, use_point FROM member WHERE member_email=?'
+                conn.query(mypoint_sql, mem_email, function (err, rows){
+                    if(err || rows==''){
+                        var error_res = {
+                            point_state: "현재 회원 포인트 가져오기 실패"
+                        }
+                        conn.release();
+                        rej(error_res);
                     }
-                }
-                console.log(my_rank)
+                    // 점수 저장
+                    my_now_point = rows[0].member_point; // 현재 포인트
+                    my_save_point = rows[0].save_point; // 누적 포인트
+                    my_use_point = rows[0].use_point; // 사용 포인트
 
-                // member 테이블에 순위 업데이트
-                var myrank_sql = 'UPDATE member SET member_rank=? WHERE member_email=?'
-                var myrank_params = [my_rank, mem_email]
-                connection.query(myrank_sql, myrank_params, function (err, rows, result) {
-
-                    // json 형태로 응답
-                    point_state = {
-                        "현재 포인트": my_now_point,
-                        "누적 포인트": my_save_point,
-                        "사용 포인트": my_use_point,
-                        "랭킹": my_rank
-                    }
-                    res.send(point_state);
-
+                    console.log("내 포인트 정보 : " + my_now_point + " " + my_save_point + " " + my_use_point);
+                    res(rows);
                 })
             })
-        })
-    } catch {
-        var error_res = {
-            "point_state": "Error"
+
+            // 회원들 누적 포인트 가져오기
+            await new Promise((res,rej)=>{
+                var savepoint_sql = 'SELECT save_point FROM member';
+                conn.query(savepoint_sql, function (err, rows){
+                    if(err || rows==''){
+                        var error_res = {
+                            point_state: "회원들 누적 포인트 가져오기 실패"
+                        }
+                        conn.release();
+                        rej(error_res);
+                    }
+                    console.log(rows)
+                    
+                    // 키 값( 포인트 값)만 빼내기
+                    for (k in rows) {
+                        member_point.push(rows[k].save_point);
+                    }
+
+                    console.log("포인트 점수 정렬 전 : " + member_point.sort());
+                    
+                    // 내림차순 정렬
+                    member_point.sort(function (a, b) {
+                        return b - a; // 두 숫자의 차이가 양수인가 음수인가 이용
+                    })
+                    
+                    console.log("포인트 점수 정렬 확인 : " + member_point);
+    
+                    // 나의 포인트 순위 찾기
+                    for (m in member_point) {
+                        if (my_save_point == member_point[m]) {
+                            my_rank = Number(m) + 1 //m이 스트링으로 되어있어서 수정
+                            break;
+                        }
+                    }
+                    console.log(my_rank)
+                    res(rows);
+                })
+            })
+
+            //테이블에 순위 업데이트
+            await new Promise((res, rej)=>{
+                var myrank_sql = 'UPDATE member SET member_rank=? WHERE member_email=?'
+                var myrank_params = [my_rank, mem_email]
+                conn.query(myrank_sql, myrank_params, function (err, rows){
+                    if(err || rows==''){
+                        var error_res = {
+                            point_state: "테이블 순위 업데이트 실패"
+                        }
+                        conn.release();
+                        rej(error_res);
+                    }
+                    // json 형태로 응답
+                    res(rows)
+                })
+            })
+            
+            conn.release();
+            point_state = {
+                "현재 포인트": my_now_point,
+                "누적 포인트": my_save_point,
+                "사용 포인트": my_use_point,
+                "랭킹": my_rank
+            }
+            console.log(point_state)
+            return res.send(point_state);
+
+        }catch(err){
+            return res.send(err)
         }
-        res.send(error_res);
-    }
+    })
 })
 
 

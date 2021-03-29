@@ -15,6 +15,7 @@ function getConnection(callback){
             console.log("db 연결성공")
             callback(conn);
         }else{
+            console.log(err)
             console.log("db 연결실패")
         }
     })
