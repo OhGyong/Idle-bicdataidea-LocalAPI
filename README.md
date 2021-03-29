@@ -20,3 +20,5 @@
 - **서버 환경에서 테스트(termius 사용)**
     - **node 작업한 내용(코딩)을 깃에서 pull 해서 받아옴**
     - **5번에서 node설치는 했지만 mysql 설치를 안해서 다시 설치**
+    - **express-gernerator로 계층화**
+    - **Mysql connection.pool로 변경, 비동기화 async-await-promise 로 해결 (기존 코드 수정) / 03-29
