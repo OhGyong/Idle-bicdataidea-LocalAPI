@@ -612,7 +612,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ## 관리자 관련 API
 
-### 관리자 등록
+### 관리자 등록, 삭제
 
   * **URL**
 
@@ -655,7 +655,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/has-same-id
+    [GET] http://{IP}:{PORT}/admins/idle/has-same-id
 
 * **PARAM**
     ```(json)
@@ -680,35 +680,12 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 관리자 제외처리
-
-* **URL**
-
-    [DELETE] http://{IP}:{PORT}/idle/admins/admin-secede
-
-* **동작설명**
-    
-    관리자가 탈퇴를 할 경우, admin 테이블에서 관리자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 admin_sign_out 테이블에 추가한다.</br> 
-    이후 admin 테이블에서 해당 사용자를 지운다.
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_secede:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_secede:"Error"}`
-
----
-
 
 ### 관리자 로그인
 
 * **URL**
 
-    [POST]] http://{IP}:{PORT}/idle/admins/signin
+    [POST]] http://{IP}:{PORT}/admins/idle/signin
 
 * **PARAM**
 
@@ -737,13 +714,12 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
+
 ### 관리자 로그아웃
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/idle/admin/logout
-    </br>OR</br>
-    [DELETE] http://{IP}:{PORT}/idle/admin/logout
+    [POST] http://{IP}:{PORT}/admins/idle//logout
 
 * **동작설명**
 
@@ -761,11 +737,36 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
+
+### 관리자 탈퇴처리
+
+* **URL**
+
+    [DELETE] http://{IP}:{PORT}/admins/idle/admin-secede
+
+* **동작설명**
+    
+    관리자가 탈퇴를 할 경우, admin 테이블에서 관리자의 이메일, 이름, 성별, 생년월일 값을 가져오고 탈퇴한 일자를 계산해서 admin_sign_out 테이블에 추가한다.</br> 
+    이후 admin 테이블에서 해당 사용자를 지운다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{admin_secede:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{admin_secede:"Error"}`
+
+---
+
+
 ### 회원 리스트 목록
 
 * **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/admins/member-list
+    [GET]] http://{IP}:{PORT}/admins/idle/member-list
 
 * **동작설명**
 
@@ -788,7 +789,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/admins/member-list?검색어
+    [GET]] http://{IP}:{PORT}/admins/idle/member-list?검색어
 
 * **PARAM**
 
@@ -818,7 +819,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/idle/admins/ban
+    [PUT] http://{IP}:{PORT}/admins/idle/ban
 
 * **PARAM**
 
