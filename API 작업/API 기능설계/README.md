@@ -771,7 +771,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **동작설명**
 
     관리자가 회원 리스트를 확인할 수 있음 </br>
-    member 테이블에서 정보를 얻어옴
+    member 테이블에서 이메일, 이름, 가입일자, 정지/탈퇴여부까지만 보여줌
 
 * **성공 시 응답**
 
@@ -815,16 +815,39 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
+
+### 회원 상세 페이지
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/admins/idle/member-list/번호
+
+* **동작설명**
+
+    member 테이블에서 회원 정보를 다 가져옴 (회원정보수정 페이지처럼 쭉 보여줌)
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_list_detail}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_list_detail:"Error"}`
+
+
 ### 회원 정지처리
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/admins/idle/ban
+    [PUT] http://{IP}:{PORT}/admins/idle/member_list/번호/ban
 
 * **PARAM**
 
     ```(json)
     {
+        "member_email" : 회원 이메일 
         "member_ban_reason" : 정지사유
     }
     ```
@@ -832,6 +855,28 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 * **동작설명**
 
     정리를 하려는 사용자를 선택해서 정지사유를 적고 확인을 하면 member_ban 테이블에 기록되고, member 테이블에서 해당 사용자의 member_ban 값을 1로 변경된다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_ban:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_ban:"Error"}`
+
+---
+
+### 회원 상세로그 페이지
+
+* **URL**
+
+    [PUT] http://{IP}:{PORT}/admins/idle/member_list/번호/log
+
+* **동작설명**
+
+    member_login_log 테이블에서 member_login 값 다 보여줌
 
 * **성공 시 응답**
 

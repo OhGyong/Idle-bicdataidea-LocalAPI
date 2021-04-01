@@ -190,7 +190,6 @@ router.delete('/idle/admin-secede', (req, res)=>{
 })
 
 
-
 /**
  * 회원 리스트 목록, http://localhost:3000/admins/idle/member-list
  * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자
@@ -204,6 +203,7 @@ router.get('/idle/member-list', (req, res)=>{
             await new Promise((res, rej)=>{
                 var member_list_sql='SELECT * FROM member';
                 conn.query(member_list_sql, function(err, rows){
+                    console.log(rows)
                     if(err || rows==''){
                         error_request.message="회원 조회 실패";
                         conn.release();
@@ -226,11 +226,22 @@ router.get('/idle/member-list', (req, res)=>{
 
 
 /**
- * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자
  * 회원 리스트 검색, http://localhost:3000/admins/idle/member-list?검색어
+ * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자
  */
 router.get('/idle/member-list', (req, res)=>{
 
+
+})
+
+
+/**
+ * 회원 상세 페이지, http://localhost:3000/admins/idle/member-list/회원 이메일
+ * 
+ */
+router.get('/idle/member-list/:member_email', (req, res)=>{
+    console.log(req.params.member_email)
+    res.send(req.params.member_email)
 
 })
 

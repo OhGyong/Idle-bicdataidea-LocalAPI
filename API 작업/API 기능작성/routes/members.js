@@ -761,7 +761,7 @@ router.put('/idle/member-secede', (req, res) => {
 /**
  * 회원 포인트 현황, http://localhost:3000/idle/mypage/point/state
  * 1. 세션 이메일을 가지고 member 테이블에서 일치하는 이메일을 찾아 보유 포인트, 누적 포인트, 사용 포인트를 가져온다.
- * 2. member 테이블에서 누적 포인트 값을 다 가져와서 키 값으로 분류하고 내림차순 정렬
+ * 2. member 테이블에서 누적 포인트 값을 다 가져와서 키 값으로 분류하고 내림차순 정렬 (정지 안당한 사람)
  * 3. 정련된 값에서 나의 누적포인트랑 같은 값을 찾는다 (랭킹)
  * 4. 랭킹 값을 테이블에 저장
  * 5. 현재 포인트, 누적 포인트, 사용 포인트, 랭킹을 json 으로 보내기
@@ -802,8 +802,8 @@ router.get('/idle/mypage/point/state', (req, res) => {
 
             // 회원들 누적 포인트 가져오기
             await new Promise((res,rej)=>{
-                var savepoint_sql = 'SELECT save_point FROM member';
-                conn.query(savepoint_sql, function (err, rows){
+                var savepoint_sql = 'SELECT save_point FROM member WHERE member_ban=?';
+                conn.query(savepoint_sql, 0 ,function (err, rows){
                     if(err || rows==''){
                         var error_res = {
                             point_state: "회원들 누적 포인트 가져오기 실패"

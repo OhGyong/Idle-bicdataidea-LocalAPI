@@ -1,12 +1,12 @@
 success_request={
-    request:"success",
-    message:"text",
+    request: "success",
+    message: null,
     data: null
 }
 
 error_request={
-    request:"error",
-    message:"text",
+    request: "error",
+    message: null,
     data: null
 }
 
