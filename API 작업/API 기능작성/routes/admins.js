@@ -1,34 +1,29 @@
 /**
  * 설정 세팅
  */
- var express = require('express');
- var router = express.Router();
- const crypto = require('crypto');
+var express = require('express');
+var router = express.Router();
+const crypto = require('crypto');
 
- 
- // db 연결
- var getConnection = require('../setting/db.js');
 
- // 응답 설정
-var {success_request, error_request}= require('../setting/request.js');
+// db 연결
+var getConnection = require('../setting/db.js');
 
- // 메일 설정
- var trans_mail = require('../setting/mail.js')
- 
- // 세션 연결
- var session = require('../setting/session.js');
+// 응답 설정
+var { success_request, error_request } = require('../setting/request.js');
+
+// 메일 설정
+var trans_mail = require('../setting/mail.js')
+
+// 세션 연결
+var session = require('../setting/session.js');
 const app = require('../app.js');
- router.use(session)
- 
- // 현재 시간
- var now_time = new Date();
- 
- // 다음 날 (현재 시간 + 24시간)
- var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1));
- var now_time = new Date();
+router.use(session)
+
+var { now_time, tomorrow_time } = require('../setting/time.js');
 
 
-/** 
+/**
  *  관리자 등록 필요없음
 */
 
@@ -192,7 +187,7 @@ router.delete('/idle/admin-secede', (req, res)=>{
 
 /**
  * 회원 리스트 목록, http://localhost:3000/admins/idle/member-list
- * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자
+ * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자 ( 회원 이메일, 이름, 성별, 가입일자, 정지여부 보여줌)
  * 1. member 테이블에서 회원 리스트 뽑음
  */
 router.get('/idle/member-list', (req, res)=>{
@@ -201,13 +196,13 @@ router.get('/idle/member-list', (req, res)=>{
         try{
             // 회원 목록 뽑기
             await new Promise((res, rej)=>{
-                var member_list_sql='SELECT * FROM member';
+                var member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email)';
                 conn.query(member_list_sql, function(err, rows){
                     console.log(rows)
                     if(err || rows==''){
                         error_request.message="회원 조회 실패";
                         conn.release();
-                        rej(error_request);
+                        return rej(error_request);
                     }
                     success_request.data=rows; //응답 데이터
                     conn.release();
@@ -227,7 +222,7 @@ router.get('/idle/member-list', (req, res)=>{
 
 /**
  * 회원 리스트 검색, http://localhost:3000/admins/idle/member-list?검색어
- * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자
+ * 
  */
 router.get('/idle/member-list', (req, res)=>{
 
@@ -237,35 +232,58 @@ router.get('/idle/member-list', (req, res)=>{
 
 /**
  * 회원 상세 페이지, http://localhost:3000/admins/idle/member-list/회원 이메일
- * 
+ * 1. member 테이블에서 해당 회원의 member 테이블 정보 가져오기
  */
 router.get('/idle/member-list/:member_email', (req, res)=>{
-    console.log(req.params.member_email)
-    res.send(req.params.member_email)
+    
+    getConnection(async(conn)=>{
+        try{
+            var member_email=req.params.member_email; //url 회원 이메일
+            //해당 회원 member 테이블 정보 가져오기
+            await new Promise((res,rej)=>{
+                var member_detail_inform = 'SELECT * FROM member WHERE member_email=?'
+                conn.query(member_detail_inform, member_email, function(err, rows){
+                    if(err || rows==''){
+                        error_request.message="member 테이블에서 데이터 불러오기 실패";
+                        conn.release();
+                        return rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
 
+            conn.release();
+            success_request.message="회원 정보 가져오기 성공";
+            res.send(success_request)            
+        }catch(err){
+            res.send(err);
+        }
+    });
 })
 
 
 /**
- * 회원 정지처리, http://localhost:3000/admins/idle/ban
+ * 회원 정지처리, http://localhost:3000/admins/idle/member-list/회원 이메일/ban
  * 회원 목록에서 회원 클릭하면 마이페이지에서 여러개로 나뉘듯 여러 속성있음 (로그 보기 , 정지 처리 등...)
  * 회원 목록에서 회원 클릭할때 그 회원 이메일 세션에 저장
  * 1. 선택한 해당 회원 member 테이블에서 member_ban 값 1로 변경
  * 2. member_ban 테이블에 기록
  */
-router.put('/idle/ban', (req, res) => {
+router.post('/idle/member-list/:member_email/ban', (req, res) => {
+
+    var member_email=req.params.member_email; // 회원 이메일
+    var admin_email= req.session.admin_email; // 관리자 이메일
 
     getConnection(async (conn) => {
         try {
-            //var member_email = req.session.member_email; // 회원 이메일
-            var admin_email = req.session.admin_email; // 관리자 이메일
-            var member_email = 'ㅁㄴㅇㄹ@naver.com';
             // 선택한 회원을 찾아서 member_ban 값을 1로 변경
             await new Promise((res, rej) => {
                 var member_ban_sql = 'UPDATE member SET member_ban=? WHERE member_email=?;';
                 var member_ban_param = [1, member_email];
                 conn.query(member_ban_sql, member_ban_param, function (err, rows) {
                     if (err || rows == '') {
+                        console.log(err)
                         conn.release();
                         error_request.message = "선택한 회원이 없음"
                         return rej(error_request);
@@ -293,14 +311,102 @@ router.put('/idle/ban', (req, res) => {
             success_request.message = "정지처리가 성공적으로 되었습니다."
             res.send(success_request);
         } catch (err) {
-            return res.send(err);
+            res.send(err);
         }
     })
 })
 
 
+/**
+ * 회원 로그확인, http://localhost:3000/admins/idle/member-list/회원 이메일/log
+ * 회원가입시간, 로그인 시간 가져오자
+ * 1. member_log 테이블에서 선택한 회원의 가입날짜 가져오기
+ * 2. member_login_log 테이블에서 회원의 로그인 로그 가져오기
+ * 3. 합쳐서 json 응답 보내기
+ */
+router.get('/idle/member-list/:member_email/log', (req, res)=>{
+    
+    var member_email=req.params.member_email; // 회원 이메일
+    
+    // 응답 json 처리에 쓸 변수
+    var member_log; // 회원가입 로그 정보
+    var member_login_log; //  로그인 로그 정보
+
+    getConnection(async(conn)=>{
+        try{
+            // member_log 테이블에서 선택한 회원의 가입날짜 가져오기
+            await new Promise((res,rej)=>{
+                var member_log_sql='SELECT member_log_join FROM member_log WHERE member_email=?;';
+                conn.query(member_log_sql, member_email, function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="log 정보 가져오기 실패";
+                        return rej(error_request);
+                    }
+                    member_log=rows;
+                    res(rows);
+                })
+            })
+
+            // member_login_log 테이블에서 선택한 회원의 로그인 로그 가져오기
+            await new Promise((res,rej)=>{
+                var member_login_log_sql='SELECT member_login FROM member_login_log WHERE member_email=?;';
+                conn.query(member_login_log_sql, member_email, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="login_log 정보 가져오기 실패";
+                        return rej(error_request);
+                    }
+                    member_login_log=rows;
+                    res(rows);
+                })
+            })
+
+            var member_detail_log=[member_log, member_login_log];
+            conn.release();
+            success_request.message= "log 정보 가져오기 성공";
+            success_request.data=member_detail_log
+            res.send(success_request);
+        }catch(err){
+            res.send(err);
+        }
+    })
+})
 
 
+/**
+ * 회원 로그 검색
+ */
 
+
+/**
+ * 관리자 로그 페이지, http://localhost:3000/admins/idle/idle/admin-log
+ * 1. admin_log 테이블에서 모든 정보를 가져온다.
+ */
+router.get('/idle/idle/admin-log', (req, res)=>{
+    getConnection(async(conn)=>{
+        try{
+            await new Promise((res, rej)=>{
+                admin_log_sql='SELECT * FROM admin_log;';
+                conn.query(admin_log_sql, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="관리자 로그 정보를 가져오는데 실패했습니다.";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+            conn.release();
+            success_request.message="관리자 로그 정보를 가져오는데 성공했습니다.";
+            res.send(success_request);
+        }catch(err){
+            res.send(err);
+        }
+    })
+
+});
 
 module.exports = router;

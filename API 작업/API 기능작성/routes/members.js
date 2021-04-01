@@ -20,12 +20,10 @@ var trans_mail = require('../setting/mail.js')
 var session = require('../setting/session.js')
 router.use(session)
 
-// 현재 시간
-var now_time = new Date();
 
-// 다음 날 (현재 시간 + 24시간)
-var tomorrow_time = new Date(now_time.setDate(now_time.getDate() + 1));
-var now_time = new Date();
+// 시간 설정
+var { now_time, tomorrow_time } = require('../setting/time.js');
+
 
 // 본문시작
 
@@ -325,6 +323,7 @@ router.post('/idle/signup/fillout', (req, res,err) => {
             }
             return res.send(success_res);
         }catch(err){
+            console.log(err)
             res.send(err);
         }
     })
@@ -1042,7 +1041,7 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
 
             // 해당 id 값과 일치하는 데이터 삭제
             var anno_markoff_param = [anno_markoff_id, mem_email];
-            var anno_markoff_sql = 'DEvarE FROM inter_anno WHERE anno_id =? AND member_email=?;';
+            var anno_markoff_sql = 'DELETE FROM inter_anno WHERE anno_id =? AND member_email=?;';
             conn.query(anno_markoff_sql, anno_markoff_param, function(err,rows){
                 if(err || rows==''){
                     //json 응답처리

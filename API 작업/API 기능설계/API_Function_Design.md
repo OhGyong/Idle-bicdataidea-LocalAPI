@@ -612,7 +612,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ## 관리자 관련 API
 
-### 관리자 등록, 삭제
+### 관리자 등록 → 삭제
 
   * **URL**
 
@@ -629,9 +629,8 @@ _    `{member_login_result:"member_log 테이블 에러"}`
         "admin_state" : 사용자 거주지,
         "admin_pw" : 사용자 비밀번호,
         "admin_phone" : 사용자 핸드폰번호
-        
-        
-          ```
+    }   
+     ```
 
 * **동작설명**
 
@@ -658,11 +657,13 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     [GET] http://{IP}:{PORT}/admins/idle/has-same-id
 
 * **PARAM**
-    ```(json)
+
+    ```
+    (json)
     {
         "same_email" : 관리자 이메일
-        
-          ```
+    }
+    ```
 
 * **동작설명**
 
@@ -719,7 +720,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **URL**
 
-    [POST] http://{IP}:{PORT}/admins/idle//logout
+    [POST] http://{IP}:{PORT}/admins/idle/logout
 
 * **동작설명**
 
@@ -836,12 +837,14 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     * **Code:** 400 </br>
     `{member_list_detail:"Error"}`
 
+---
+
 
 ### 회원 정지처리
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/admins/idle/member_list/번호/ban
+    [POST] http://{IP}:{PORT}/admins/idle/member_list/회원 이메일/ban
 
 * **PARAM**
 
@@ -854,7 +857,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **동작설명**
 
-    정리를 하려는 사용자를 선택해서 정지사유를 적고 확인을 하면 member_ban 테이블에 기록되고, member 테이블에서 해당 사용자의 member_ban 값을 1로 변경된다.
+    정지를 하려는 사용자를 선택해서 정지사유를 적고 확인을 하면 member_ban 테이블에 기록되고, member 테이블에서 해당 사용자의 member_ban 값을 1로 변경된다.
 
 * **성공 시 응답**
 
@@ -868,15 +871,15 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 상세로그 페이지
+### 회원 로그확인
 
 * **URL**
 
-    [PUT] http://{IP}:{PORT}/admins/idle/member_list/번호/log
+    [get]] http://{IP}:{PORT}/admins/idle/member-list/회원 이메일/log
 
 * **동작설명**
 
-    member_login_log 테이블에서 member_login 값 다 보여줌
+    member_log_join 값, member_login 값 가져오기
 
 * **성공 시 응답**
 
@@ -890,28 +893,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/log/member
-
-* **동작설명**
-
-    member_log 테이블에서 사용자 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_log:"Error"}` 
-
----
 
 ### 회원 로그 검색
 
@@ -942,35 +923,13 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 로그인 로그 
 
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/log/member/번호
-
-* **동작설명**
-
-    회원 로그 페이지
-    에서 클릭할 경우 member_login_log 테이블에서 사용자의 로그인 시간 리스트를 확인
-
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_login_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_login_log:"Error"}` 
-
----
 ### 관리자 로그 페이지
 
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/admins/admin-log
+    [GET] http://{IP}:{PORT}/admins/idle/idle/admin-log
 
 * **동작설명**
 
@@ -1310,9 +1269,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     `사용자 포인트=사용자 포인트+admin_point` </br>
     `누적 포인트=누적 포인트+admin_point` 로 변경
 
-    
-    
-    * **성공 시 응답**
+* **성공 시 응답**
 
     * **Code:** 200 </br>
     `{point_process:"Success"}`

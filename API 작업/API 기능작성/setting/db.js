@@ -6,7 +6,8 @@ var connection = mysql.createPool({
     user: process.env.DB_USER,
     password: process.env.DB_PASS,
     database: "test_api",
-    connectionLimit: 80
+    connectionLimit: 80,
+    dateStrings : 'date'
 });
 
 function getConnection(callback){
