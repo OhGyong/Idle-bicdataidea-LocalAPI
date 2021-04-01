@@ -376,8 +376,9 @@ router.get('/idle/member-list/:member_email/log', (req, res)=>{
 
 
 /**
- * 회원 로그 검색
+ * 
  */
+
 
 
 /**
@@ -408,5 +409,14 @@ router.get('/idle/idle/admin-log', (req, res)=>{
     })
 
 });
+
+
+/**
+ * 관리자 로그 검색
+ */
+
+
+
+
 
 module.exports = router;
