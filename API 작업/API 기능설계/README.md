@@ -840,6 +840,64 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 ---
 
 
+### 회원 로그확인
+
+* **URL**
+
+    [get]] http://{IP}:{PORT}/admins/idle/member-list/회원 이메일/log
+
+* **동작설명**
+
+    member_log_join 값, member_login 값 가져오기
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_ban:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_ban:"Error"}`
+
+---
+
+
+### 회원 아이디어 목록
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/admins/idle/member-list/회원 이메일/idea-list
+
+
+* **동작설명**
+
+    idea 테이블에서 해당회원의 정보를 가져온다.
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{member_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{member_log_search:"Error"}` 
+
+---
+
+
+### 회원 아이디어 목록 검색
+
+
+### 회원 아이디어 내용 보기
+
+
+### 선택한 아이디어 수정 목록
+
+### 선택한 아이디어 수정 내용 보기
+
+
 ### 회원 정지처리
 
 * **URL**
@@ -871,61 +929,8 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 로그확인
-
-* **URL**
-
-    [get]] http://{IP}:{PORT}/admins/idle/member-list/회원 이메일/log
-
-* **동작설명**
-
-    member_log_join 값, member_login 값 가져오기
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_ban:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_ban:"Error"}`
-
----
-
-
-### 회원 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/log/member?검색어
-
-* **PARAM**
-    ```(json)
-    {
-        "member_email" : 사용자 이메일
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 사용자 이메일을 입력하면 member_log 테이블에서 일치하는 아이디를 찾아서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_log_search:"Error"}` 
-
----
-
 
 ### 관리자 로그 페이지
-
 
 * **URL**
 
