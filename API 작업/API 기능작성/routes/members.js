@@ -1078,7 +1078,7 @@ router.get('/idle/mypage/marked', (req, res) => {
             console.log("세션 이메일 : " + mem_email);
 
             // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
-            var anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_devare=?;';
+            var anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=?;';
             var anno_marked_param = [mem_email, 0];
             conn.query(anno_marked_sql, anno_marked_param, function (err, rows) {
                 if(err || rows==''){
