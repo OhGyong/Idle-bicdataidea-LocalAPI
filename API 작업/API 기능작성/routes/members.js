@@ -10,8 +10,7 @@ const crypto = require('crypto');
 var getConnection = require('../setting/db.js');
 
 // 응답 설정
-//var success_res= require('../setting/request.js');
-//var error_res=requrie('../setting/request.js');
+var { success_request, error_request } = require('../setting/request.js');
 
 // 메일 설정
 var trans_mail = require('../setting/mail.js')
@@ -52,7 +51,7 @@ router.get('/idle/signup/agree/check', (req, res) => {
 
 
 /**
- *  session.js 확인
+ * session.js 확인
  * 회원 이메일 중복 확인, http://localhost:3000/idle/has-same-email
  * 1. 입력된 json 값 value 값만 가져오기
  * 2. member 테이블에 입력받은 이메일 값이 있는지 확인해서 있으면 생성불가, 없으면 생성가능 응답처리
@@ -950,26 +949,48 @@ router.get('/idle/mypage/point/save', (req, res) => {
  */
 router.get('/idle/mypage/idea', (req, res) => {
 
-    getConnection(conn=>{
+    getConnection(async(conn)=>{
         try{
+            var result;
+            var idea_list = req.query.idea_search;
+            console.log(idea_list);
+
             var mem_email = req.session.member_email; // 세션 이메일
             console.log("세션 이메일 : " + mem_email);
             
-            // idea 테이블에서 제목, 내용, 작성일 가져오기
-            var save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_devare=?;';
-            var save_point_param = [mem_email, 0]
-            conn.query(save_point_sql, save_point_param, function (err, rows) {
-                // idea 게시물을 올린적이 없어서 indea 테이블에 회원이 등록이 안된 경우
-                if (err || rows == '') {
-                    var error_res = {
-                        "idea_list": "등록된 아이디어가 없습니다."
-                    }
-                    return res.send(error_res);
+            await new Promise((res, rej) => {
+
+                var save_point_sql;
+                var save_point_param;
+
+                // 검색안했을때
+                if(idea_list == undefined){
+                    // idea 테이블에서 제목, 내용, 작성일 가져오기
+                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=?;';
+                    save_point_param = [mem_email, 0]
+                }else{
+                    // 검색 했을 때 ( 3글자 부터)
+                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(?);';
+                    save_point_param = [mem_email, 0, idea_list];
                 }
-                //사용내역 응답
-                res.send(rows)
+            
+                conn.query(save_point_sql, save_point_param, function (err, rows) {
+                    // idea 게시물을 올린적이 없어서 indea 테이블에 회원이 등록이 안된 경우
+                    if (err || rows == '') {
+                        var error_res = {
+                            "idea_list": "등록된 아이디어가 없습니다."
+                        }
+                        rej(error_res);
+                    }
+                    result=rows;
+                    res(rows);                    
+                })
             })
+            //사용내역 응답
+            res.send(result);
         }catch(err){
+            console.log(err)
+
             error_res = {
                 "idea_list": "Error"
             }

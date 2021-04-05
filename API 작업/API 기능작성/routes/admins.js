@@ -513,7 +513,7 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
 
 
 /**
- * 회원 문의사항 검색
+ * 회원 문의사항 목록 검색
  */
 
 
@@ -589,7 +589,7 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 
 
 /**
- * 선택한 문희사항 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의사항 번호
+ * 선택한 문의사항 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의사항 번호
  */
  router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified/:modify_num', (req,res)=>{
     
@@ -624,6 +624,73 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
     })
 })
 
+
+/**
+ * 회원 관심사업 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/inter-anno-list
+ * 1. 해당회원의 anno 테이블 정보만 가져오자
+ */
+router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
+    getConnection(async(conn)=>{
+        try{
+            var member_email=req.params.member_email;
+            await new Promise((res, rej)=>{
+                var interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=?;';
+                conn.query(interanno_list_sql, member_email, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="관심사업 목록 데이터 가져오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+            conn.release();
+            success_request.message="관심사업 목록 데이터 가져오기 성공";
+            res.send(success_request);            
+        }catch(err){
+            res.send(err)
+        }
+    })
+})
+
+
+/**
+ * 회원 관심사업 목록 검색
+ */
+
+
+/**
+ * 회원 관심사업 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/inter-anno-list/관심사업 번호
+ */
+router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res)=>{
+    getConnection(async(conn)=>{
+        try{
+            var member_email = req.params.member_email;
+            var anno_id = req.params.anno_id;
+
+            await new Promise((res, rej)=>{
+                var interanno_look_sql='SELECT * FROM anno JOIN anno_img_dir ON (anno.anno_id = anno_img_dir.anno_id) JOIN inter_anno ON (anno_img_dir.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno.anno_id;';
+                var interanno_look_params=[member_email, anno_id];
+                conn.query(interanno_look_sql, interanno_look_params, function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="관심사업 데이터 불러오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+            conn.release();
+            success_request.message="관심사업 데이터 불러오기 성공";
+            res.send(success_request);
+        }catch(err){
+            res.send(err);
+        }
+    })
+})
 
 /**
  * 회원 정지처리, http://localhost:3000/admins/idle/member-list/회원 이메일/ban
@@ -680,10 +747,10 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 
 
 /**
- * 관리자 로그 페이지, http://localhost:3000/admins/idle/idle/admin-log
+ * 관리자 로그 페이지, http://localhost:3000/admins/idle/admin-log
  * 1. admin_log 테이블에서 모든 정보를 가져온다.
  */
-router.get('/idle/idle/admin-log', (req, res)=>{
+router.get('/idle/admin-log', (req, res)=>{
     getConnection(async(conn)=>{
         try{
             await new Promise((res, rej)=>{
@@ -711,6 +778,35 @@ router.get('/idle/idle/admin-log', (req, res)=>{
 /**
  * 관리자 로그 검색
  */
+
+
+/**
+ * 공지사항 목록, http://localhost:3000/admins/idle/notice-list
+ * 1. notice 테이블, notice_file_dir 테이블 JOIN
+ */
+router.get('/idle/notice-log', (req, res)=>{
+    getConnection(async(conn)=>{
+        try {
+            await new Promise((res, rej)=>{
+                var notice_list_sql='SELECT * FROM notice;';
+                conn.query(notice_list_sql, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="공지사항 데이터 가져오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+            conn.release();
+            success_request.message="공지사항 데이터 가져오기 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err);
+        }
+    })
+})
 
 
 
