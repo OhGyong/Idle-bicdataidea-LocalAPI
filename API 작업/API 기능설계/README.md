@@ -897,6 +897,23 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ### 선택한 아이디어 수정 내용 보기
 
+### 회원 문의사항 목록
+
+### 회원 문의사항 목록 검색
+
+### 회원 문의사항 내용 보기
+
+### 선택한 문의사항 수정 내용 목록
+
+### 선택한 문의사항 수정 내용 목록 검색
+
+### 선택한 문의사항 수정 내용 보기
+
+### 회원 관심사업 목록
+
+### 회원 관심사업 목록 검색
+
+### 회원 관심사업 내용 보기
 
 ### 회원 정지처리
 
@@ -928,325 +945,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     `{member_ban:"Error"}`
 
 ---
-
-
-### 관리자 로그 페이지
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/admins/idle/idle/admin-log
-
-* **동작설명**
-
-    admin_log 테이블에서 관리자 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_log:"Error"}` 
-
----
-
-### 관리자 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/admin-log?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "admin_email" : 사용자 이메일
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 관리자 이메일을 입력하면 admin_log 테이블에서 일치하는 아이디를 찾아서 테이블의 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_log_search:"Error"}` 
-
----
-
-### 문의게시판 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/cs-log
-
-* **동작설명**
-
-    cs_log 테이블에서 문의게시판 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{cs_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{cs_log:"Error"}` 
-
----
-
-### 문의게시판 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/cs-log?검색어
-
-* **PARAM**
-    ```(json)
-    {
-        "cs_title" : 문의글 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 문의글 제목을 입력하면 cs 테이블에서 일치하는 제목을 찾고 연결된 cs_log 테이블에서 테이블의 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{cs_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{cs_log_search:"Error"}` 
-
----
-
-### 공지사항 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/notice-log
-
-* **동작설명**
-
-    notice_log 테이블에서 공지사항 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{notice_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{notice_log:"Error"}` 
-
----
-
-### 공지사항 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/notice-log?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "notice_title" : 공지사항 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 공지사항 제목을 입력하면 notice 테이블에서 일치하는 제목을 찾고 연결된 notice_log 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{notice_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{notice_log_search:"Error"}` 
-
----
-
-### 고객센터 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/contact-log
-
-* **동작설명**
-
-    contact_log 테이블에서 고객센터 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{contact_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{contact_log:"Error"}` 
-
----
-
-### 고객센터 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/contact-log?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "contact_title" : 고객센터 문의글 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 고객센터 문의글 제목을 입력하면 contact 테이블에서 일치하는 제목을 찾고 연결된 contact_log에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{contact_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{contact_log_search:"Error"}` 
-
----
-
-### 아이디어 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/idea-log
-
-* **동작설명**
-
-    idea_log 테이블에서 아이디어 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_log:"Error"}` 
-
----
-
-### 아이디어 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/idea-log?검색어
-
-* **PARAM**
-    ```(json)
-    {
-        "idea_title" : 아이디어 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 아이디어 제목을 입력하면 idle 테이블에서 일치하는 제목을 찾고 연결된 idea_log 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_log_search:"Error"}` 
-
----
-
-### 공고정보 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/anno-log
-
-* **동작설명**
-
-    anno_log 테이블에서 공고정보 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_log:"Error"}` 
-
----
-
-### 공고정보 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/anno-log/검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "anno_title" : 공고 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 공고 제목을 입력하면 anno 테이블에서 일치하는 제목을 찾고 연결된 anno_id 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno_log}:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno_log:"Error"}` 
-
----
----
-
-
 
 
 ## 포인트 관련 API
@@ -1780,6 +1478,224 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 
 ## 관리자 관점 게시물 관련 API
+
+
+### 공지사항 로그 페이지
+
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/notice-log
+
+* **동작설명**
+
+    notice_log 테이블에서 공지사항 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_log:"Error"}` 
+
+---
+
+### 공지사항 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/notice-log?검색어
+
+* **PARAM**
+
+    ```(json)
+    {
+        "notice_title" : 공지사항 제목
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공지사항 제목을 입력하면 notice 테이블에서 일치하는 제목을 찾고 연결된 notice_log 테이블에서 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{notice_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{notice_log_search:"Error"}` 
+
+---
+
+### 고객센터 로그 페이지
+
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/contact-log
+
+* **동작설명**
+
+    contact_log 테이블에서 고객센터 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{contact_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{contact_log:"Error"}` 
+
+---
+
+### 고객센터 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/contact-log?검색어
+
+* **PARAM**
+
+    ```(json)
+    {
+        "contact_title" : 고객센터 문의글 제목
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 고객센터 문의글 제목을 입력하면 contact 테이블에서 일치하는 제목을 찾고 연결된 contact_log에서 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{contact_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{contact_log_search:"Error"}` 
+
+---
+
+### 아이디어 로그 페이지
+
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/idea-log
+
+* **동작설명**
+
+    idea_log 테이블에서 아이디어 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log:"Error"}` 
+
+---
+
+### 아이디어 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/idea-log?검색어
+
+* **PARAM**
+    ```(json)
+    {
+        "idea_title" : 아이디어 제목
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 아이디어 제목을 입력하면 idle 테이블에서 일치하는 제목을 찾고 연결된 idea_log 테이블에서 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log_search:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log_search:"Error"}` 
+
+---
+
+### 공고정보 로그 페이지
+
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/anno-log
+
+* **동작설명**
+
+    anno_log 테이블에서 공고정보 로그들을 가져옴
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{idea_log:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{idea_log:"Error"}` 
+
+---
+
+### 공고정보 로그 검색
+
+* **URL**
+
+    [GET] http://{IP}:{PORT}/idle/admins/anno-log/검색어
+
+* **PARAM**
+
+    ```(json)
+    {
+        "anno_title" : 공고 제목
+    }
+    ```
+
+* **동작설명**
+
+    관리자가 공고 제목을 입력하면 anno 테이블에서 일치하는 제목을 찾고 연결된 anno_id 테이블에서 값을 보냄
+
+* **성공 시 응답**
+
+    * **Code:** 200 </br>
+    `{anno_log}:"Success"}`
+
+* **실패 시 응답**
+
+    * **Code:** 400 </br>
+    `{anno_log:"Error"}` 
+
+---
+---
+
+
+
+
+
 
 ### 공고정보 게시판 목록
 
