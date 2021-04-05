@@ -660,38 +660,40 @@ router.get('/idle/mypage/update', (req, res) => {
  * 3. json 응답
  */
 router.put('/idle/mypage/update/modify', (req, res) => {
-    try {
-        var mem_email = [req.session.member_email]; // 세션 이메일
 
-        // 입력받은 값
-        var member_modify = new Array();
-        for (modify_index in req.body) {
-            member_modify.push(req.body[modify_index])
-        }
+    getConnection(conn=>{
+        try{
+            var mem_email = [req.session.member_email]; // 세션 이메일
 
-        member_modify.push(mem_email) // 쿼리에 사용할 param 
-
-        // 입력한 값으로 업데이트
-        var modify_sql = 'UPDATE member SET member_email=?, member_name=?, member_pw=?, member_gender=?, member_birth=?, member_phone=?, member_company=?, member_state=? WHERE member_email=?'
-        getConnection((conn) => {
+            // 입력받은 값
+            var member_modify = new Array();
+            for (modify_index in req.body) {
+                member_modify.push(req.body[modify_index])
+            }
+    
+            member_modify.push(mem_email) // 쿼리에 사용할 param 
+            var modify_sql = 'UPDATE member SET member_email=?, member_name=?, member_pw=?, member_gender=?, member_birth=?, member_phone=?, member_company=?, member_state=? WHERE member_email=?'
             conn.query(modify_sql, member_modify, function (err, rows) {
                 if (err || rows == '') {
-                    var error_res = {
-                        member_modify: "수정 실패하였습니다."
-                    }
                     conn.release();
-                    return rej(error_res);
-                }
-                var success_res = {
-                    member_modify: "수정되었습니다."
+                    error_request.message="수정 실패하였습니다."
+                    return res.send(error_request);
                 }
                 conn.release;
-                return res.send(success_res);
+                success_request.message="수정되었습니다."
+                return res.send(success_request);
             })
-        })
-    } catch (err) {
-        res.send(err);
-    }
+
+        }catch(err){
+            return res.send(err);
+        }
+    })
+
+
+
+
+    // 입력한 값으로 업데이트
+        
 })
 
 
@@ -713,29 +715,30 @@ router.put('/idle/member-secede', (req, res) => {
                 var secede_param = [1, mem_email];
                 conn.query(secede_sql, secede_param, function (err, rows) {
                     if (err || rows == '') {
-                        var error_res = {
-                            member_secede: "Error"
-                        }
                         conn.release();
-                        rej(error_res);
+                        error_request.message="회원 탈퇴 실패";
+                        res(error_request);
                     }
                     res(rows);
                 })
             });
 
-            //json 응답처리
-            success_res = {
-                member_secede: "탈퇴처리 되었습니다."
-            }
+            await new Promise((res, rej)=>{
+                // 세션 삭제
+                req.session.destroy(function(err) {
+                    if(err){
+                        error_request.message="세션 삭제 실패"
+                        rej(error_request);
+                    }
+                    res();
+                });
+            })
+            success_request.message = "회원 탈퇴 성공";
+            res.send(success_request)
+            //res.redirect('/home'); // 홈으로 이동하게 하자
 
-            // 세션 삭제
-            req.session.destroy(function () {
-                console.log(req.session)
-                //res.redirect('/home'); // 홈으로 이동하게 하자
-                return res.send(success_res)
-            });
         } catch (err) {
-            return res.send(error_res)
+            res.send(err)
         }
     })
 })
@@ -767,11 +770,9 @@ router.get('/idle/mypage/point/state', (req, res) => {
                 var mypoint_sql = 'SELECT member_point, save_point, use_point FROM member WHERE member_email=?'
                 conn.query(mypoint_sql, mem_email, function (err, rows) {
                     if (err || rows == '') {
-                        var error_res = {
-                            point_state: "현재 회원 포인트 가져오기 실패"
-                        }
                         conn.release();
-                        rej(error_res);
+                        error_request.message="현재 회원 포인트 가져오기 실패"
+                        rej(error_request);
                     }
                     // 점수 저장
                     my_now_point = rows[0].member_point; // 현재 포인트
@@ -788,11 +789,9 @@ router.get('/idle/mypage/point/state', (req, res) => {
                 var savepoint_sql = 'SELECT save_point FROM member WHERE member_ban=?';
                 conn.query(savepoint_sql, 0, function (err, rows) {
                     if (err || rows == '') {
-                        var error_res = {
-                            point_state: "회원들 누적 포인트 가져오기 실패"
-                        }
                         conn.release();
-                        rej(error_res);
+                        error_request.message="회원들 누적 포인트 가져오기 실패";
+                        rej(error_request);
                     }
                     console.log(rows)
 
@@ -828,29 +827,29 @@ router.get('/idle/mypage/point/state', (req, res) => {
                 var myrank_params = [my_rank, mem_email]
                 conn.query(myrank_sql, myrank_params, function (err, rows) {
                     if (err || rows == '') {
-                        var error_res = {
-                            point_state: "테이블 순위 업데이트 실패"
-                        }
                         conn.release();
-                        rej(error_res);
+                        error_request.message="테이블 순위 업데이트 실패";
+                        rej(error_request);
                     }
                     // json 형태로 응답
                     res(rows)
                 })
             })
-
             conn.release();
+
             point_state = {
                 "현재 포인트": my_now_point,
                 "누적 포인트": my_save_point,
                 "사용 포인트": my_use_point,
                 "랭킹": my_rank
             }
-            console.log(point_state)
-            return res.send(point_state);
+            
+            success_request.data=point_state;
+            success_request.message="회원 포인트 현황 반환 성공"
+            return res.send(success_request);
 
         } catch (err) {
-            return res.send(err)
+            res.send(err);
         }
     })
 })
@@ -873,20 +872,18 @@ router.get('/idle/mypage/point/use', (req, res) => {
             conn.query(use_point_sql, mem_email, function (err, rows) {
                 // point를 사용한적이 없어서 point테이블에 회원이 등록이 안된 경우
                 if (err || rows == '') {
-                    var error_res = {
-                        "point_use": "사용내역이 없습니다"
-                    }
-                    res.send(error_res);
+                    conn.release();
+                    error_request.message="사용내역이 없습니다.";
+                    return res.send(error_request);
                 }
+                conn.release();
                 //사용내역 응답
-                res.send(rows)
+                success_request.data=rows;
+                success_request.message="사용내역 가져오기 성공";
+                return res.send(success_request)
             })
         } catch (err) {
-            console.log(err);
-            error_res = {
-                "point_use": "Error"
-            }
-            res.send(error_res);
+            return res.send(err);
         }
     })
 })
@@ -909,19 +906,18 @@ router.get('/idle/mypage/point/save', (req, res) => {
             var save_point_sql = 'SELECT idea_title, add_point, date_point FROM idea WHERE member_email=?;';
             conn.query(save_point_sql, mem_email, function (err, rows) {
                 if (err || rows == '') {
-                    var error_res = {
-                        "point_save": "등록된 아이디어가 없습니다."
-                    }
-                    return res.send(error_res);
+                    conn.release();
+                    error_request.message="등록된 아이디어가 없습니다.";
+                    return res.send(error_request);
                 }
+                conn.release();
                 //사용내역 응답
-                res.send(rows)
+                success_request.message="적립내역 불러오기 성공";
+                success_request.data=rows;
+                res.send(success_request);
             })
         } catch (err) {
-            error_res = {
-                "point_save": "Error"
-            }
-            res.send(error_res)
+            return res.send(err)
         }
     })
 })
