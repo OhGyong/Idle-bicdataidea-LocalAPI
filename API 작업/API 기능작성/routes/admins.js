@@ -187,18 +187,32 @@ router.delete('/idle/admin-secede', (req, res)=>{
 
 
 /**
- * 회원 리스트 목록, http://localhost:3000/admins/idle/member-list
+ * 회원 목록, http://localhost:3000/admins/idle/member-list
  * 회원 리스트 목록을 페이지에 어떻게 표현할지 더 생각해보자 ( 회원 이메일, 이름, 성별, 가입일자, 정지여부 보여줌)
  * 1. member 테이블에서 회원 리스트 뽑음
  */
 router.get('/idle/member-list', (req, res)=>{
-    
+
     getConnection(async(conn)=>{
         try{
+            
+            var member_name = req.query.member_search_name; // 검색 값
+            var member_list_sql;
+            var member_list_param;
+
             // 회원 목록 뽑기
             await new Promise((res, rej)=>{
-                var member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email)';
-                conn.query(member_list_sql, function(err, rows){
+                if(member_name== undefined){
+                    // 검색 안할 때
+                    member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email)';
+                    member_list_param=null;
+                }else{
+                    // 검색할때
+                    member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) WHERE MATCH(member_name) AGAINST(? IN boolean mode)';
+                    member_list_param=[ member_name+'*'];
+                }
+
+                conn.query(member_list_sql, member_list_param, function(err, rows){
                     console.log(rows)
                     if(err || rows==''){
                         error_request.message="회원 조회 실패";
@@ -218,16 +232,6 @@ router.get('/idle/member-list', (req, res)=>{
             res.send(err)
         }
     })
-})
-
-
-/**
- * 회원 리스트 검색, http://localhost:3000/admins/idle/member-list?검색어
- * 
- */
-router.get('/idle/member-list', (req, res)=>{
-
-
 })
 
 
@@ -333,11 +337,26 @@ router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
     getConnection(async(conn)=>{
         try{
             var member_email = req.params.member_email;
+            var idea_title = req.query.idea_search; // 검색 변수
 
             // idea 테이블에서 해당회원의 데이터 가져옴
             await new Promise((res, rej)=>{
-                var member_idealist_sql='SELECT * FROM idea WHERE member_email=?;';
-                conn.query(member_idealist_sql, member_email,function(err, rows){
+
+                var member_idealist_sql;
+                var member_idealist_params;
+
+                if(idea_title==undefined){
+                    // 검색 안했을 때
+                    member_idealist_sql='SELECT * FROM idea WHERE member_email=?;';
+                    member_idealist_params=[member_email];
+                }
+                else{
+                    // 검색 했을 때
+                    member_idealist_sql='SELECT * FROM idea WHERE member_email=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
+                    member_idealist_params=[member_email, idea_title+'*'];
+                }
+                
+                conn.query(member_idealist_sql, member_idealist_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
                         error_request.message="아이디어 목록을 불러오는데 실패했습니다.";
@@ -359,11 +378,6 @@ router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
 
 
 /**
- * 회원 아이디어 목록 검색
- */
-
-
-/**
  * 회원 아이디어 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/idea-list/게시물 번호
  * 1. 회원 이메일 아이디 정보 가져오기
  * 2. idea 테이블에서 제목 내용 작성일 얻은포인트 관리자이메일 정보 필요(다 가져오자)
@@ -371,8 +385,6 @@ router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
  */
 router.get('/idle/member-list/:member_email/idea-list/:idea_id', (req, res)=>{
     
-    
-
     getConnection(async(conn)=>{
         try{
             
@@ -412,11 +424,26 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified',(req,re
     getConnection(async(conn)=>{
         try{
             var idea_id = req.params.idea_id; // 선택한 아이디어
+            var idea_title = req.query.idea_search;
+            console.log("검색 내용: "+ idea_title);
 
             await new Promise((res,rej)=>{
-                var idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=?;';
-                conn.query(idea_modify_sql, idea_id, function(err, rows){
+            
+                var idea_modify_sql;
+                var idea_modify_params;
+
+                if(idea_title==undefined){
+                    //검색 안했을 때
+                    idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=?;';
+                    idea_modify_params=idea_id;
+                }else{
+                    //검색 했을 때
+                    idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
+                    idea_modify_params=[idea_id, idea_title+'*'];
+                }
+                conn.query(idea_modify_sql, idea_modify_params, function(err, rows){
                     if(err || rows==''){
+                        console.log(err)
                         conn.release();
                         error_request.message="아이디어 수정 전 데이터 가져오기 실패";
                         rej(error_request);
@@ -433,11 +460,6 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified',(req,re
         }
     })
 })
-
-
-/**
- * 선택한 아이디어 수정 내용 목록 검색
- */
 
 
 /**
@@ -487,17 +509,28 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
     getConnection(async(conn)=>{
         try{
             var member_email=req.params.member_email;
+            var cs_title = req.query.cs_search; // 검색 내용
 
             await new Promise((res, rej)=>{
-                var member_cslist_sql='SELECT * FROM cs WHERE member_email=?;';
-                conn.query(member_cslist_sql, member_email, function(err, rows){
-                    console.log(err)
+                var member_cslist_sql;
+                var member_cslist_params
+
+                if(cs_title==undefined){
+                    // 검색 안했을 때
+                    member_cslist_sql='SELECT * FROM cs WHERE member_email=?;';
+                    member_cslist_params=member_email;
+                }else{
+                    // 검색 했을 때
+                    member_cslist_sql='SELECT * FROM cs WHERE member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode);';
+                    member_cslist_params=[member_email, cs_title + '*'];
+                }
+                conn.query(member_cslist_sql, member_cslist_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
                         error_request.message="cs 정보 불러오기 실패";
                         rej(error_request);
-                    }
-                    success_request.dat=rows;
+                    } 
+                    success_request.data=rows;
                     res(rows);
                 })
             })
@@ -560,11 +593,23 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
     getConnection(async(conn)=>{
         try{
             var cs_id = req.params.cs_id; // 선택한 아이디어
+            var cs_before_title = req.query.cs_search; // 검색 내용
 
             await new Promise((res,rej)=>{
-                var idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=?;';
-                conn.query(idea_modify_sql, cs_id, function(err, rows){
+
+                var cs_modify_sql;
+                var cs_modify_params;
+
+                if(cs_before_title==undefined){
+                    cs_modify_sql='SELECT * FROM cs_log WHERE cs_id=?;';
+                    cs_modify_params=cs_id;
+                }else{
+                    cs_modify_sql='SELECT * FROM cs_log WHERE cs_id=? AND MATCH(cs_before_title) AGAINST(? IN boolean mode);';
+                    cs_modify_params=[cs_id, cs_before_title+'*'];
+                }
+                conn.query(cs_modify_sql, cs_modify_params, function(err, rows){
                     if(err || rows==''){
+                        console.log(err)
                         conn.release();
                         error_request.message="문의사항 수정 전 데이터 가져오기 실패";
                         rej(error_request);
@@ -581,11 +626,6 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
         }
     })
 })
-
-
-/**
- * 선택한 문의사항 수정 내용 목록 검색
- */
 
 
 /**
@@ -753,9 +793,20 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
 router.get('/idle/admin-log', (req, res)=>{
     getConnection(async(conn)=>{
         try{
+            var admin_log_email=req.query.admin_log_search;
+
             await new Promise((res, rej)=>{
-                admin_log_sql='SELECT * FROM admin_log;';
-                conn.query(admin_log_sql, function(err, rows){
+                var admin_log_sql;
+                var admin_log_params;
+
+                if(admin_log_email == undefined){
+                    admin_log_sql='SELECT * FROM admin_log;';
+                    admin_log_params=null;
+                }else{
+                    admin_log_sql='SELECT * FROM admin_log WHERE MATCH(admin_email) AGAINST(?);';
+                    admin_log_params=admin_log_email + '*';
+                }
+                conn.query(admin_log_sql, admin_log_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
                         error_request.message="관리자 로그 정보를 가져오는데 실패했습니다.";
@@ -773,11 +824,6 @@ router.get('/idle/admin-log', (req, res)=>{
         }
     })
 });
-
-
-/**
- * 관리자 로그 검색
- */
 
 
 /**
@@ -809,6 +855,13 @@ router.get('/idle/notice-log', (req, res)=>{
 })
 
 
+
+/**
+ * 공고정보게시판 올리기, http://localhost:3000/admins/idle/board/announcement
+ */
+router.get('', (req, res)=>{
+
+})
 
 
 

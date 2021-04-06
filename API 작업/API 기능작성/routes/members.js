@@ -683,17 +683,10 @@ router.put('/idle/mypage/update/modify', (req, res) => {
                 success_request.message="수정되었습니다."
                 return res.send(success_request);
             })
-
         }catch(err){
             return res.send(err);
         }
     })
-
-
-
-
-    // 입력한 값으로 업데이트
-        
 })
 
 
@@ -932,8 +925,8 @@ router.get('/idle/mypage/idea', (req, res) => {
 
     getConnection(async (conn) => {
         try {
-            var result;
-            var idea_list = req.query.idea_search;
+            var result; // success data를 담을 변수
+            var idea_list = req.query.idea_search; // 검색 변수
             console.log(idea_list);
 
             var mem_email = req.session.member_email; // 세션 이메일
@@ -951,39 +944,37 @@ router.get('/idle/mypage/idea', (req, res) => {
                     save_point_param = [mem_email, 0]
                 } else {
                     // 검색 했을 때 ( 3글자 부터)
-                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(?);';
-                    save_point_param = [mem_email, 0, idea_list];
+                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
+                    save_point_param = [mem_email, 0, idea_list + '*'];
                 }
 
                 conn.query(save_point_sql, save_point_param, function (err, rows) {
                     // idea 게시물을 올린적이 없어서 indea 테이블에 회원이 등록이 안된 경우
                     if (err || rows == '') {
-                        var error_res = {
-                            "idea_list": "등록된 아이디어가 없습니다."
-                        }
-                        rej(error_res);
+                        conn.release();
+                        error_request.message = "등록된 아이디어가 없습니다.";
+                        rej(error_request);
                     }
                     result = rows;
                     res(rows);
                 })
             })
-            //사용내역 응답
-            res.send(result);
-        } catch (err) {
-            console.log(err)
 
-            error_res = {
-                "idea_list": "Error"
-            }
-            res.send(error_res)
+            conn.release();
+            //사용내역 응답
+            success_request.data=result;
+            success_request.message="회원 아이디어 목록 불러오기 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err)
         }
     })
 })
 
 
 /**
- * inter_anno 테이블에 체크됐는지 안됐는지 팔별해주는 컬럼하나 넣고 등록 해제 api 한번에 하는거 괜찮아 보임
  * 관심사업 등록, http://localhost:3000/idle/mypage/marked-on
+ * inter_anno 테이블에 체크됐는지 안됐는지 팔별해주는 컬럼하나 넣고 등록 해제 api 한번에 하는거 괜찮아 보임
  * 1. 내가 누른 공고게시물의 id값 저장 ( 포스트맨에서 받기 )
  * 2. 세션 이메일 즐겨찾기 등록하면 inter_anno 테이들에 삽입
  * 3. json 응답처리
@@ -1004,21 +995,23 @@ router.post('/idle/mypage/marked-on', (req, res) => {
             conn.query(anno_markon_sql, anno_markon_param, function (err, rows) {
 
                 if (err || rows == '') {
-                    var anno_markon_error_res = {
-                        "anno_markon": "관심사업 등록실패"
-                    }
-                    return res.send(anno_markon_error_res);
+                    console.log(err)
+                    conn.release();
+                    error_request.message="관심사업 등록실패";
+                    return res.send(error_request);
                 }
                 // json 응답처리
                 var anno_markon_success_res = {
                     "anno_id": anno_markon_id,
                     "member_email": mem_email
                 }
-                return res.send(anno_markon_success_res);
+                success_request.data=anno_markon_success_res;
+                success_request.message="관심사업 등록성공";
+                return res.send(success_request);
             })
         } catch (err) {
             //json 응답처리
-            return res.send(anno_markon_error_res);
+            return res.send(err);
         }
     })
 })
@@ -1046,22 +1039,23 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
             var anno_markoff_sql = 'DELETE FROM inter_anno WHERE anno_id =? AND member_email=?;';
             conn.query(anno_markoff_sql, anno_markoff_param, function (err, rows) {
                 if (err || rows == '') {
+                    conn.release();
                     //json 응답처리
-                    var anno_markoff_error_res = {
-                        "anno_markoff": "관심사업 해제실패"
-                    }
-                    return res.send(anno_markoff_error_res);
+                    error_request.message="관심사업 해제 실패";
+                    return res.send(error_request);
                 }
                 //json 응답처리
                 var anno_markoff_success_res = {
                     "anno_id": anno_markoff_id,
                 }
-                return res.send(anno_markoff_success_res)
+                success_request.data=anno_markoff_success_res;
+                success_request.message="관심사업 해제 성공";
+                return res.send(success_request)
 
             })
-        } catch {
+        } catch(err) {
             //json 응답처리
-            return res.send(anno_markoff_error_res);
+            return res.send(err);
         }
     })
 })
@@ -1074,30 +1068,48 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
  */
 router.get('/idle/mypage/marked', (req, res) => {
 
-    getConnection(conn => {
+    getConnection(async(conn)=> {
         try {
             var mem_email = req.session.member_email; // 세션 이메일
             console.log("세션 이메일 : " + mem_email);
 
-            // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
-            var anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=?;';
-            var anno_marked_param = [mem_email, 0];
-            conn.query(anno_marked_sql, anno_marked_param, function (err, rows) {
-                if (err || rows == '') {
-                    var anno_marked_error_res = {
-                        "anno_marked": "Error"
-                    }
-                    return res.send(anno_marked_error_res);
+            var anno_title = req.query.inter_anno_search;
+            console.log("공지사항 제목: " + anno_title)
+
+            var anno_marked_sql;
+            var anno_marked_param;
+
+            await new Promise((res, rej)=>{
+
+                if(anno_title == undefined){
+                    // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
+                    anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=?;';
+                    anno_marked_param = [mem_email, 0];
                 }
-                console.log(rows)
-                return res.send(rows)
+                else{
+                    // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
+                    anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? AND MATCH(anno_title) AGAINST(? IN boolean mode);';
+                    anno_marked_param = [mem_email, 0, anno_title + '*'];
+                }
+                
+                conn.query(anno_marked_sql, anno_marked_param, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message="관심사업 목록 가져오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
             })
+            conn.release();
+            success_request.message="관심사업 목록 가져오기 성공";
+            res.send(success_request);
         } catch (err) {
-            return res.send(anno_marked_error_res);
+            res.send(err);
         }
     })
-
-
 })
 
 

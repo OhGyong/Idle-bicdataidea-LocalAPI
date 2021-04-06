@@ -6,7 +6,9 @@
     "start": "supervisor ./bin/www"
   },
   "dependencies": {
+    "axios": "^0.21.1",
     "body-parser": "^1.19.0",
+    "cheerio": "^1.0.0-rc.5",
     "cookie-parser": "^1.4.5",
     "date-utils": "^1.2.21",
     "debug": "^2.6.9",
@@ -22,5 +24,11 @@
     "mysql2": "^2.2.5",
     "nodemailer": "^6.5.0",
     "pug": "^2.0.0-beta11"
-  }
+  },
+  "main": "app.js",
+  "devDependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": ""
 }
