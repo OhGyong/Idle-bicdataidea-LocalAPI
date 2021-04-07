@@ -7,16 +7,18 @@ let anno_data = []; // 크롤링 한 데이터를 보관하는 배열
 // 크롤링 시작
 async function anno_crawling() {
 
-    const getHtml = () => {
-        try {
-            //console.log(2)
-            return axios.get("https://library.hallym.ac.kr/bbs/list/4"); // 학교 도서관 페이지
-        } catch (error) {
-            console.error(error);
-        }
-    };
+    console.log("1차 시작")
 
     await new Promise((res, rej) => {
+        let getHtml = () => {
+            try {
+                //console.log(2)
+                return axios.get("https://library.hallym.ac.kr/bbs/list/4"); // 학교 도서관 페이지
+            } catch (error) {
+                console.error(error);
+            }
+        };
+
         getHtml().then(html => {
             const $ = cheerio.load(html.data);
             const $bodyList = $("#divList > table > tbody > tr"); // 데이터를 뽑아올 위치
@@ -41,18 +43,40 @@ async function anno_crawling() {
         })
     })
 
-    for (g in anno_data.length){
-        console.log(anno_data[g].url);
-    }
-
+    console.log("2차 시작")
+    
+    // 위에서 얻은 데이터 중 url 정보를 사용
     await new Promise((res, rej) => {
-        console.log(33)
-        var a= 10;
-        for(k in a){
-            console.log("22")
+
+        for (var k=0; k<anno_data.length; k++){
+            console.log(anno_data[k].url)
+
+            let getHtml = () => {
+                try {
+                    console.log(2)
+                    return axios.get(anno_data[k].url); // 학교 도서관 페이지
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+
+            getHtml().then(html => {
+                const $ = cheerio.load(html.data);
+                const $bodyList = $("#divContent > div.divboardDetail > div.divQuestion > div.questionBody"); // 데이터를 뽑아올 위치
+                $bodyList.each(function (i, elem) {
+                    console.log(3)
+                    anno_data[k].contents=$(elem).find('p').text().trim();
+                });
+                console.log(4)
+                res(anno_data);
+            }).catch((err) => {
+                rej(err)
+            })
         }
 
     })
+
+    console.log(anno_data)
     //return anno_data;
 }
 
