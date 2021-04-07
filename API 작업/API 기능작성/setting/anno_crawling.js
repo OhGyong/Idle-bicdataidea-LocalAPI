@@ -2,7 +2,7 @@ const axios = require("axios");
 const cheerio = require("cheerio");
 
 console.log(1) // 비동기 처리 확인
-let ulList = []; // 크롤링 한 데이터를 보관하는 배열
+let anno_data = []; // 크롤링 한 데이터를 보관하는 배열
 
 // 크롤링 시작
 async function anno_crawling() {
@@ -22,7 +22,7 @@ async function anno_crawling() {
             const $bodyList = $("#divList > table > tbody > tr"); // 데이터를 뽑아올 위치
             $bodyList.each(function (i, elem) {
                 //console.log(3)
-                ulList[i] = {
+                anno_data[i] = {
                     num: $(elem).find('td.num').text().trim(),
                     title: $(elem).find('td.title').text().trim(),
                     date: $(elem).find('td.insert_date').text(),
@@ -30,25 +30,19 @@ async function anno_crawling() {
                 }
             });
             //console.log(4)
-            const data = ulList.filter(n => n.num);
-            res(data);
+            anno_data = anno_data.filter(function(n){
+                if(n.num!=''){
+                    return n;
+                }
+            });
+            res(anno_data);
         }).catch((err) => {
             rej(err)
         })
     })
 
-    // 크롤링한 데이터 수정 (공지 게시물은 제거), splice 하면 return 되서 for문 종료되기 때문에 null 값이 몇 개인지만 찾는다.
-    var catch_null = 0;
-    for (k in ulList) {
-        if (ulList[k].num == '') {
-            catch_null = k;
-        }
-    }
-    catch_null++; // index 값 때문에 1 추가
-    ulList.splice(0, catch_null);
-
-    for (g in ulList.length){
-        console.log(ulList[g].url);
+    for (g in anno_data.length){
+        console.log(anno_data[g].url);
     }
 
     await new Promise((res, rej) => {
@@ -59,9 +53,7 @@ async function anno_crawling() {
         }
 
     })
-    
-    //return ulList;
-
+    //return anno_data;
 }
 
 
