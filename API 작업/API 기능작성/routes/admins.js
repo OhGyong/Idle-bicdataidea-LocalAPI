@@ -4,6 +4,8 @@
 var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 
 // db 연결
@@ -22,6 +24,7 @@ router.use(session)
 
 var { now_time, tomorrow_time } = require('../setting/time.js');
 const { get } = require('../setting/mail.js');
+const { copyFileSync } = require('fs');
 
 
 /**
@@ -858,9 +861,56 @@ router.get('/idle/notice-log', (req, res)=>{
 
 /**
  * 공고정보게시판 올리기, http://localhost:3000/admins/idle/board/announcement
+ * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
+ * 1. 학교 도서관 사이트를 크롤링
+ * 2. 크롤링 한 데이터를 db에 저장
  */
-router.get('', (req, res)=>{
+router.get('/idle/board/announcement', (req, res) => {
 
+    let ulList = []; // 크롤링 한 데이터를 보관하는 배열
+
+    getConnection(async (conn) => {
+        try {
+
+            // 크롤링 시작
+            const getHtml = async () => {
+                try {
+                    console.log(1)
+                    return await axios.get("https://library.hallym.ac.kr/bbs/list/4"); // 학교 도서관 페이지
+                } catch (error) {
+                    console.error(error);
+                }
+            };
+            getHtml().then(html => {
+                const $ = cheerio.load(html.data);
+                const $bodyList = $("#divList > table > tbody > tr"); // 데이터를 뽑아올 위치
+                $bodyList.each(  function (i, elem) {
+                    console.log(2)
+                    ulList[i] = {
+                        num: $(elem).find('td.num').text().trim(),
+                        title: $(elem).find('td.title').text().trim(),
+                        date: $(elem).find('td.insert_date').text(),
+                        url: $(elem).find('td.title a').attr("href")
+                    }
+                });
+                const data = ulList.filter(n => n.num);
+                return data;
+            }).catch((err) => {
+                rej(err)
+            }).then(res => console.log(res));
+
+
+            // db 입력 부분
+            await new Promise((res, rej) => {
+                console.log(3)
+                res();
+            })
+
+            console.log(4)
+        } catch (err) {
+
+        }
+    })
 })
 
 
