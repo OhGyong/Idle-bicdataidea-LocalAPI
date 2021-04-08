@@ -288,7 +288,7 @@ router.post('/idle/signup/fillout', (req, res, err) => {
                 member_value[6] = crypto.createHash('sha512').update(member_value[6]).digest('base64');
                 res()
             });
-
+            console.log(member_value)
             // member 테이블에 해당 값 넣어주기
             await new Promise((res, rej) => {
                 var member_fillout_sql = 'INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES(?,?,?,?,?,?,?,?,?);';

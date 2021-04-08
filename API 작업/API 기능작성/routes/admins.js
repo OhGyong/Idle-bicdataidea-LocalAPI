@@ -4,9 +4,6 @@
 var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
-const axios = require("axios");
-const cheerio = require("cheerio");
-
 
 // db 연결
 var getConnection = require('../setting/db.js');
@@ -389,7 +386,7 @@ router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
  * 사용하는 것은 아이디어 제목, 내용, 작성일, 얻은 포인트, 관리자 이메일
  */
 router.get('/idle/member-list/:member_email/idea-list/:idea_id', (req, res)=>{
-    
+
     getConnection(async(conn)=>{
         try{
             
@@ -869,23 +866,37 @@ router.get('/idle/notice-log', (req, res)=>{
  */
 router.get('/idle/board/announcement', (req, res) => {
 
+    anno_data.then(anno_inform => {
 
-    getConnection(async (conn) => {
-        try {
-            // db 입력 부분
-            await new Promise((res, rej) => {
-                console.log(anno_data)
-                
+        getConnection(async (conn) => {
+            try {
 
-                //var anno_list_sql='INSERT INTO anno (anno_id, anno_title, anno_contents, anno_date, anno_link) VALUES (?,?,?,?,?)'
-                //var anno_list_params;
-                res();
-            })
-
-            console.log(6)
-        } catch (err) {
-
-        }
+                var anno_list_sql = 'INSERT INTO anno (anno_id, anno_title, anno_date, anno_link, anno_contents) VALUES (?,?,?,?,?);';
+                var anno_list_params;
+                for (var k = 0; k < anno_inform.length; k++) {
+                    await new Promise((res, rej)=>{
+                        anno_list_params=[anno_inform[k].num, anno_inform[k].title, anno_inform[k].date, anno_inform[k].url, anno_inform[k].contents];
+                        console.log(anno_list_params)
+                        conn.query(anno_list_sql, anno_list_params, function(err, rows){
+                            if(err || rows==''){
+                                console.log(err)
+                                conn.release();
+                                error_request.message="anno 테이블 입력 실패";
+                                return rej(error_request);
+                            }
+                            res()
+                        })
+                    })
+                }
+                conn.release();
+                success_request.data=anno_inform;
+                success_request.message="anno 테이블 입력 성공";
+                res.send(success_request)
+    
+            } catch (err) {
+                res.send(err);
+            }
+        })
     })
 })
 

@@ -4,6 +4,7 @@ const cheerio = require("cheerio");
 let anno_data = []; // 크롤링 한 데이터를 보관하는 배열
 
 // 크롤링 시작
+
 async function anno_crawling() {
 
     console.log("1차 시작")
@@ -55,23 +56,16 @@ async function anno_crawling() {
         await new Promise((res, rej)=>{
             getHtml().then(html => {
                 const $ = cheerio.load(html.data);
-                const $bodyList = $("#divContent > div.divboardDetail > div.divQuestion > div.questionBody"); // 데이터를 뽑아올 위치
+                const $bodyList = $("#divContent > div.divboardDetail > div.divQuestion"); // 데이터 경로
                 $bodyList.each(function (i, elem) {
-                    anno_data[k].contents=$(elem).find('p').html();
+                    anno_data[k].contents=$(elem).find('div.questionBody').html().trim(); // 내용 그대로 출력하는거면 trim 빼야할듯?
                 });
                 res(anno_data);
             }).catch((err) => {
                 rej(err)
             })
         })
-        
-
-        
     }
     return anno_data;
 }
-
-
-
-
 module.exports = anno_crawling();
