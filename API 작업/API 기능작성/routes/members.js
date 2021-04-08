@@ -1073,7 +1073,7 @@ router.get('/idle/mypage/marked', (req, res) => {
             var mem_email = req.session.member_email; // 세션 이메일
             console.log("세션 이메일 : " + mem_email);
 
-            var anno_title = req.query.inter_anno_search;
+            var anno_title = req.query.inter_anno_search; // 검색 내용
             console.log("공지사항 제목: " + anno_title)
 
             var anno_marked_sql;
@@ -1087,7 +1087,6 @@ router.get('/idle/mypage/marked', (req, res) => {
                     anno_marked_param = [mem_email, 0];
                 }
                 else{
-                    // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
                     anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? AND MATCH(anno_title) AGAINST(? IN boolean mode);';
                     anno_marked_param = [mem_email, 0, anno_title + '*'];
                 }

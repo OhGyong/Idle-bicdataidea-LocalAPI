@@ -18,12 +18,10 @@ var trans_mail = require('../setting/mail.js')
 var session = require('../setting/session.js');
 router.use(session)
 
-// 공고정보게시판 크롤링
-var anno_data= require('../setting/anno_crawling.js');
-
 var { now_time, tomorrow_time } = require('../setting/time.js');
 const { get } = require('../setting/mail.js');
 const { copyFileSync } = require('fs');
+const { RSA_NO_PADDING } = require('constants');
 
 
 /**
@@ -548,11 +546,6 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
 
 
 /**
- * 회원 문의사항 목록 검색
- */
-
-
-/**
  * 회원 문의사항 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id
  * 1. cs_file_dir 조인
  */
@@ -635,7 +628,6 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
  */
  router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified/:modify_num', (req,res)=>{
     
-
     getConnection(async(conn)=>{
         try{
             var cs_id = req.params.cs_id;
@@ -674,10 +666,24 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
     getConnection(async(conn)=>{
         try{
-            var member_email=req.params.member_email;
+            var member_email=req.params.member_email; // 회원 이메일
+            let inter_anno_title=req.query.inter_anno_search; // 검색 내용
+
             await new Promise((res, rej)=>{
-                var interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=?;';
-                conn.query(interanno_list_sql, member_email, function(err, rows){
+
+                var interanno_list_sql;
+                var interanno_list_params;
+
+                if(inter_anno_title==undefined){
+                    // 검색안했을 때
+                    interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=?;';
+                    interanno_list_params=member_email;
+                }else{
+                    // 검색했을 때
+                    interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND MATCHED(anno_contents) AGAINST(? IN boolean mode);';
+                    interanno_list_params=[member_email, inter_anno_title];
+                }
+                conn.query(interanno_list_sql, interanno_list_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
                         error_request.message="관심사업 목록 데이터 가져오기 실패";
@@ -695,11 +701,6 @@ router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
         }
     })
 })
-
-
-/**
- * 회원 관심사업 목록 검색
- */
 
 
 /**
@@ -859,47 +860,90 @@ router.get('/idle/notice-log', (req, res)=>{
 
 
 /**
- * 공고정보게시판 올리기, http://localhost:3000/admins/idle/board/announcement
+ * 공고정보게시판 목록, http://localhost:3000/admins/idle/board/anno
  * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
- * 1. 학교 도서관 사이트를 크롤링
- * 2. 크롤링 한 데이터를 db에 저장
+ * 1. 
+ * 2. 
  */
-router.get('/idle/board/announcement', (req, res) => {
-
-    anno_data.then(anno_inform => {
-
-        getConnection(async (conn) => {
-            try {
-
-                var anno_list_sql = 'INSERT INTO anno (anno_id, anno_title, anno_date, anno_link, anno_contents) VALUES (?,?,?,?,?);';
-                var anno_list_params;
-                for (var k = 0; k < anno_inform.length; k++) {
-                    await new Promise((res, rej)=>{
-                        anno_list_params=[anno_inform[k].num, anno_inform[k].title, anno_inform[k].date, anno_inform[k].url, anno_inform[k].contents];
-                        console.log(anno_list_params)
-                        conn.query(anno_list_sql, anno_list_params, function(err, rows){
-                            if(err || rows==''){
-                                console.log(err)
-                                conn.release();
-                                error_request.message="anno 테이블 입력 실패";
-                                return rej(error_request);
-                            }
-                            res()
-                        })
-                    })
-                }
-                conn.release();
-                success_request.data=anno_inform;
-                success_request.message="anno 테이블 입력 성공";
-                res.send(success_request)
+router.get('/idle/board/anno', (req, res) => {
     
-            } catch (err) {
-                res.send(err);
-            }
-        })
+    getConnection(async(conn)=>{
+        try {
+
+            var anno_title = req.query.anno_search;
+            
+            await new Promise((res, rej)=>{
+
+                let anno_upload_sql;
+                let anno_upload_params;
+
+                if(anno_title==undefined){
+                    // 검색안했을 때
+                    anno_upload_sql='SELECT anno_id, anno_title, anno_date FROM anno;';
+                    anno_upload_params=[];
+                }else{
+                    // 검색했을 때
+                    anno_upload_sql='SELECT anno_id, anno_title, anno_date FROM anno WHERE MATCH(anno_title) AGAINST(? IN boolean mode);';
+                    anno_upload_params=[anno_title];
+                }
+
+                conn.query(anno_upload_sql, anno_upload_params, function(err, rows){
+                    if(err || rows == ''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="공고정보게시판 데이터 가져오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+            conn.release();
+            success_request.message="공고정보게시판 데이터 가져오기 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err);
+        }
+    })
+    
+})
+
+
+/**
+ * 공고정보게시판 목록 보기, http://localhost:3000/admins/idle/board/anno/번호
+ */
+router.get('/idle/board/anno/:anno_num', (req, res)=>{
+    
+    getConnection(async(conn)=>{
+        try{
+            
+            var anno_id = req.params.anno_num;
+            await new Promise((res, rej)=>{
+                var anno_look_sql='SELECT anno_ref, anno_link, anno_contents FROM anno WHERE anno_id=?;';
+                conn.query(anno_look_sql, anno_id, function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="공고정보게시판 목록 내용 불러오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data=rows;
+                    res(rows);
+                })
+            })
+
+            conn.release();
+            success_request.message="공고정보게시판 목록 내용 불러오기 성공";
+            res.send(success_request);
+        }catch(err){
+            res.send(err);
+        }
     })
 })
 
 
+/**
+ * 
+ */
 
 module.exports = router;

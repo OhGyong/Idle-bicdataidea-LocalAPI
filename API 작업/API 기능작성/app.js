@@ -10,6 +10,8 @@ dotenv.config({
 })
 require('dotenv').config();
 
+require('./setting/anno_crawling.js');
+
 var app = express();
 
 // request body undefined 에러 처리
@@ -22,6 +24,7 @@ var adminsapp = require('./routes/admins');
 
 app.use('/members', membersapp);
 app.use('/admins', adminsapp);
+
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
