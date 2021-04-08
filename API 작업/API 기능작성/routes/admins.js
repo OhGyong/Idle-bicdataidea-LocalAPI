@@ -872,11 +872,11 @@ router.get('/idle/board/announcement', (req, res) => {
 
     getConnection(async (conn) => {
         try {
-
             // db 입력 부분
             await new Promise((res, rej) => {
-                console.log(5)
                 console.log(anno_data)
+                
+
                 //var anno_list_sql='INSERT INTO anno (anno_id, anno_title, anno_contents, anno_date, anno_link) VALUES (?,?,?,?,?)'
                 //var anno_list_params;
                 res();
