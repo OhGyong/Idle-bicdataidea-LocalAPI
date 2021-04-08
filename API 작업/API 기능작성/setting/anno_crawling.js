@@ -6,8 +6,8 @@ var getConnection = require('./db.js');
 
 let anno_data = []; // 크롤링 한 데이터를 보관하는 배열
 
-// 크롤링 시작 
-cron.schedule(' * * */6 * * * ', function(){
+// 타이머 설정, 크롤링 시작 
+cron.schedule(' * * 6 * * * ', function(){
     getConnection(async (conn) => {
         try {
             console.log("1차 시작")
@@ -86,8 +86,6 @@ cron.schedule(' * * */6 * * * ', function(){
                 })
             }
             conn.release();
-            success_request.data = anno_data;
-    
         } catch (err) {
             console.log(err)
         }

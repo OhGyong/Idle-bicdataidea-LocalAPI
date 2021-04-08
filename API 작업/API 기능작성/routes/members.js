@@ -5,7 +5,6 @@ var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
 
-
 // db 연결
 var getConnection = require('../setting/db.js');
 
@@ -19,9 +18,12 @@ var trans_mail = require('../setting/mail.js')
 var session = require('../setting/session.js')
 router.use(session)
 
-
 // 시간 설정
 var { now_time, tomorrow_time } = require('../setting/time.js');
+
+// 게시판 설정
+var {idea_list, idea_detail} = require('../setting/board.js');
+
 
 
 // 본문시작
@@ -849,7 +851,6 @@ router.get('/idle/mypage/point/state', (req, res) => {
 
 
 /**
- *  (TypeError: Cannot read property '0' of undefined) try catch로 안잡힘
  * 회원 포인트 사용내역, http://localhost:3000/idle/mypage/point/use.
  * 1. 세션이메일을 가지고 point 테이블에서 사용날짜 사용내역을 가져온다. , 회원이 사용안한경우 처리
  * 2. json 응답처리
@@ -923,52 +924,9 @@ router.get('/idle/mypage/point/save', (req, res) => {
  */
 router.get('/idle/mypage/idea', (req, res) => {
 
-    getConnection(async (conn) => {
-        try {
-            var result; // success data를 담을 변수
-            var idea_list = req.query.idea_search; // 검색 변수
-            console.log(idea_list);
+    console.log(idea_list(req.query.idea_search, req.session.member_email));
 
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
-
-            await new Promise((res, rej) => {
-
-                var save_point_sql;
-                var save_point_param;
-
-                // 검색안했을때
-                if (idea_list == undefined) {
-                    // idea 테이블에서 제목, 내용, 작성일 가져오기
-                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=?;';
-                    save_point_param = [mem_email, 0]
-                } else {
-                    // 검색 했을 때 ( 3글자 부터)
-                    save_point_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
-                    save_point_param = [mem_email, 0, idea_list + '*'];
-                }
-
-                conn.query(save_point_sql, save_point_param, function (err, rows) {
-                    // idea 게시물을 올린적이 없어서 indea 테이블에 회원이 등록이 안된 경우
-                    if (err || rows == '') {
-                        conn.release();
-                        error_request.message = "등록된 아이디어가 없습니다.";
-                        rej(error_request);
-                    }
-                    result = rows;
-                    res(rows);
-                })
-            })
-
-            conn.release();
-            //사용내역 응답
-            success_request.data=result;
-            success_request.message="회원 아이디어 목록 불러오기 성공";
-            res.send(success_request);
-        } catch (err) {
-            res.send(err)
-        }
-    })
+    
 })
 
 

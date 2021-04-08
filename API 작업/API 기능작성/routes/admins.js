@@ -862,8 +862,6 @@ router.get('/idle/notice-log', (req, res)=>{
 /**
  * 공고정보게시판 목록, http://localhost:3000/admins/idle/board/anno
  * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
- * 1. 
- * 2. 
  */
 router.get('/idle/board/anno', (req, res) => {
     
@@ -905,7 +903,6 @@ router.get('/idle/board/anno', (req, res) => {
             res.send(err);
         }
     })
-    
 })
 
 
@@ -943,7 +940,20 @@ router.get('/idle/board/anno/:anno_num', (req, res)=>{
 
 
 /**
- * 
+ * 회원 포인트 현황 목록
  */
+router.get('', (req,res)=>{
+
+})
+
+
+/**
+ * 회원 포인트 부여 및 회수
+ */
+router.patch('', (req, res)=>{
+
+})
+
+
 
 module.exports = router;

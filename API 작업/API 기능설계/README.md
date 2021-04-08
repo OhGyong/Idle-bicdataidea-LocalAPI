@@ -612,44 +612,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ## 관리자 관련 API
 
-### 관리자 등록 → 삭제
-
-  * **URL**
-
-  [POST] http://{IP}:{PORT}/idle/admins/enroll/fillout
-
-  * **PARAM**
-
-    ```(json)
-    {
-        "admin_email" : 사용자 이메일,
-        "admin_name" : 사용자 이름,
-        "admin_gender" : 사용자 성별,
-        "admin_birth" : 사용자 생년월일,
-        "admin_state" : 사용자 거주지,
-        "admin_pw" : 사용자 비밀번호,
-        "admin_phone" : 사용자 핸드폰번호
-    }   
-     ```
-
-* **동작설명**
-
-    admin 테이블에서 동일 이메일가 있는지, 파라미터에 null 값이 있는지 확인 후, 없으면 admin 테이블에 추가한다.
-
-    관리자 등록 시간은 admin_log 테이블에 추가
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin-signup:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin-signup:"Error"}`
-
----
-
 ### 관리자 이메일 중복 확인
 
 * **URL**
@@ -886,10 +848,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-
-### 회원 아이디어 목록 검색
-
-
 ### 회원 아이디어 내용 보기
 
 
@@ -899,21 +857,17 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ### 회원 문의사항 목록
 
-### 회원 문의사항 목록 검색
-
 ### 회원 문의사항 내용 보기
 
 ### 선택한 문의사항 수정 내용 목록
-
-### 선택한 문의사항 수정 내용 목록 검색
 
 ### 선택한 문의사항 수정 내용 보기
 
 ### 회원 관심사업 목록
 
-### 회원 관심사업 목록 검색
-
 ### 회원 관심사업 내용 보기
+
+### 회원 포인트 현황 목록
 
 ### 회원 정지처리
 
