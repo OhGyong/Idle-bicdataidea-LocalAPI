@@ -22,7 +22,7 @@ router.use(session)
 var { now_time, tomorrow_time } = require('../setting/time.js');
 
 // 게시판 설정
-var {idea_list, idea_detail} = require('../setting/board.js');
+var {idea_list} = require('../setting/board.js');
 
 
 
@@ -530,7 +530,7 @@ router.post('/idle/signin', (req, res) => {
 
     // 회원이 입력한 이메일(0)과 비밀번호(1)
     var member = new Array();
-    for (k in req.body) {
+    for (k in req.body) { req.session.member_email
         member.push(req.body[k]);
     }
 
@@ -594,6 +594,7 @@ router.post('/idle/signin', (req, res) => {
                 })
             })
             conn.release();
+            success_request.data=""
             success_request.message = "로그인 성공";
             res.send(success_request);
             //res.redirect('/home'); // 홈으로 이동하게 하자
@@ -922,10 +923,11 @@ router.get('/idle/mypage/point/save', (req, res) => {
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 내용, 작성일을 가져온다. (삭제여부가 0일 때) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
-router.get('/idle/mypage/idea', (req, res) => {
+router.get('/idle/mypage/idea', async(req, res) => {
+    console.log(req.session.member_email) // 세션 이메일
+    console.log(req.query.idea_search)  // 검색 내용
 
-    console.log(idea_list(req.query.idea_search, req.session.member_email));
-
+    console.log( idea_list(req.query.idea_search, req.session.member_email) );
     
 })
 
