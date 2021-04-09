@@ -858,11 +858,13 @@ router.get('/idle/mypage/point/use', (req, res) => {
 
     getConnection(conn => {
         try {
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
+            var member_email = req.session.member_email; // 세션 이메일
+            let page_num = req.query.page; // 페이지 번호
+            console.log("세션 이메일 : " + member_email);
             // 사용내역 가져오기
-            var use_point_sql = 'SELECT use_contents, point, use_date FROM point WHERE member_email=?;';
-            conn.query(use_point_sql, mem_email, function (err, rows) {
+            var use_point_sql = 'SELECT use_contents, point, use_date FROM point WHERE member_email=? LIMIT 10 OFFSET ?;';
+            var use_point_params= [member_email, page_num]
+            conn.query(use_point_sql, use_point_params, function (err, rows) {
                 // point를 사용한적이 없어서 point테이블에 회원이 등록이 안된 경우
                 if (err || rows == '') {
                     conn.release();
@@ -892,11 +894,14 @@ router.get('/idle/mypage/point/save', (req, res) => {
 
     getConnection(conn => {
         try {
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
+            var member_email = req.session.member_email; // 세션 이메일
+            let page_num = req.query.page; // 페이지 번호
+
+            console.log("세션 이메일 : " + member_email);
 
             // idea 테이블에서 제목, 얻은 포인트, 적립날짜 가져오기
-            var save_point_sql = 'SELECT idea_title, add_point, date_point FROM idea WHERE member_email=?;';
+            var save_point_sql = 'SELECT idea_title, add_point, date_point FROM idea WHERE member_email=? LIMIT 10 OFFSET ?;';
+            let save_point_params = [ member_email, page_num];
             conn.query(save_point_sql, mem_email, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
@@ -924,8 +929,9 @@ router.get('/idle/mypage/point/save', (req, res) => {
 router.get('/idle/mypage/idea', (req, res) => {
     console.log("세션 이메일: ",req.session.member_email) // 세션 이메일
     console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page)
 
-    idea_list(req.session.member_email, req.query.idea_search).then(member_idea_list=>{
+    idea_list(req.session.member_email, req.query.idea_search, req.query.page).then(member_idea_list=>{
         res.send(member_idea_list);
     });
 })

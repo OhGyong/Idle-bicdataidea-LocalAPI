@@ -19,7 +19,7 @@ var session = require('../setting/session.js');
 router.use(session)
 
 // 게시판 설정
-var {idea_list, cs_list, anno_list, inter_anno_list, notice_list, member_list} = require('../setting/board.js');
+var {idea_list, cs_list, anno_list, inter_anno_list, notice_list, member_list, member_log_list, admin_log_list} = require('../setting/board.js');
 
 // 게시판 수정 목록 설정
 var {modified_idea, modified_cs} = require('../setting/modified_board.js')
@@ -199,8 +199,10 @@ router.delete('/idle/admin-secede', (req, res)=>{
 router.get('/idle/member-list', (req, res)=>{
 
     console.log("검색할 내용: ", req.query.member_search_name)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    member_list(req.query.member_search_name).then(member_list=>{
+
+    member_list(req.query.member_search_name, req.query.page).then(member_list=>{
         res.send(member_list);
     });
 })
@@ -240,61 +242,23 @@ router.get('/idle/member-list/:member_email', (req, res)=>{
 
 
 /**
- * 회원 로그확인, http://localhost:3000/admins/idle/member-list/회원 이메일/log
+ * 회원 로그목록, http://localhost:3000/admins/idle/member-list/회원 이메일/log
  * 회원가입시간, 로그인 시간 가져오자
  * 1. member_log 테이블에서 선택한 회원의 가입날짜 가져오기
  * 2. member_login_log 테이블에서 회원의 로그인 로그 가져오기
  * 3. 합쳐서 json 응답 보내기
  */
 router.get('/idle/member-list/:member_email/log', (req, res)=>{
+
+    console.log("회원 이메일: ", req.params.member_email); // 회원 이메일
+    console.log("페이지 번호: ", req.query.page); // 페이지 번호
+
+
+    member_log_list(req.params.member_email, req.query.page).then(member_log_list=>{
+        res.send(member_log_list);
+    });
     
-    // 응답 json 처리에 쓸 변수
-    var member_log; // 회원가입 로그 정보
-    var member_login_log; //  로그인 로그 정보
-
-    getConnection(async(conn)=>{
-        try{
-            var member_email=req.params.member_email; // 회원 이메일
-            
-            // member_log 테이블에서 선택한 회원의 가입날짜 가져오기
-            await new Promise((res,rej)=>{
-                var member_log_sql='SELECT member_log_join FROM member_log WHERE member_email=?;';
-                conn.query(member_log_sql, member_email, function(err, rows){
-                    if(err || rows==''){
-                        console.log(err)
-                        conn.release();
-                        error_request.message="log 정보 가져오기 실패";
-                        return rej(error_request);
-                    }
-                    member_log=rows;
-                    res(rows);
-                })
-            })
-
-            // member_login_log 테이블에서 선택한 회원의 로그인 로그 가져오기
-            await new Promise((res,rej)=>{
-                var member_login_log_sql='SELECT member_login FROM member_login_log WHERE member_email=?;';
-                conn.query(member_login_log_sql, member_email, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="login_log 정보 가져오기 실패";
-                        return rej(error_request);
-                    }
-                    member_login_log=rows;
-                    res(rows);
-                })
-            })
-
-            // 응답 데이터
-            var member_detail_log=[member_log, member_login_log];
-            conn.release();
-            success_request.message= "log 정보 가져오기 성공";
-            success_request.data=member_detail_log
-            res.send(success_request);
-        }catch(err){
-            res.send(err);
-        }
-    })
+    
 })
 
 
@@ -359,8 +323,10 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified',(req,re
 
     console.log("세션 이메일: ", req.params.idea_id) // 세션 이메일
     console.log("검색할 내용: ", req.query.idea_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    modified_idea(req.params.idea_id, req.query.idea_search, admin_check).then(modified_idea=>{
+
+    modified_idea(req.params.idea_id, req.query.idea_search, admin_check, req.query.page).then(modified_idea=>{
         res.send(modified_idea);
     });
 })
@@ -412,8 +378,9 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
     
     console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    cs_list(req.params.member_email, req.query.cs_search, admin_check).then(member_cs_list=>{
+    cs_list(req.params.member_email, req.query.cs_search, admin_check, req.query.page).then(member_cs_list=>{
         res.send(member_cs_list);
     });
 })
@@ -461,8 +428,9 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 
     console.log("문의사항 번호: ", req.params.cs_id) // 문의사항 번호
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    modified_cs(req.params.cs_id, req.query.cs_search).then(modified_cs=>{
+    modified_cs(req.params.cs_id, req.query.cs_search, req.query.page).then(modified_cs=>{
         res.send(modified_cs);
     });
 })
@@ -511,8 +479,9 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
     console.log("세션 이메일: ",req.params.member_email) // 회원 이메일
     console.log("검색할 내용: ",req.query.inter_anno_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    inter_anno_list(req.session.member_email, req.query.inter_anno_search, admin_check).then(member_inter_anno_list=>{
+    inter_anno_list(req.session.member_email, req.query.inter_anno_search, admin_check, req.query.page).then(member_inter_anno_list=>{
         res.send(member_inter_anno_list);
     });
 })
@@ -605,42 +574,17 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
 
 
 /**
- * 관리자 로그 페이지, http://localhost:3000/admins/idle/admin-log
+ * 관리자 로그 목록, http://localhost:3000/admins/idle/admin-log
  * 1. admin_log 테이블에서 모든 정보를 가져온다.
  */
 router.get('/idle/admin-log', (req, res)=>{
-    getConnection(async(conn)=>{
-        try{
-            var admin_log_email=req.query.admin_log_search;
 
-            await new Promise((res, rej)=>{
-                var admin_log_sql;
-                var admin_log_params;
+    console.log("검색할 내용: ",req.query.admin_log_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-                if(admin_log_email == undefined){
-                    admin_log_sql='SELECT * FROM admin_log;';
-                    admin_log_params=null;
-                }else{
-                    admin_log_sql='SELECT * FROM admin_log WHERE MATCH(admin_email) AGAINST(?);';
-                    admin_log_params=admin_log_email + '*';
-                }
-                conn.query(admin_log_sql, admin_log_params, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="관리자 로그 정보를 가져오는데 실패했습니다.";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="관리자 로그 정보를 가져오는데 성공했습니다.";
-            res.send(success_request);
-        }catch(err){
-            res.send(err);
-        }
-    })
+    admin_log_list(req.query.admin_log_search, req.query.page).then(member_inter_anno_list=>{
+        res.send(member_inter_anno_list);
+    });
 });
 
 
@@ -651,8 +595,9 @@ router.get('/idle/admin-log', (req, res)=>{
 router.get('/idle/notice-log', (req, res)=>{
 
     console.log("검색할 내용: ", req.query.notice_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    notice_list(req.query.notice_search).then(notice_list=>{
+    notice_list(req.query.notice_search, req.query.page).then(notice_list=>{
         res.send(notice_list);
     });
 
@@ -666,9 +611,11 @@ router.get('/idle/notice-log', (req, res)=>{
  */
 router.get('/idle/board/anno', (req, res) => {
 
-    var anno_title = req.query.anno_search;
+    console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
+    console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    anno_list(anno_title).then(anno_list=>{
+    anno_list(req.query.anno_search, req.query.page).then(anno_list=>{
         res.send(anno_list);
     });
 
