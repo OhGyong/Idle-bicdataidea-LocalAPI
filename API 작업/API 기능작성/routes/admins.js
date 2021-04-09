@@ -18,12 +18,17 @@ var trans_mail = require('../setting/mail.js')
 var session = require('../setting/session.js');
 router.use(session)
 
+// 게시판 설정
+var {idea_list, cs_list, anno_list, inter_anno_list, notice_list, member_list} = require('../setting/board.js');
+
+// 게시판 수정 목록 설정
+var {modified_idea, modified_cs} = require('../setting/modified_board.js')
+
 var { now_time, tomorrow_time } = require('../setting/time.js');
 const { get } = require('../setting/mail.js');
-const { copyFileSync } = require('fs');
-const { RSA_NO_PADDING } = require('constants');
 
 
+const admin_check=1
 /**
  *  관리자 등록 필요없음
 */
@@ -193,45 +198,11 @@ router.delete('/idle/admin-secede', (req, res)=>{
  */
 router.get('/idle/member-list', (req, res)=>{
 
-    getConnection(async(conn)=>{
-        try{
-            
-            var member_name = req.query.member_search_name; // 검색 값
-            var member_list_sql;
-            var member_list_param;
+    console.log("검색할 내용: ", req.query.member_search_name)  // 검색 내용
 
-            // 회원 목록 뽑기
-            await new Promise((res, rej)=>{
-                if(member_name== undefined){
-                    // 검색 안할 때
-                    member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email)';
-                    member_list_param=null;
-                }else{
-                    // 검색할때
-                    member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) WHERE MATCH(member_name) AGAINST(? IN boolean mode)';
-                    member_list_param=[ member_name+'*'];
-                }
-
-                conn.query(member_list_sql, member_list_param, function(err, rows){
-                    console.log(rows)
-                    if(err || rows==''){
-                        error_request.message="회원 조회 실패";
-                        conn.release();
-                        return rej(error_request);
-                    }
-                    success_request.data=rows; //응답 데이터
-                    conn.release();
-                    res(rows);
-                });
-            }); 
-
-            success_request.message="회원 목록 조회 성공"
-            res.send(success_request);
-        }
-        catch(err){
-            res.send(err)
-        }
-    })
+    member_list(req.query.member_search_name).then(member_list=>{
+        res.send(member_list);
+    });
 })
 
 
@@ -276,7 +247,6 @@ router.get('/idle/member-list/:member_email', (req, res)=>{
  * 3. 합쳐서 json 응답 보내기
  */
 router.get('/idle/member-list/:member_email/log', (req, res)=>{
-    
     
     // 응답 json 처리에 쓸 변수
     var member_log; // 회원가입 로그 정보
@@ -333,47 +303,13 @@ router.get('/idle/member-list/:member_email/log', (req, res)=>{
  * 1. idea 테이블에서 해당 회원의 데이터를 가져온다.
  */
 router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
+    console.log("세션 이메일: ", req.params.member_email) // 회원 이메일
+    console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
 
-    getConnection(async(conn)=>{
-        try{
-            var member_email = req.params.member_email;
-            var idea_title = req.query.idea_search; // 검색 변수
+    idea_list(req.session.member_email, req.query.idea_search).then(member_idea_list=>{
+        res.send(member_idea_list);
+    });
 
-            // idea 테이블에서 해당회원의 데이터 가져옴
-            await new Promise((res, rej)=>{
-
-                var member_idealist_sql;
-                var member_idealist_params;
-
-                if(idea_title==undefined){
-                    // 검색 안했을 때
-                    member_idealist_sql='SELECT * FROM idea WHERE member_email=?;';
-                    member_idealist_params=[member_email];
-                }
-                else{
-                    // 검색 했을 때
-                    member_idealist_sql='SELECT * FROM idea WHERE member_email=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
-                    member_idealist_params=[member_email, idea_title+'*'];
-                }
-                
-                conn.query(member_idealist_sql, member_idealist_params, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="아이디어 목록을 불러오는데 실패했습니다.";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-
-            conn.release();
-            success_request.message="아이디어 목록을 불러오는데 성공했습니다.";
-            res.send(success_request);
-        }catch(err){
-            res.send(err);
-        }
-    })
 })
 
 
@@ -421,44 +357,12 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id', (req, res)=>{
  */
 router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified',(req,res)=>{
 
-    getConnection(async(conn)=>{
-        try{
-            var idea_id = req.params.idea_id; // 선택한 아이디어
-            var idea_title = req.query.idea_search;
-            console.log("검색 내용: "+ idea_title);
+    console.log("세션 이메일: ", req.params.idea_id) // 세션 이메일
+    console.log("검색할 내용: ", req.query.idea_search)  // 검색 내용
 
-            await new Promise((res,rej)=>{
-            
-                var idea_modify_sql;
-                var idea_modify_params;
-
-                if(idea_title==undefined){
-                    //검색 안했을 때
-                    idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=?;';
-                    idea_modify_params=idea_id;
-                }else{
-                    //검색 했을 때
-                    idea_modify_sql='SELECT * FROM idea_log WHERE idea_id=? AND MATCH(idea_title) AGAINST(? IN boolean mode);';
-                    idea_modify_params=[idea_id, idea_title+'*'];
-                }
-                conn.query(idea_modify_sql, idea_modify_params, function(err, rows){
-                    if(err || rows==''){
-                        console.log(err)
-                        conn.release();
-                        error_request.message="아이디어 수정 전 데이터 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="아디이어 수정 전 데이터 가져오기 성공";
-            res.send(success_request);
-        }catch(err){
-            res.send(err)
-        }
-    })
+    modified_idea(req.params.idea_id, req.query.idea_search, admin_check).then(modified_idea=>{
+        res.send(modified_idea);
+    });
 })
 
 
@@ -505,43 +409,13 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified/:modify_
  * 1. cs테이블에서 해당 회원 이메일 조회하여 데이터 가져오기, 파일 필요없음
  */
 router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
+    
+    console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
+    console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
 
-    getConnection(async(conn)=>{
-        try{
-            var member_email=req.params.member_email;
-            var cs_title = req.query.cs_search; // 검색 내용
-
-            await new Promise((res, rej)=>{
-                var member_cslist_sql;
-                var member_cslist_params
-
-                if(cs_title==undefined){
-                    // 검색 안했을 때
-                    member_cslist_sql='SELECT * FROM cs WHERE member_email=?;';
-                    member_cslist_params=member_email;
-                }else{
-                    // 검색 했을 때
-                    member_cslist_sql='SELECT * FROM cs WHERE member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode);';
-                    member_cslist_params=[member_email, cs_title + '*'];
-                }
-                conn.query(member_cslist_sql, member_cslist_params, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="cs 정보 불러오기 실패";
-                        rej(error_request);
-                    } 
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="cs 정보 불러오기 성공";
-            res.send(success_request);
-        }catch(err){
-            res.send(err);
-        }
-    })
-  
+    cs_list(req.params.member_email, req.query.cs_search, admin_check).then(member_cs_list=>{
+        res.send(member_cs_list);
+    });
 })
 
 
@@ -581,50 +455,21 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id', (req, res)=>{
 
 
 /**
- * 선택한 문의사항 수정 내용 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified
+ * 선택한 회원 문의사항 수정 내용 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified
  */
 router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=>{
 
-    getConnection(async(conn)=>{
-        try{
-            var cs_id = req.params.cs_id; // 선택한 아이디어
-            var cs_before_title = req.query.cs_search; // 검색 내용
+    console.log("문의사항 번호: ", req.params.cs_id) // 문의사항 번호
+    console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
 
-            await new Promise((res,rej)=>{
-
-                var cs_modify_sql;
-                var cs_modify_params;
-
-                if(cs_before_title==undefined){
-                    cs_modify_sql='SELECT * FROM cs_log WHERE cs_id=?;';
-                    cs_modify_params=cs_id;
-                }else{
-                    cs_modify_sql='SELECT * FROM cs_log WHERE cs_id=? AND MATCH(cs_before_title) AGAINST(? IN boolean mode);';
-                    cs_modify_params=[cs_id, cs_before_title+'*'];
-                }
-                conn.query(cs_modify_sql, cs_modify_params, function(err, rows){
-                    if(err || rows==''){
-                        console.log(err)
-                        conn.release();
-                        error_request.message="문의사항 수정 전 데이터 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="문의사항 수정 전 데이터 가져오기 성공";
-            res.send(success_request);
-        }catch(err){
-            res.send(err)
-        }
-    })
+    modified_cs(req.params.cs_id, req.query.cs_search).then(modified_cs=>{
+        res.send(modified_cs);
+    });
 })
 
 
 /**
- * 선택한 문의사항 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의사항 번호
+ * 선택한 회원 문의사항 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의사항 번호
  */
  router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified/:modify_num', (req,res)=>{
     
@@ -664,42 +509,12 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
  * 1. 해당회원의 anno 테이블 정보만 가져오자
  */
 router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
-    getConnection(async(conn)=>{
-        try{
-            var member_email=req.params.member_email; // 회원 이메일
-            let inter_anno_title=req.query.inter_anno_search; // 검색 내용
+    console.log("세션 이메일: ",req.params.member_email) // 회원 이메일
+    console.log("검색할 내용: ",req.query.inter_anno_search)  // 검색 내용
 
-            await new Promise((res, rej)=>{
-
-                var interanno_list_sql;
-                var interanno_list_params;
-
-                if(inter_anno_title==undefined){
-                    // 검색안했을 때
-                    interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=?;';
-                    interanno_list_params=member_email;
-                }else{
-                    // 검색했을 때
-                    interanno_list_sql='SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND MATCHED(anno_contents) AGAINST(? IN boolean mode);';
-                    interanno_list_params=[member_email, inter_anno_title];
-                }
-                conn.query(interanno_list_sql, interanno_list_params, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="관심사업 목록 데이터 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="관심사업 목록 데이터 가져오기 성공";
-            res.send(success_request);            
-        }catch(err){
-            res.send(err)
-        }
-    })
+    inter_anno_list(req.session.member_email, req.query.inter_anno_search, admin_check).then(member_inter_anno_list=>{
+        res.send(member_inter_anno_list);
+    });
 })
 
 
@@ -834,29 +649,15 @@ router.get('/idle/admin-log', (req, res)=>{
  * 1. notice 테이블, notice_file_dir 테이블 JOIN
  */
 router.get('/idle/notice-log', (req, res)=>{
-    getConnection(async(conn)=>{
-        try {
-            await new Promise((res, rej)=>{
-                var notice_list_sql='SELECT * FROM notice;';
-                conn.query(notice_list_sql, function(err, rows){
-                    if(err || rows==''){
-                        conn.release();
-                        error_request.message="공지사항 데이터 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="공지사항 데이터 가져오기 성공";
-            res.send(success_request);
-        } catch (err) {
-            res.send(err);
-        }
-    })
-})
 
+    console.log("검색할 내용: ", req.query.notice_search)  // 검색 내용
+
+    notice_list(req.query.notice_search).then(notice_list=>{
+        res.send(notice_list);
+    });
+
+    
+})
 
 
 /**
@@ -864,45 +665,13 @@ router.get('/idle/notice-log', (req, res)=>{
  * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
  */
 router.get('/idle/board/anno', (req, res) => {
-    
-    getConnection(async(conn)=>{
-        try {
 
-            var anno_title = req.query.anno_search;
-            
-            await new Promise((res, rej)=>{
+    var anno_title = req.query.anno_search;
 
-                let anno_upload_sql;
-                let anno_upload_params;
+    anno_list(anno_title).then(anno_list=>{
+        res.send(anno_list);
+    });
 
-                if(anno_title==undefined){
-                    // 검색안했을 때
-                    anno_upload_sql='SELECT anno_id, anno_title, anno_date FROM anno;';
-                    anno_upload_params=[];
-                }else{
-                    // 검색했을 때
-                    anno_upload_sql='SELECT anno_id, anno_title, anno_date FROM anno WHERE MATCH(anno_title) AGAINST(? IN boolean mode);';
-                    anno_upload_params=[anno_title];
-                }
-
-                conn.query(anno_upload_sql, anno_upload_params, function(err, rows){
-                    if(err || rows == ''){
-                        console.log(err)
-                        conn.release();
-                        error_request.message="공고정보게시판 데이터 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="공고정보게시판 데이터 가져오기 성공";
-            res.send(success_request);
-        } catch (err) {
-            res.send(err);
-        }
-    })
 })
 
 

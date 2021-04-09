@@ -22,9 +22,7 @@ router.use(session)
 var { now_time, tomorrow_time } = require('../setting/time.js');
 
 // 게시판 설정
-var {idea_list} = require('../setting/board.js');
-
-
+var {idea_list, inter_anno_list, cs_list} = require('../setting/board.js');
 
 // 본문시작
 
@@ -923,12 +921,13 @@ router.get('/idle/mypage/point/save', (req, res) => {
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 내용, 작성일을 가져온다. (삭제여부가 0일 때) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
-router.get('/idle/mypage/idea', async(req, res) => {
-    console.log(req.session.member_email) // 세션 이메일
-    console.log(req.query.idea_search)  // 검색 내용
+router.get('/idle/mypage/idea', (req, res) => {
+    console.log("세션 이메일: ",req.session.member_email) // 세션 이메일
+    console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
 
-    console.log( idea_list(req.query.idea_search, req.session.member_email) );
-    
+    idea_list(req.session.member_email, req.query.idea_search).then(member_idea_list=>{
+        res.send(member_idea_list);
+    });
 })
 
 
@@ -1027,48 +1026,14 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
  * 2. json 응답처리
  */
 router.get('/idle/mypage/marked', (req, res) => {
+    
+    console.log("세션 이메일: ",req.session.member_email) // 세션 이메일
+    console.log("검색할 내용: ",req.query.inter_anno_search)  // 검색 내용
 
-    getConnection(async(conn)=> {
-        try {
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
+    inter_anno_list(req.session.member_email, req.query.inter_anno_search).then(member_inter_anno_list=>{
+        res.send(member_inter_anno_list);
+    });
 
-            var anno_title = req.query.inter_anno_search; // 검색 내용
-            console.log("공지사항 제목: " + anno_title)
-
-            var anno_marked_sql;
-            var anno_marked_param;
-
-            await new Promise((res, rej)=>{
-
-                if(anno_title == undefined){
-                    // SELECT 원하는 값 FROM 첫번째 테이블 INNER JOIN 두번째 테이블 ON (기준조건(1-2)) INNER JOIN 세번째 테이블 ON 기준조건(2-3) WHERE 특정조건
-                    anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=?;';
-                    anno_marked_param = [mem_email, 0];
-                }
-                else{
-                    anno_marked_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? AND MATCH(anno_title) AGAINST(? IN boolean mode);';
-                    anno_marked_param = [mem_email, 0, anno_title + '*'];
-                }
-                
-                conn.query(anno_marked_sql, anno_marked_param, function (err, rows) {
-                    if (err || rows == '') {
-                        console.log(err)
-                        conn.release();
-                        error_request.message="관심사업 목록 가져오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
-            conn.release();
-            success_request.message="관심사업 목록 가져오기 성공";
-            res.send(success_request);
-        } catch (err) {
-            res.send(err);
-        }
-    })
 })
 
 
