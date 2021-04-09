@@ -604,12 +604,11 @@ router.get('/idle/notice-log', (req, res)=>{
     
 })
 
-
 /**
  * 공고정보게시판 목록, http://localhost:3000/admins/idle/board/anno
  * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
  */
-router.get('/idle/board/anno', (req, res) => {
+router.get('/idle/board/anno',(req, res) => {
 
     console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
@@ -670,6 +669,26 @@ router.patch('', (req, res)=>{
 
 })
 
+/*
+const multer = require('multer');
+
+const upload = multer({
+   dest : 'public'
+});
+
+router.post('/profile', upload.single('image'),  (req, res)=>{
+    const image = req.file.path;
+    console.log(req.file);
+
+})
+*/
+
+// 게시물 올릴때 사용
+// var upload = require('../setting/file_path.js');
+
+// router.post('/profile', upload.single('image'), (req, res)=>{
+//     console.log(req.file);
+// })
 
 
 module.exports = router;
