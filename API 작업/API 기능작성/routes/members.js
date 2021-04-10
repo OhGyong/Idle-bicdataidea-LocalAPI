@@ -24,7 +24,9 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 // 게시판 설정
 var {idea_list, inter_anno_list, cs_list} = require('../setting/board.js');
 
-// 본문시작
+/**
+ *      본문 시작
+ */
 
 /**
  * 회원가입 전 이용약관 동의 API, http://localhost:3000/members/idle/signup/agree/check

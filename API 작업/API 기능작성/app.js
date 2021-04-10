@@ -21,9 +21,11 @@ app.use(bodyParser.json());
 //routes 파일 호출
 var membersapp = require('./routes/members');
 var adminsapp = require('./routes/admins');
+var pointsapp = require('./routes/points')
 
 app.use('/members', membersapp);
 app.use('/admins', adminsapp);
+app.use('/points', pointsapp);
 
 
 // view engine setup

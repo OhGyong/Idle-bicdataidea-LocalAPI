@@ -907,7 +907,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 * **URL**
 
-    [PUT]] http://{IP}:{PORT}/idle/admins/point-process
+    [PUT]] http://{IP}:{PORT}/points/admins/manage
 
 * **PARAM**
 
@@ -938,7 +938,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 포인트 사용
+### 회원 포인트 사용 ( 상품권 교환)
 
 * **URL**
 

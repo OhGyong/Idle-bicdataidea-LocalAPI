@@ -27,11 +27,13 @@ var {modified_idea, modified_cs} = require('../setting/modified_board.js')
 var { now_time, tomorrow_time } = require('../setting/time.js');
 const { get } = require('../setting/mail.js');
 
+const admin_check=1 // 관리자 확인 체크/ 게시물에서 사용
 
-const admin_check=1
+
 /**
- *  관리자 등록 필요없음
-*/
+ *      본문 시작
+ */
+
 
 /**
  * 관리자 이메일 중복 확인, http://localhost:3000/admins/idle/admins/has-same-id
@@ -267,10 +269,11 @@ router.get('/idle/member-list/:member_email/log', (req, res)=>{
  * 1. idea 테이블에서 해당 회원의 데이터를 가져온다.
  */
 router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
-    console.log("세션 이메일: ", req.params.member_email) // 회원 이메일
+    console.log("회원 이메일: ", req.params.member_email) // 회원 이메일
     console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    idea_list(req.session.member_email, req.query.idea_search).then(member_idea_list=>{
+    idea_list(req.params.member_email, req.query.idea_search, req.query.page).then(member_idea_list=>{
         res.send(member_idea_list);
     });
 
@@ -669,24 +672,15 @@ router.patch('', (req, res)=>{
 
 })
 
-/*
-const multer = require('multer');
 
-const upload = multer({
-   dest : 'public'
-});
 
-router.post('/profile', upload.single('image'),  (req, res)=>{
-    const image = req.file.path;
-    console.log(req.file);
-
-})
-*/
 
 // 게시물 올릴때 사용
+// const multer = require('multer');
 // var upload = require('../setting/file_path.js');
 
 // router.post('/profile', upload.single('image'), (req, res)=>{
+//     const image = req.file.path;    
 //     console.log(req.file);
 // })
 

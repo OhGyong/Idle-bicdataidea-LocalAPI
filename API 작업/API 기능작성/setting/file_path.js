@@ -5,16 +5,11 @@ const upload = multer({
 
  module.exports =upload
 
- /*
-const multer = require('multer');
+// 게시물 올릴때 사용
+// const multer = require('multer');
+// var upload = require('../setting/file_path.js');
 
-const upload = multer({
-   dest : 'public'
-});
-
-router.post('/profile', upload.single('image'),  (req, res)=>{
-    const image = req.file.path;
-    console.log(req.file);
-
-})
-*/
+// router.post('/profile', upload.single('image'), (req, res)=>{
+//     const image = req.file.path;    
+//     console.log(req.file);
+// })
