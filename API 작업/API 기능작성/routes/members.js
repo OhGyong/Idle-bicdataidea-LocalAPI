@@ -754,8 +754,6 @@ router.get('/idle/mypage/point/state', (req, res) => {
     console.log("세션 이메일 : " + mem_email);
 
     var my_now_point, my_save_point, my_use_point; // 표현할 점수 변수 선언
-    var member_point = new Array() // 회원들 간 점수 비교에 사용할 배열
-    var my_rank; // 나의 랭킹
 
     getConnection(async (conn) => {
         try {
@@ -770,77 +768,14 @@ router.get('/idle/mypage/point/state', (req, res) => {
                         error_request.message="현재 회원 포인트 가져오기 실패"
                         rej(error_request);
                     }
-                    // 점수 저장
-                    my_now_point = rows[0].member_point; // 현재 포인트
-                    my_save_point = rows[0].save_point; // 누적 포인트
-                    my_use_point = rows[0].use_point; // 사용 포인트
-
+                   success_request.data=rows;
                     console.log("내 포인트 정보 : " + my_now_point + " " + my_save_point + " " + my_use_point);
                     res(rows);
                 })
             })
 
-            // 회원들 누적 포인트 가져오기
-            await new Promise((res, rej) => {
-                var savepoint_sql = 'SELECT save_point FROM member WHERE member_ban=?';
-                conn.query(savepoint_sql, 0, function (err, rows) {
-                    if (err || rows == '') {
-                        conn.release();
-                        error_request.message="회원들 누적 포인트 가져오기 실패";
-                        rej(error_request);
-                    }
-                    console.log(rows)
-
-                    // 키 값( 포인트 값)만 빼내기
-                    for (k in rows) {
-                        member_point.push(rows[k].save_point);
-                    }
-
-                    console.log("포인트 점수 정렬 전 : " + member_point.sort());
-
-                    // 내림차순 정렬
-                    member_point.sort(function (a, b) {
-                        return b - a; // 두 숫자의 차이가 양수인가 음수인가 이용
-                    })
-
-                    console.log("포인트 점수 정렬 확인 : " + member_point);
-
-                    // 나의 포인트 순위 찾기
-                    for (m in member_point) {
-                        if (my_save_point == member_point[m]) {
-                            my_rank = Number(m) + 1 //m이 스트링으로 되어있어서 수정
-                            break;
-                        }
-                    }
-                    console.log(my_rank)
-                    res(rows);
-                })
-            })
-
-            //테이블에 순위 업데이트
-            await new Promise((res, rej) => {
-                var myrank_sql = 'UPDATE member SET member_rank=? WHERE member_email=?'
-                var myrank_params = [my_rank, mem_email]
-                conn.query(myrank_sql, myrank_params, function (err, rows) {
-                    if (err || rows == '') {
-                        conn.release();
-                        error_request.message="테이블 순위 업데이트 실패";
-                        rej(error_request);
-                    }
-                    // json 형태로 응답
-                    res(rows)
-                })
-            })
             conn.release();
 
-            point_state = {
-                "현재 포인트": my_now_point,
-                "누적 포인트": my_save_point,
-                "사용 포인트": my_use_point,
-                "랭킹": my_rank
-            }
-            
-            success_request.data=point_state;
             success_request.message="회원 포인트 현황 반환 성공"
             return res.send(success_request);
 
@@ -861,7 +796,7 @@ router.get('/idle/mypage/point/use', (req, res) => {
     getConnection(conn => {
         try {
             var member_email = req.session.member_email; // 세션 이메일
-            let page_num = req.query.page; // 페이지 번호
+            let page_num = (req.query.page-1)*10; // 페이지 번호
             console.log("세션 이메일 : " + member_email);
             // 사용내역 가져오기
             var use_point_sql = 'SELECT use_contents, point, use_date FROM point WHERE member_email=? LIMIT 10 OFFSET ?;';
@@ -869,6 +804,7 @@ router.get('/idle/mypage/point/use', (req, res) => {
             conn.query(use_point_sql, use_point_params, function (err, rows) {
                 // point를 사용한적이 없어서 point테이블에 회원이 등록이 안된 경우
                 if (err || rows == '') {
+                    console.log(err)
                     conn.release();
                     error_request.message="사용내역이 없습니다.";
                     return res.send(error_request);
@@ -897,14 +833,14 @@ router.get('/idle/mypage/point/save', (req, res) => {
     getConnection(conn => {
         try {
             var member_email = req.session.member_email; // 세션 이메일
-            let page_num = req.query.page; // 페이지 번호
+            let page_num = (req.query.page-1)*10; // 페이지 번호
 
             console.log("세션 이메일 : " + member_email);
 
             // idea 테이블에서 제목, 얻은 포인트, 적립날짜 가져오기
             var save_point_sql = 'SELECT idea_title, add_point, date_point FROM idea WHERE member_email=? LIMIT 10 OFFSET ?;';
             let save_point_params = [ member_email, page_num];
-            conn.query(save_point_sql, mem_email, function (err, rows) {
+            conn.query(save_point_sql, save_point_params, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
                     error_request.message="등록된 아이디어가 없습니다.";

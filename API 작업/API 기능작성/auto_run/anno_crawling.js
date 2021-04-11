@@ -1,3 +1,6 @@
+/**
+ * 설정 세팅
+ */
 const axios = require("axios");
 const cheerio = require("cheerio");
 var cron = require('node-cron');
@@ -74,7 +77,6 @@ cron.schedule(' * * * */7 * * ', function(){
             for (var k = 0; k < anno_data.length; k++) {
                 await new Promise((res, rej) => {
                     anno_list_params = [anno_data[k].num, anno_data[k].title, anno_data[k].date, anno_data[k].url, anno_data[k].contents];
-                    console.log(anno_list_params)
                     conn.query(anno_list_sql, anno_list_params, function (err, rows) {
                         if (err || rows == '') {
                             console.log(err)

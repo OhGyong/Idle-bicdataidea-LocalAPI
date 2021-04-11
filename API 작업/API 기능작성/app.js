@@ -11,6 +11,7 @@ dotenv.config({
 require('dotenv').config();
 
 require('./auto_run/anno_crawling.js');
+require('./auto_run/member_rank.js');
 
 var app = express();
 
