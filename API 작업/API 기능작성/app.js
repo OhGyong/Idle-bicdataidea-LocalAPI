@@ -23,10 +23,12 @@ app.use(bodyParser.json());
 var membersapp = require('./routes/members');
 var adminsapp = require('./routes/admins');
 var pointsapp = require('./routes/points')
+var user_boardsapp = require('./routes/user_boards')
 
 app.use('/members', membersapp);
 app.use('/admins', adminsapp);
 app.use('/points', pointsapp);
+app.use('/user_boards', user_boardsapp);
 
 
 // view engine setup

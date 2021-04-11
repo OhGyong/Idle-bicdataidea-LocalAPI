@@ -16,7 +16,7 @@ var session = require('../setting/session.js');
 router.use(session)
 
 // 게시판 설정
-var {idea_list, cs_list, anno_list, inter_anno_list, notice_list, member_list, member_log_list, admin_log_list} = require('../setting/board.js');
+var {idea_list, cs_list, anno_list, anno_list_look, inter_anno_list, notice_list, member_list, member_log_list, admin_log_list} = require('../setting/board.js');
 
 // 게시판 수정 목록 설정
 var {modified_idea, modified_cs} = require('../setting/modified_board.js')
@@ -369,12 +369,12 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified/:modify_
 
 
 /**
- * 회원 문의사항 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list
+ * 회원 문의게시판 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list
  * 1. cs테이블에서 해당 회원 이메일 조회하여 데이터 가져오기, 파일 필요없음
  */
 router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
     
-    console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
+    console.log("문의게시판 번호: ", req.params.member_email) // 문의게시판 번호
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
@@ -385,7 +385,7 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
 
 
 /**
- * 회원 문의사항 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id
+ * 회원 문의게시판 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id
  * 1. cs_file_dir 조인
  */
 router.get('/idle/member-list/:member_email/cs-list/:cs_id', (req, res)=>{
@@ -420,11 +420,11 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id', (req, res)=>{
 
 
 /**
- * 선택한 회원 문의사항 수정 내용 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified
+ * 선택한 회원 문의게시판 수정 내용 목록, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified
  */
 router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=>{
 
-    console.log("문의사항 번호: ", req.params.cs_id) // 문의사항 번호
+    console.log("문의게시판 번호: ", req.params.cs_id) // 문의게시판 번호
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
@@ -435,7 +435,7 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
 
 
 /**
- * 선택한 회원 문의사항 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의사항 번호
+ * 선택한 회원 문의게시판 수정 내용 보기, http://localhost:3000/admins/idle/member-list/회원 이메일/cs-list/cs-id/modified/문의게시판 번호
  */
  router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified/:modify_num', (req,res)=>{
     
@@ -590,7 +590,7 @@ router.get('/idle/admin-log', (req, res)=>{
  * 공지사항 목록, http://localhost:3000/admins/idle/notice-list
  * 1. notice 테이블, notice_file_dir 테이블 JOIN
  */
-router.get('/idle/notice-log', (req, res)=>{
+router.get('/idle/notice', (req, res)=>{
 
     console.log("검색할 내용: ", req.query.notice_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
@@ -608,8 +608,7 @@ router.get('/idle/notice-log', (req, res)=>{
  */
 router.get('/idle/board/anno',(req, res) => {
 
-    console.log("문의사항 번호: ", req.params.member_email) // 문의사항 번호
-    console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
+    console.log("검색할 내용: ", req.query.anno_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
     anno_list(req.query.anno_search, req.query.page).then(anno_list=>{
@@ -623,32 +622,11 @@ router.get('/idle/board/anno',(req, res) => {
  * 공고정보게시판 목록 보기, http://localhost:3000/admins/idle/board/anno/번호
  */
 router.get('/idle/board/anno/:anno_num', (req, res)=>{
-    
-    getConnection(async(conn)=>{
-        try{
-            
-            var anno_id = req.params.anno_num;
-            await new Promise((res, rej)=>{
-                var anno_look_sql='SELECT anno_ref, anno_link, anno_contents FROM anno WHERE anno_id=?;';
-                conn.query(anno_look_sql, anno_id, function(err, rows){
-                    if(err || rows==''){
-                        console.log(err)
-                        conn.release();
-                        error_request.message="공고정보게시판 목록 내용 불러오기 실패";
-                        rej(error_request);
-                    }
-                    success_request.data=rows;
-                    res(rows);
-                })
-            })
+    console.log("선택한 게시물: ", req.params.anno_num)  // 검색 내용
 
-            conn.release();
-            success_request.message="공고정보게시판 목록 내용 불러오기 성공";
-            res.send(success_request);
-        }catch(err){
-            res.send(err);
-        }
-    })
+    anno_list_look(req.params.anno_num).then(anno_look=>{
+        res.send(anno_look);
+    });
 })
 
 

@@ -51,7 +51,7 @@ async function idea_list(get_email, search_title, page) {
 }
 
 
-// 문의사항 목록
+// 문의게시판 목록
 async function cs_list(get_email, search_title, admin_check, page) {
 
     try {
@@ -64,15 +64,22 @@ async function cs_list(get_email, search_title, admin_check, page) {
         let cs_list_params;
 
         if (member_email != undefined && cs_title == undefined && admin_check == 1)  {
-            // 관리자의 회원 문의사항 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
+            // 회원 상세 문의게시판, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
             cs_list_sql = 'SELECT * FROM cs WHERE member_email=? LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, page_num];
-
         } 
         else if (member_email != undefined && cs_title != undefined && admin_check == 1) {
-            // 관리자의 회원 문의사항 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
+            // 회원 상세 문의게시판 검색한 경우, ( 세션 이메일 값과 검색 값이 둘 다 존재)
             cs_list_sql = 'SELECT * FROM cs WHERE member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, cs_title + '*', page_num];
+        }else if (member_email == undefined && cs_title == undefined && admin_check == 0){
+            // 유저 관점 문의게시판
+            cs_list_sql = 'SELECT * FROM cs;';
+            cs_list_params=page_num;
+        }else if (member_email == undefined && cs_title != undefined && admin_check == 0){
+            // 유저 관점 문의게시판 검색한 경우
+            cs_list_sql = 'SELECT * FROM cs WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_params=[cs_title + '*', page_num];
         }
 
         // db 조회 시작
@@ -83,7 +90,7 @@ async function cs_list(get_email, search_title, admin_check, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
-                        error_request.message = "문의사항 목록 가져오기 실패";
+                        error_request.message = "문의게시판 목록 가져오기 실패";
                         return rej(error_request);
                     }
                     conn.release();
@@ -94,11 +101,61 @@ async function cs_list(get_email, search_title, admin_check, page) {
         })
 
         //사용내역 응답
-        success_request.message = "문의사항 목록 가져오기 성공";
+        success_request.message = "문의게시판 목록 가져오기 성공";
         return success_request;
     } catch (err) {
         return err;
     }
+}
+
+
+// 문의게시판 내용
+async function cs_look(cs_num, admin_check){
+    try{
+
+        let cs_look_num = cs_num // 게시물 번호
+
+        // 쿼리문 조건
+        let cs_look_sql;
+        let cs_look_params;
+
+        if(admin_check==0){
+            // 회원관점 문의게시판 내용
+            cs_look_sql = 'SELECT * FROM cs JOIN cs_file_dir ON (cs.cs_id = cs_file_dir.cs_id) WHERE cs.cs_id=?;';
+            cs_look_params = cs_look_num;
+        }
+        
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(cs_look_sql, cs_look_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "문의게시판 내용 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    
+                    // 회원 관점에서 비밀글 설정되어있으면 못보게 처리
+                    if(rows[0].cs_secret==1 && admin_check==0){
+                        conn.release();
+                        error_request.message="비밀글은 작성자 본인만 볼 수 있습니다.";
+                        return rej(error_request)
+                    }
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="문의게시판 내용 불러오기 성공";
+        return success_request;
+
+    }catch(err){
+        return err;
+    }
+
 }
 
 
@@ -122,7 +179,7 @@ async function anno_list(search_title, page) {
         else if(anno_title != undefined){
             // 공고정보게시판 목록  ( 검색했을 때 )
             anno_list_sql = 'SELECT anno_id, anno_title, anno_date FROM anno WHERE MATCH(anno_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
-            anno_list_params = [anno_title, page_num];
+            anno_list_params = [anno_title+'*', page_num ];
         }
 
         // db 조회 시작
@@ -148,6 +205,43 @@ async function anno_list(search_title, page) {
         return success_request;
     } catch (err) {
         return err;
+    }
+}
+
+
+// 공고정보게시판 내용
+async function anno_look(anno_num){
+    try {
+        
+        let anno_look_num = anno_num // 게시물 번호
+
+        // 쿼리문 조건
+        let anno_look_sql;
+        let anno_look_params;
+
+        anno_look_sql='SELECT anno_ref, anno_link, anno_contents FROM anno WHERE anno_id=?;';
+        anno_look_params=anno_look_num;
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(anno_look_sql, anno_look_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공고정보게시판 내용 불러오기 실패";
+                        rej(error_request);
+                    }
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="공고정보게시판 내용 불러오기 성공";
+        return success_request;
+    } catch (err) {
+    return(err);
     }
 }
 
@@ -222,13 +316,13 @@ async function notice_list(search_title, page) {
         let notice_list_params;
 
         if (notice_title == undefined)  {
-            // 관리자의 회원 문의사항 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
+            // 공지사항 목록 (검색 안한경우)
             notice_list_sql = 'SELECT * FROM notice ORDERS LIMIT 10 OFFSET ?;';
             notice_list_params = [page_num];
 
         } 
         else if (notice_title != undefined) {
-            // 관리자의 회원 문의사항 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
+            // 공지사항 목록 (검색 한 경우)
             notice_list_sql = 'SELECT * FROM notice WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             notice_list_params = [notice_title + '*', page_num];
         }
@@ -256,6 +350,43 @@ async function notice_list(search_title, page) {
         return success_request;
     } catch (err) {
         return err;
+    }
+}
+
+
+// 공지사항 내용
+async function notice_look(notice_num){
+    try {
+        
+        let notice_look_num = notice_num // 게시물 번호
+
+        // 쿼리문 조건
+        let notice_look_sql;
+        let notice_look_params;
+
+        notice_look_sql='SELECT * FROM notice JOIN notice_file_dir ON (notice.notice_id = notice_file_dir.notice_id) WHERE notice.notice_id=?;';
+        notice_look_params=notice_look_num;
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(notice_look_sql, notice_look_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공지사항 내용 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="공지사항 내용 불러오기 성공";
+        return success_request;
+    } catch (err) {
+    return(err);
     }
 }
 
@@ -429,4 +560,23 @@ async function admin_log_list(search_email, page){
 
 
 
-module.exports={idea_list:idea_list, cs_list:cs_list, anno_list:anno_list, inter_anno_list:inter_anno_list, notice_list:notice_list, member_list:member_list, member_log_list:member_log_list, admin_log_list:admin_log_list};
+module.exports={
+    idea_list:idea_list,
+
+    cs_list:cs_list,
+    cs_look:cs_look,
+
+    anno_list:anno_list,
+    anno_look:anno_look,
+
+    inter_anno_list:inter_anno_list,
+
+    notice_list:notice_list,
+    notice_look:notice_look,
+    
+    member_list:member_list,
+
+    member_log_list:member_log_list,
+
+    admin_log_list:admin_log_list
+};

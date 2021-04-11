@@ -748,36 +748,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 회원 리스트 검색
-
-* **URL**
-
-    [GET]] http://{IP}:{PORT}/admins/idle/member-list?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "member_inform" : 회원 이메일 or 이름
-    }
-    ```
-
-* **동작설명**
-
-    사용자 이메일 or 이름 (둘 중 하나)을 검색하면 해당 member 테이블에서 해당 사용자를 표시
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_search:"Error"}`
-
----
-
 
 ### 회원 상세 페이지
 
@@ -976,13 +946,13 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 
 
-## 회원 관점 게시물 관련 API
+## 유저 관점 게시물 관련 API
 
 ### 공고정보 게시판 목록
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/announcement
+    [GET] http://{IP}:{PORT}/user_boards/anno
 
 * **동작설명**
 
@@ -1001,11 +971,11 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공고정보 게시물 보기
+### 공고정보 게시물 내용 보기
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/announcement/anno-look
+    [GET] http://{IP}:{PORT}/user_boards/anno/번호
 
 * **동작설명**
 
@@ -1023,55 +993,15 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공고정보 게시판 출처 링크 바로가기
 
-* **URL**
 
-    [GET]] http://{IP}:{PORT}/idle/board/announcement/anno-link
 
-* **동작설명**
-
-    출처 링크 바로가기를 누르면 anno 테이블에서 anno_link를 불러와서 해당 링크로 이동
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_anno_link:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_anno_link:"Error"}`
-
----
-
-### 공고정보 게시판 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/announcement?검색어
-
-* **동작설명**
-
-    사용자가 단어를 입력하면 anno 테이블에서 해당 제목이 들어간 게시물들을 나열
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_anno_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_anno_search:"Error"}`
-
----
 
 ### 공지사항 목록
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/notice
+    [GET] http://{IP}:{PORT}/user_boards/notice
 
 * **동작설명**
 
@@ -1090,11 +1020,11 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공지사항 게시물 보기
+### 공지사항 내용 보기
 
 * **URL**
 
-    [GET] http://{IP}:{PORT}/idle/board/notice/게시물 번호
+    [GET] http://{IP}:{PORT}/user_boards/notice/번호
 
 * **동작설명**
 
@@ -1112,27 +1042,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공지사항 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/notice?검색어
-
-* **동작설명**
-
-    사용자가 단어를 입력하면 notice 테이블에서 해당 제목이 들어간 게시물들을 나열
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_notice_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_notice_search:"Error"}`
-
----
 
 ### 공지사항 게시물 첨부파일 다운로드
 
@@ -1156,7 +1065,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 문의게시판 게시물 목록
+### 문의게시판 목록
 
 * **URL**
 
@@ -1179,7 +1088,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 문의게시판 게시물 보기
+### 문의게시판 내용
 
 * **URL**
 
@@ -1202,28 +1111,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 문의게시판 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/board/cs?검색어
-
-* **동작설명**
-
-    사용자가 단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열 </br>
-    단, 비밀이라고 치면 비밀글이여도 검색어에 나오지 않음
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{member_cs_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{member_cs_search:"Error"}`
-
----
 
 ### 문의게시판 게시물 업로드
 
@@ -1457,35 +1344,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공지사항 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/notice-log?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "notice_title" : 공지사항 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 공지사항 제목을 입력하면 notice 테이블에서 일치하는 제목을 찾고 연결된 notice_log 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{notice_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{notice_log_search:"Error"}` 
-
----
 
 ### 고객센터 로그 페이지
 
@@ -1510,35 +1368,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 고객센터 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/contact-log?검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "contact_title" : 고객센터 문의글 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 고객센터 문의글 제목을 입력하면 contact 테이블에서 일치하는 제목을 찾고 연결된 contact_log에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{contact_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{contact_log_search:"Error"}` 
-
----
 
 ### 아이디어 로그 페이지
 
@@ -1563,34 +1392,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 아이디어 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/idea-log?검색어
-
-* **PARAM**
-    ```(json)
-    {
-        "idea_title" : 아이디어 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 아이디어 제목을 입력하면 idle 테이블에서 일치하는 제목을 찾고 연결된 idea_log 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_log_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_log_search:"Error"}` 
-
----
 
 ### 공고정보 로그 페이지
 
@@ -1613,37 +1414,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
     * **Code:** 400 </br>
     `{idea_log:"Error"}` 
 
----
-
-### 공고정보 로그 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/anno-log/검색어
-
-* **PARAM**
-
-    ```(json)
-    {
-        "anno_title" : 공고 제목
-    }
-    ```
-
-* **동작설명**
-
-    관리자가 공고 제목을 입력하면 anno 테이블에서 일치하는 제목을 찾고 연결된 anno_id 테이블에서 값을 보냄
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{anno_log}:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{anno_log:"Error"}` 
-
----
 ---
 
 
@@ -1714,27 +1484,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공고정보 게시판 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/board/announcement?검색어
-
-* **동작설명**
-
-    단어를 입력하면 anno 테이블에서 해당 제목이 들어간 게시물들을 나열
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_anno_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_anno_search:"Error"}`
-
----
 
 ### 공고정보 게시판 게시물 업로드
 
@@ -1873,27 +1622,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 공지사항 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/board/notice?검색어
-
-* **동작설명**
-
-    단어를 입력하면 notice 테이블에서 해당 제목이 들어간 게시물들을 나열
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_notice_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_notice_search:"Error"}`
-
----
 
 ### 공지사항 게시물 첨부파일 다운로드
 
@@ -2051,28 +1779,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
 ---
 
-### 문의게시판 게시물 검색
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/board/cs?검색어
-
-* **동작설명**
-
-    단어를 입력하면 cs 테이블에서 해당 제목이 들어간 게시물들을 나열 </br>
-    단, 비밀이라고 치면 비밀글이여도 검색어에 나오지 않음
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_cs_search:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_cs_search:"Error"}`
-
----
 
 ### 문의게시판 게시물 첨부파일 다운로드
 
