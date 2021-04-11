@@ -10,7 +10,7 @@ dotenv.config({
 })
 require('dotenv').config();
 
-require('./setting/anno_crawling.js');
+require('./auto_run/anno_crawling.js');
 
 var app = express();
 

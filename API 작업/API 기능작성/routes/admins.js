@@ -11,9 +11,6 @@ var getConnection = require('../setting/db.js');
 // 응답 설정
 var { success_request, error_request } = require('../setting/request.js');
 
-// 메일 설정
-var trans_mail = require('../setting/mail.js')
-
 // 세션 연결
 var session = require('../setting/session.js');
 router.use(session)
@@ -23,16 +20,14 @@ var {idea_list, cs_list, anno_list, inter_anno_list, notice_list, member_list, m
 
 // 게시판 수정 목록 설정
 var {modified_idea, modified_cs} = require('../setting/modified_board.js')
-
 var { now_time, tomorrow_time } = require('../setting/time.js');
-const { get } = require('../setting/mail.js');
 
-const admin_check=1 // 관리자 확인 체크/ 게시물에서 사용
 
 
 /**
  *      본문 시작
  */
+ const admin_check=1 // 관리자 확인 체크/ 게시물에서 사용
 
 
 /**

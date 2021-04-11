@@ -1,3 +1,7 @@
+/**
+ * 설정 세팅
+ */
+
 var express = require('express');
 const { mountpath } = require('../app.js');
 var router = express.Router();
@@ -17,7 +21,7 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 
 
 /**
- * 관리자의 포인트 부여 및 회수, http:localhost:3000/points/admins/manage/:member_email/:idea-id
+ * 관리자의 포인트 부여 및 회수, http://localhost:3000/points/admins/manage/:member_email/:idea-id
  * 아이디어 게시판 목록에서 게시물에 대하여 점수 부여 및 회수
  * 1. idea_id, member_eamil, admin_email 값 받아온다. + 관리자가 입력한 idea_point 까지
  * 2. idea 테이블에서 해당 게시물의 add_point를 가져와서 idea_point와 더한다. 
@@ -112,6 +116,100 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
             res.send(success_request);
         }catch(err){
             res.send(err)
+        }
+    })
+
+})
+
+
+/**
+ * 회원 포인트 사용, http://localhost:3000/points/member/use
+ * 1 .현재 회원이 가진 포인트를 확인
+ * 2. 회원이 입력한 포인트와 비교하여 낮으면 사용불가
+ * 3. 입력한 포인트가 더 많으면 member 테이블에서 member_point와 use_point를 업데이트 한다.
+ * 4. point 테이블에는 추가
+ */
+router.put('/member/use/:member_email', (req, res)=>{
+
+    let member_email = req.params.member_email
+    let use_point_update=req.body.use_point; 
+    let use_contents=req.body.use_contents;
+
+    console.log("회원 이메일: ", member_email);
+    console.log("사용하려는 포인트: ", use_point_update); 
+    
+    getConnection(async(conn)=>{
+        try {
+            // 쿼리문 조건
+            let use_point_sql
+            let use_point_params;
+            
+            let member_point; // 회원 현재 포인트
+            let use_point; // 회원이 지금까지 사용한 포인트
+
+            // 현재 회원 포인트 확인
+            await new Promise((res, rej)=>{
+                use_point_sql='SELECT member_point, use_point FROM member WHERE member_email=?;';
+                use_point_params=member_email;
+                conn.query(use_point_sql, use_point_params, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="회원 포인트 가져오기 실패";
+                        rej(error_request);
+                    }
+                    member_point=rows[0].member_point;
+                    use_point=rows[0].use_point;
+                    res(rows);
+                })
+            })
+
+            // 회원이 입력한 포인트와 비교하여 낮으면 에러 발생
+            if(member_point<use_point){
+                error_request.message="회원 포인트 부족";
+                return res.send(error_request);
+            }
+
+            // member_point와 save_point 업데이트
+            await new Promise((res, rej)=>{
+                member_point = member_point-use_point;
+                use_point = use_point+use_point_update;
+
+                use_point_sql='UPDATE member SET member_point=?, use_point=? WHERE member_email=?;';
+                use_point_params=[member_point, use_point, member_email];
+                conn.query(use_point_sql, use_point_params, function(err, rows){
+                    console.log(err)
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message='회원 사용 포인트 업데이트 실패';
+                        rej(error_request);
+                    }
+                    res(rows);
+                })
+            })
+
+            // point 테이블 추가
+            await new Promise((res, rej)=>{
+                use_point_sql='INSERT INTO point (member_email, use_date, use_contents, point) VALUES (?,?,?,?);';
+                use_point_params=[member_email, now_time, use_contents, use_point];
+                conn.query(use_point_sql, use_point_params, function(err, rows){
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="point 테이블 추가 실패";
+                        rej(error_request);
+                    }
+                    res(rows);
+                })
+            })
+
+            conn.release();
+            success_request.data={
+                "사용 내역":use_contents,                
+                "사용 포인트":use_point
+            }
+            success_request.message="포인트 사용 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err);            
         }
     })
 
