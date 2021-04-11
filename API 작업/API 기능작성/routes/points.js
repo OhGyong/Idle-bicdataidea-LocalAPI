@@ -3,7 +3,6 @@
  */
 
 var express = require('express');
-const { mountpath } = require('../app.js');
 var router = express.Router();
 
 // db 연결
