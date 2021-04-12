@@ -26,15 +26,17 @@ app.use(bodyParser.urlencoded({extended:true}));
 app.use(bodyParser.json());
 
 //routes 파일 호출
-var membersapp = require('./routes/members');
-var adminsapp = require('./routes/admins');
-var pointsapp = require('./routes/points')
-var user_boardsapp = require('./routes/user_boards')
+let membersapp = require('./routes/members');
+let adminsapp = require('./routes/admins');
+let pointsapp = require('./routes/points');
+let user_boardsapp = require('./routes/user_boards');
+let admin_boardsapp = require('./routes/admin_boards');
 
 app.use('/members', membersapp);
 app.use('/admins', adminsapp);
 app.use('/points', pointsapp);
 app.use('/user_boards', user_boardsapp);
+app.use('/admin_boards', admin_boardsapp);
 
 
 // view engine setup

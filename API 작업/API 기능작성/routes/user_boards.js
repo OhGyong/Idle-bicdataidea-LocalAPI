@@ -13,9 +13,7 @@ var {
 } = require('../setting/board.js');
 
 // 파일 업로드 설정
-const multer = require('multer');
 var upload = require('../setting/file_path.js');
-const { error_request } = require('../setting/request.js');
 
 /**
  *      본문 시작

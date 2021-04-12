@@ -642,24 +642,4 @@ router.get('', (req,res)=>{
 })
 
 
-/**
- * 회원 포인트 부여 및 회수
- */
-router.patch('', (req, res)=>{
-
-})
-
-
-
-
-// 게시물 올릴때 사용
-// const multer = require('multer');
-// var upload = require('../setting/file_path.js');
-
-// router.post('/profile', upload.single('image'), (req, res)=>{
-//     const image = req.file.path;    
-//     console.log(req.file);
-// })
-
-
 module.exports = router;
