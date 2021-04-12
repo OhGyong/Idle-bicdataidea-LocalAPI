@@ -1,8 +1,9 @@
+const e = require('express');
 var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
 var {now_time} = require('./time.js');
 
-//아이디어 목록 불러오기
+// 아이디어 목록 불러오기
 async function idea_list(get_email, search_title, page) {
 
     try {
@@ -23,6 +24,14 @@ async function idea_list(get_email, search_title, page) {
             // 회원 아이디어 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
             idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, 0, idea_title + '*', page_num];
+        } else if (member_email == undefined && idea_title == undefined){
+            // 유저 아이디어 목록, (검색안함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? LIMIT 10 OFFSET ?;';
+            idea_list_params = [0, page_num]
+        } else if (member_email == undefined && idea_title != undefined){
+            // 유저 아이디어 목록, (검색함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';            
+            idea_list_params = [0, idea_title + '*', page_num];
         }
 
         // db 조회 시작
@@ -45,6 +54,239 @@ async function idea_list(get_email, search_title, page) {
 
         //사용내역 응답
         success_request.message = "회원 아이디어 목록 불러오기 성공";
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 아이디어 내용
+async function idea_look(get_email, idea_num, admin_check){
+    try{
+
+        let member_email = get_email; // 로그인 했는지 알아볼 회원 이메일
+        let idea_look_num = idea_num; // 게시물 번호
+
+        // 쿼리문 조건
+        let idea_look_sql;
+        let idea_look_params;
+
+        if(admin_check==0){
+            // 유저관점 아이디어 내용
+            idea_look_sql = 'SELECT * FROM idea JOIN idea_file_dir ON (idea.idea_id = idea_file_dir.idea_id) WHERE idea.idea_id=?;';
+            idea_look_params = idea_look_num;
+        }
+        
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(idea_look_sql, idea_look_params, function (err, rows) {
+                    console.log(rows)
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "아이디어 내용 불러오기 실패";
+                        return rej(error_request);
+                    }else if(member_email != undefined && rows[0].member_email != member_email && admin_check==0){
+                        // 본인 아이디어가 아닌 경우
+                        conn.release();
+                        error_request.message = "본인 아이디어만 열람할 수 있습니다";
+                        return rej(error_request);
+                    }else if(member_email == undefined && admin_check ==0){
+                        // 유저 관점에서 로그인 안한경우
+                        conn.release();
+                        error_request.message = "로그인이 필요합니다";
+                        return rej(error_request); 
+                    }
+                    
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="문의게시판 내용 불러오기 성공";
+        return success_request;
+
+    }catch(err){
+        return err;
+    }
+}
+
+
+// 아이디어 업로드
+async function idea_write(get_email, idea_title, idea_contents, idea_file) {
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", idea_title, " 받은 내용:", idea_contents);
+        console.log("첨부파일: ", idea_file)
+        
+        // 쿼리문 조건
+        let idea_write_sql;
+        let idea_write_params;
+
+        let idea_id;
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 회원이 입력한 정보 idea 테이블에 저장
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                idea_write_sql = 'INSERT INTO idea (idea_title, idea_contents, member_email, add_point, idea_date, date_point) VALUES (?,?,?,?,now(),now());';
+                idea_write_params = [idea_title, idea_contents, get_email, 500];
+                conn.query(idea_write_sql, idea_write_params, function (err, rows) {
+                    console.log(rows)
+                    idea_id=rows.insertId;
+                    console.log(3)
+                    if (err || rows == '') {
+                        console.log(err);
+                        conn.release();
+                        error_request.message = "idea 테이블 저장 실패";
+                        return rej(err)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 첨부파일 idea_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                
+                if(idea_file == undefined){
+                    idea_file_originalname=null;
+                    idea_file_path=null;
+                }else{
+                    idea_file_originalname=idea_file.originalname;
+                    idea_file_path=idea_file.path;
+                }
+                idea_write_sql = 'INSERT INTO idea_file_dir (idea_id, idea_file_name, idea_file_path) VALUES (?,?,?);';
+                idea_write_params = [idea_id, idea_file_originalname, idea_file_path];
+                conn.query(idea_write_sql, idea_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        console.log(err)
+                        error_request.message = "idea_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "idea_title": idea_title,
+            "idea_contents": idea_contents,
+            "member_email": get_email,
+            "idea_file_name": idea_file_originalname,
+            "idea_file_path": idea_file_path
+        }
+        success_request.message = "아이디어 업로드 성공"
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 아이디어 내용수정
+async function idea_update(get_email, idea_title, idea_contents, idea_file, idea_num){
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", idea_title, " 받은 내용:", idea_contents);
+        console.log("첨부파일: ", idea_file);
+        console.log("게시물 번호: ", idea_num);
+
+        // 쿼리문 조건
+        let idea_write_sql;
+        let idea_write_params;
+
+        let idea_file_originalname, idea_file_path; // 파일 이름, 파일 경로
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 회원이 입력한 정보 idea 테이블에 업데이트
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                idea_write_sql = 'UPDATE idea SET idea_title=?, idea_contents=?, member_email=? WHERE idea_id=?;';
+                idea_write_params = [idea_title, idea_contents,  get_email, idea_num];
+                conn.query(idea_write_sql, idea_write_params, function (err, rows) {
+                    console.log(3)
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "idea 테이블 저장 실패";
+                        return rej(error_request)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+
+        // 첨부파일 idea_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                if(idea_file == undefined){
+                    //파일 첨부 하지 않은 경우
+                    idea_file_originalname=null;
+                    idea_file_path=null;
+                }else{
+                    //파일 첨부 한 경우
+                    idea_file_originalname=idea_file.originalname;
+                    idea_file_path=idea_file.path;
+                }
+                idea_write_sql = 'UPDATE idea_file_dir SET idea_id=?, idea_file_name=?, idea_file_path=? WHERE idea_id=?;';
+                idea_write_params = [idea_num, idea_file_originalname, idea_file_path, idea_num];
+                conn.query(idea_write_sql, idea_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        error_request.message = "idea_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 수정날짜 idea_log 테이블에 저장
+        await new Promise((res, rej)=>{
+            getConnection(conn =>{
+                idea_write_sql='INSERT INTO idea_log (idea_id, idea_edit_date) VALUES (?, now());';
+                idea_list_params=idea_num
+                conn.query(idea_write_sql, idea_list_params ,function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="idea_log 테이블 입력 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "idea_title": idea_title,
+            "idea_contents": idea_contents,
+            "member_email": get_email,
+            "idea_file_name": idea_file_originalname,
+            "idea_file_path": idea_file_path
+        }
+        success_request.message = "문의게시판 수정 성공"
         return success_request;
     } catch (err) {
         return err;
@@ -783,7 +1025,7 @@ async function admin_log_list(search_email, page){
 
 
 module.exports={
-    idea_list:idea_list,
+    idea_list:idea_list, idea_look:idea_look, idea_write:idea_write, idea_update:idea_update,
 
     cs_list:cs_list, cs_look:cs_look, cs_write:cs_write, cs_update_page:cs_update_page, cs_update:cs_update, 
 

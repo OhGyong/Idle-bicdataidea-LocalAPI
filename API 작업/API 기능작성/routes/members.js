@@ -611,8 +611,9 @@ router.post('/idle/logout', (req, res) => {
     try {
         req.session.destroy(function () {
             req.session;
-            success_request = "로그아웃에 성공하였습니다.";
-            res.send(success_res)
+            success_request.data="null";
+            success_request.message = "로그아웃에 성공하였습니다.";
+            res.send(success_request)
             //res.redirect('/home'); // 홈으로 이동하게 하자
         });
     } catch {
