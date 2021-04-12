@@ -526,7 +526,7 @@ router.post('/idle/signin', (req, res) => {
 
     // 회원이 입력한 이메일(0)과 비밀번호(1)
     var member = new Array();
-    for (k in req.body) { req.session.member_email
+    for (k in req.body) { 
         member.push(req.body[k]);
     }
 
@@ -552,9 +552,9 @@ router.post('/idle/signin', (req, res) => {
             })
 
             // 로그인한 시간 확인, member_log 테이블 업데이트)
-            var memberlog_param = [now_time, member[0]];
+            var memberlog_param = [member[0]];
             await new Promise((res, rej) => {
-                var memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
+                var memberlog_sql = 'UPDATE member_log SET member_login_lately=now() WHERE member_email=?;';
                 conn.query(memberlog_sql, memberlog_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -567,7 +567,7 @@ router.post('/idle/signin', (req, res) => {
 
             // 로그인 시간 데이터 축적, member_login_log 테이블 추가
             await new Promise((res, rej) => {
-                var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(?,?);';
+                var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(now(),?);';
                 conn.query(memberloginlog_sql, memberlog_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -590,7 +590,9 @@ router.post('/idle/signin', (req, res) => {
                 })
             })
             conn.release();
-            success_request.data=""
+            success_request.data={
+                member_email:member[0]
+            }
             success_request.message = "로그인 성공";
             res.send(success_request);
             //res.redirect('/home'); // 홈으로 이동하게 하자

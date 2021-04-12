@@ -178,35 +178,19 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
         // 회원이 입력한 정보 cs 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                cs_write_sql = 'INSERT INTO cs (cs_title, cs_contents, cs_date, member_email, cs_secret) VALUES (?,?,now(),?,?);';
+                cs_write_sql = 'INSERT INTO cs (cs_title, cs_contents, member_email, cs_secret, cs_date) VALUES (?,?,?,?,now());';
                 cs_write_params = [cs_title, cs_contents, get_email, cs_secret];
                 conn.query(cs_write_sql, cs_write_params, function (err, rows) {
                     console.log(rows)
+                    cs_id=rows.insertId;
+                    console.log("sdf",cs_id)
                     console.log(3)
                     if (err || rows == '') {
+                        console.log(err);
                         conn.release();
                         error_request.message = "cs 테이블 저장 실패";
                         return rej(err)
                     }
-                    conn.release();
-                    res();
-                })
-            })
-        })
-
-        // cs_id 번호 가져오기
-        await new Promise((res, rej) => {
-            getConnection(conn => {
-                cs_write_sql = ' SELECT cs_id FROM cs WHERE member_email=? AND cs_date=now();';
-                cs_write_params = [get_email];
-                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
-                    console.log(4)
-                    if (err || rows == '') {
-                        conn.release();
-                        error_request.message = "cs_id 번호 가져오기 실패";
-                        return rej(error_request);
-                    }
-                    cs_id = rows[0].cs_id;
                     conn.release();
                     res();
                 })
@@ -230,6 +214,7 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
                     console.log(5)
                     console.log(rows)
                     if (err || rows == '') {
+                        console.log(err)
                         error_request.message = "cs_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -304,6 +289,7 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
         console.log("받은 이메일:", get_email, " 받은 제목:", cs_title, " 받은 내용:", cs_contents, " 받은 비밀글 체크:", cs_secret);
         console.log("첨부파일: ", cs_file);
         console.log("게시물 번호: ", cs_num);
+
         // 쿼리문 조건
         let cs_write_sql;
         let cs_write_params;
@@ -316,8 +302,8 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
         // 회원이 입력한 정보 cs 테이블에 업데이트
         await new Promise((res, rej) => {
             getConnection(conn => {
-                cs_write_sql = 'UPDATE cs SET cs_title=?, cs_contents=?, cs_date=?, member_email=?, cs_secret=? WHERE cs_id=?;';
-                cs_write_params = [cs_title, cs_contents, now_time, get_email, cs_secret, cs_num];
+                cs_write_sql = 'UPDATE cs SET cs_title=?, cs_contents=?, member_email=?, cs_secret=? WHERE cs_id=?;';
+                cs_write_params = [cs_title, cs_contents,  get_email, cs_secret, cs_num];
                 conn.query(cs_write_sql, cs_write_params, function (err, rows) {
                     console.log(3)
                     if (err || rows == '') {
@@ -336,21 +322,40 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
         // 첨부파일 cs_file_dir 테이블에 저장(업데이트)
         await new Promise((res, rej) => {
             getConnection(conn => {
-                
                 if(cs_file == undefined){
+                    //파일 첨부 하지 않은 경우
                     cs_file_originalname=null;
                     cs_file_path=null;
                 }else{
+                    //파일 첨부 한 경우
                     cs_file_originalname=cs_file.originalname;
                     cs_file_path=cs_file.path;
                 }
-                cs_write_sql = 'UPDATE cs_file_dir SET cs_id=?, cs_file_name=?, cs_file_path=? WHERE cs_id;';
+                cs_write_sql = 'UPDATE cs_file_dir SET cs_id=?, cs_file_name=?, cs_file_path=? WHERE cs_id=?;';
                 cs_write_params = [cs_num, cs_file_originalname, cs_file_path, cs_num];
                 conn.query(cs_write_sql, cs_write_params, function (err, rows) {
                     console.log(5)
                     console.log(rows)
                     if (err || rows == '') {
                         error_request.message = "cs_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 수정날짜 cs_log 테이블에 저장
+        await new Promise((res, rej)=>{
+            getConnection(conn =>{
+                cs_write_sql='INSERT INTO cs_log (cs_id, cs_edit_date) VALUES (?, now());';
+                cs_list_params=cs_num
+                conn.query(cs_write_sql, cs_list_params ,function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="cs_log 테이블 입력 실패";
                         return rej(error_request);
                     }
                     conn.release();
