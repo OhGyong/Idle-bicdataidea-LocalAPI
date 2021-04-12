@@ -769,7 +769,7 @@ async function inter_anno_list(search_title, page) {
 
 
 // 공지사항 목록
-async function notice_list(search_title, page) {
+async function notice_list(search_title, page, admin_check) {
 
     try {
 
@@ -779,15 +779,22 @@ async function notice_list(search_title, page) {
         let notice_list_sql;
         let notice_list_params;
 
-        if (notice_title == undefined)  {
-            // 공지사항 목록 (검색 안한경우)
-            notice_list_sql = 'SELECT * FROM notice ORDERS LIMIT 10 OFFSET ?;';
-            notice_list_params = [page_num];
-
+        if (notice_title == undefined && admin_check == 0)  {
+            // 유저 관점 공지사항 목록 (검색 안한 경우)
+            notice_list_sql = 'SELECT notice_title, notice_date FROM notice WHERE notice_delete=? LIMIT 10 OFFSET ?;';
+            notice_list_params = [0, page_num];
         } 
-        else if (notice_title != undefined) {
-            // 공지사항 목록 (검색 한 경우)
-            notice_list_sql = 'SELECT * FROM notice WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+        else if (notice_title != undefined && admin_check == 0) {
+            // 유저 관점 공지사항 목록 (검색 한 경우)
+            notice_list_sql = 'SELECT notice_title, notice_date FROM notice WHERE notice_delete=? AND MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            notice_list_params = [0, notice_title + '*', page_num];
+        }else if (notice_title == undefined && admin_check == 1){
+            // 관리자 관점 공지사항 목록 (검색 안한 경우)
+            notice_list_sql = 'SELECT notice_title, notice_contents, admin_email, notice_delete ,notice_date FROM notice ORDERS LIMIT 10 OFFSET ?;';
+            notice_list_params = [page_num];
+        }else if (notice_title != undefined && admin_check ==1){
+            // 관리자 관점 공지사항 목록 (검색 한 경우)
+            notice_list_sql = 'SELECT notice_title, notice_contents, admin_email, notice_delete ,notice_date FROM notice WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             notice_list_params = [notice_title + '*', page_num];
         }
 
@@ -851,6 +858,86 @@ async function notice_look(notice_num){
         return success_request;
     } catch (err) {
     return(err);
+    }
+}
+
+
+// 공지사항 업로드
+async function notice_write(get_email, notice_title, notice_contents, notice_file) {
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", notice_title, " 받은 내용:", notice_contents);
+        console.log("첨부파일: ", notice_file)
+        
+        // 쿼리문 조건
+        let notice_write_sql;
+        let notice_write_params;
+
+        let notice_id;
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 회원이 입력한 정보 notice 테이블에 저장
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                notice_write_sql = 'INSERT INTO notice (notice_title, notice_contents, admin_email, notice_date) VALUES (?,?,?,now());';
+                notice_write_params = [notice_title, notice_contents, get_email];
+                conn.query(notice_write_sql, notice_write_params, function (err, rows) {
+                    console.log(rows)
+                    notice_id=rows.insertId;
+                    console.log(3)
+                    if (err || rows == '') {
+                        console.log(err);
+                        conn.release();
+                        error_request.message = "notice 테이블 저장 실패";
+                        return rej(err)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 첨부파일 notice_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                
+                if(notice_file == undefined){
+                    notice_file_originalname=null;
+                    notice_file_path=null;
+                }else{
+                    notice_file_originalname=notice_file.originalname;
+                    notice_file_path=notice_file.path;
+                }
+                notice_write_sql = 'INSERT INTO notice_file_dir (notice_id, notice_file_name, notice_file_path) VALUES (?,?,?);';
+                notice_write_params = [notice_id, notice_file_originalname, notice_file_path];
+                conn.query(notice_write_sql, notice_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        console.log(err)
+                        error_request.message = "notice_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "notice_title": notice_title,
+            "notice_contents": notice_contents,
+            "admin_email": get_email,
+            "notice_file_name": notice_file_originalname,
+            "notice_file_path": notice_file_path
+        }
+        success_request.message = "아이디어 업로드 성공"
+        return success_request;
+    } catch (err) {
+        return err;
     }
 }
 
@@ -1033,7 +1120,7 @@ module.exports={
 
     inter_anno_list:inter_anno_list,
 
-    notice_list:notice_list, notice_look:notice_look,
+    notice_list:notice_list, notice_look:notice_look, notice_write:notice_write,
     
     member_list:member_list,
 

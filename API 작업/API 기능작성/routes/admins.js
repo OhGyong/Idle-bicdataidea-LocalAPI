@@ -80,21 +80,18 @@ router.post('/idle/has-same-id', (req, res) => {
  */
 router.post('/idle/signin', (req, res)=>{
 
-    // 관리자가 입력한 이메일(0), 비밀번호 (1)
-    var admin = new Array();
-    for(k in req.body){
-        admin.push(req.body[k]);
-    }
+    let admin_email = req.body.admin_email; // 관리자 이메일
+    let admin_pw = req.body.admin_pw; // 관리자 비번
 
     // 비밀번호 해시화
-    admin[1]=crypto.createHash('sha512').update(admin[1]).digest('base64');
+    admin_pw=crypto.createHash('sha512').update(admin_pw).digest('base64');
 
     //db 연결
     getConnection(async(conn)=>{
         try{
             // db에 일치하는 이메일과 비밀번호가 있는지 확인
             var admin_login_sql = 'SELECT * FROM admin WHERE admin_email=? AND admin_pw=? AND admin_secede=?;';
-            var admin_login_param = [admin[0], admin[1], 0];
+            var admin_login_param = [admin_email, admin_pw, 0];
             await new Promise((res, rej)=>{
                 conn.query(admin_login_sql, admin_login_param, function (err, rows){
                     if (err || rows == '') {
@@ -107,8 +104,8 @@ router.post('/idle/signin', (req, res)=>{
             })
             
             // 로그인한 시간 확인, admin_log 테이블 업데이트
-            var admin_log_sql ='UPDATE admin_log SET admin_login_lately=? WHERE admin_email=?;';
-            var admin_log_param = [now_time, admin[0]];
+            var admin_log_sql ='UPDATE admin_log SET admin_login_lately=now() WHERE admin_email=?;';
+            var admin_log_param = [admin_email];
             await new Promise((res,rej)=>{
                 conn.query(admin_log_sql,admin_log_param, function(err, rows){
                     if(err || rows==''){
@@ -121,7 +118,7 @@ router.post('/idle/signin', (req, res)=>{
             })
 
             //세션 저장
-            req.session.admin_email = admin[0];
+            req.session.admin_email = admin_email;
             req.session.save(function () {
                 success_request.message="로그인에 성공하였습니다."
                 conn.release();
@@ -575,36 +572,10 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
 })
 
 
-/**
- * 관리자 로그 목록, http://localhost:3000/admins/idle/admin-log
- * 1. admin_log 테이블에서 모든 정보를 가져온다.
- */
-router.get('/idle/admin-log', (req, res)=>{
-
-    console.log("검색할 내용: ",req.query.admin_log_search)  // 검색 내용
-    console.log("페이지 번호: ", req.query.page) // 페이지 번호
-
-    admin_log_list(req.query.admin_log_search, req.query.page).then(member_inter_anno_list=>{
-        res.send(member_inter_anno_list);
-    });
-});
 
 
-/**
- * 공지사항 목록, http://localhost:3000/admins/idle/notice-list
- * 1. notice 테이블, notice_file_dir 테이블 JOIN
- */
-router.get('/idle/notice', (req, res)=>{
 
-    console.log("검색할 내용: ", req.query.notice_search)  // 검색 내용
-    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    notice_list(req.query.notice_search, req.query.page).then(notice_list=>{
-        res.send(notice_list);
-    });
-
-    
-})
 
 /**
  * 공고정보게시판 목록, http://localhost:3000/admins/idle/board/anno

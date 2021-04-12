@@ -54,7 +54,7 @@ router.get('/notice', (req, res)=>{
     console.log("검색할 내용: ",req.query.notice_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    notice_list(req.query.notice_search, req.query.page).then(notice_list=>{
+    notice_list(req.query.notice_search, req.query.page, 0).then(notice_list=>{
         res.send(notice_list);
     });
 })
