@@ -1,6 +1,6 @@
 const multer = require('multer');
 const upload = multer({
-    dest : 'public'
+    dest : 'public/image'
  });
 
  module.exports =upload

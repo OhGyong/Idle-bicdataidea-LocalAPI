@@ -1,5 +1,6 @@
 var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
+var {now_time} = require('./time.js');
 
 //아이디어 목록 불러오기
 async function idea_list(get_email, search_title, page) {
@@ -156,6 +157,222 @@ async function cs_look(cs_num, admin_check){
         return err;
     }
 
+}
+
+
+// 문의게시판 업로드
+async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", cs_title, " 받은 내용:", cs_contents, " 받은 비밀글 체크:", cs_secret);
+        console.log("첨부파일: ", cs_file)
+        // 쿼리문 조건
+        let cs_write_sql;
+        let cs_write_params;
+
+        let cs_id;
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 회원이 입력한 정보 cs 테이블에 저장
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                cs_write_sql = 'INSERT INTO cs (cs_title, cs_contents, cs_date, member_email, cs_secret) VALUES (?,?,now(),?,?);';
+                cs_write_params = [cs_title, cs_contents, get_email, cs_secret];
+                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
+                    console.log(rows)
+                    console.log(3)
+                    if (err || rows == '') {
+                        conn.release();
+                        error_request.message = "cs 테이블 저장 실패";
+                        return rej(err)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // cs_id 번호 가져오기
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                cs_write_sql = ' SELECT cs_id FROM cs WHERE member_email=? AND cs_date=now();';
+                cs_write_params = [get_email];
+                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
+                    console.log(4)
+                    if (err || rows == '') {
+                        conn.release();
+                        error_request.message = "cs_id 번호 가져오기 실패";
+                        return rej(error_request);
+                    }
+                    cs_id = rows[0].cs_id;
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 첨부파일 cs_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                
+                if(cs_file == undefined){
+                    cs_file_originalname=null;
+                    cs_file_path=null;
+                }else{
+                    cs_file_originalname=cs_file.originalname;
+                    cs_file_path=cs_file.path;
+                }
+                cs_write_sql = 'INSERT INTO cs_file_dir (cs_id, cs_file_name, cs_file_path) VALUES (?,?,?);';
+                cs_write_params = [cs_id, cs_file_originalname, cs_file_path];
+                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        error_request.message = "cs_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "cs_title": cs_title,
+            "cs_contents": cs_contents,
+            "member_email": get_email,
+            "cs_secret": cs_secret,
+            "cs_file_name": cs_file_originalname,
+            "cs_file_path": cs_file_path
+        }
+        success_request.message = "문의게시판 업로드 성공"
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 문의게시판 수정 페이지
+async function cs_update_page(cs_num){
+    try{
+
+        let cs_update_num = cs_num // 게시물 번호
+
+        // 쿼리문 조건
+        let cs_update_sql;
+        let cs_update_params;
+
+        // 회원관점 문의게시판 내용
+        cs_update_sql = 'SELECT member_name, cs_secret, cs_title, cs_contents, cs_file_name, cs_file_path FROM member JOIN cs ON (member.member_email = cs.member_email) JOIN cs_file_dir ON (cs.cs_id = cs_file_dir.cs_id) WHERE cs.cs_id=?;';
+        cs_update_params = cs_update_num;
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(cs_update_sql, cs_update_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "문의게시판 정보 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="문의게시판 내용 불러오기 성공";
+        return success_request;
+
+    }catch(err){
+        return err;
+    }
+
+}
+
+
+// 문의게시판 내용수정
+async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, cs_num){
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", cs_title, " 받은 내용:", cs_contents, " 받은 비밀글 체크:", cs_secret);
+        console.log("첨부파일: ", cs_file);
+        console.log("게시물 번호: ", cs_num);
+        // 쿼리문 조건
+        let cs_write_sql;
+        let cs_write_params;
+
+        let cs_file_originalname, cs_file_path; // 파일 이름, 파일 경로
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 회원이 입력한 정보 cs 테이블에 업데이트
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                cs_write_sql = 'UPDATE cs SET cs_title=?, cs_contents=?, cs_date=?, member_email=?, cs_secret=? WHERE cs_id=?;';
+                cs_write_params = [cs_title, cs_contents, now_time, get_email, cs_secret, cs_num];
+                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
+                    console.log(3)
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "cs 테이블 저장 실패";
+                        return rej(error_request)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+
+        // 첨부파일 cs_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                
+                if(cs_file == undefined){
+                    cs_file_originalname=null;
+                    cs_file_path=null;
+                }else{
+                    cs_file_originalname=cs_file.originalname;
+                    cs_file_path=cs_file.path;
+                }
+                cs_write_sql = 'UPDATE cs_file_dir SET cs_id=?, cs_file_name=?, cs_file_path=? WHERE cs_id;';
+                cs_write_params = [cs_num, cs_file_originalname, cs_file_path, cs_num];
+                conn.query(cs_write_sql, cs_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        error_request.message = "cs_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "cs_title": cs_title,
+            "cs_contents": cs_contents,
+            "member_email": get_email,
+            "cs_secret": cs_secret,
+            "cs_file_name": cs_file_originalname,
+            "cs_file_path": cs_file_path
+        }
+        success_request.message = "문의게시판 수정 성공"
+        return success_request;
+    } catch (err) {
+        return err;
+    }
 }
 
 
@@ -563,16 +780,13 @@ async function admin_log_list(search_email, page){
 module.exports={
     idea_list:idea_list,
 
-    cs_list:cs_list,
-    cs_look:cs_look,
+    cs_list:cs_list, cs_look:cs_look, cs_write:cs_write, cs_update_page:cs_update_page, cs_update:cs_update, 
 
-    anno_list:anno_list,
-    anno_look:anno_look,
+    anno_list:anno_list, anno_look:anno_look,
 
     inter_anno_list:inter_anno_list,
 
-    notice_list:notice_list,
-    notice_look:notice_look,
+    notice_list:notice_list, notice_look:notice_look,
     
     member_list:member_list,
 

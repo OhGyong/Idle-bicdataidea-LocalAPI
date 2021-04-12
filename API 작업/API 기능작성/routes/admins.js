@@ -16,11 +16,13 @@ var session = require('../setting/session.js');
 router.use(session)
 
 // 게시판 설정
-var {idea_list, cs_list, anno_list, anno_list_look, inter_anno_list, notice_list, member_list, member_log_list, admin_log_list} = require('../setting/board.js');
+var {idea_list, cs_list, anno_list, anno_look, inter_anno_list, notice_list, member_list, member_log_list, admin_log_list} = require('../setting/board.js');
 
 // 게시판 수정 목록 설정
 var {modified_idea, modified_cs} = require('../setting/modified_board.js')
-var { now_time, tomorrow_time } = require('../setting/time.js');
+
+// 시간 설정
+var {now_time, tomorrow_time} = require('../setting/time.js');
 
 
 
@@ -37,6 +39,8 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
  * 
 */
 router.post('/idle/has-same-id', (req, res) => {
+
+    console.log(now_time());
 
     // 포스트맨에서 얻어온 이메일 값
     var check_email = req.body.admin_email;

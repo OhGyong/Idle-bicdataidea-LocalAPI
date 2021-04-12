@@ -14,10 +14,6 @@ var { success_request, error_request } = require('../setting/request.js');
 // 메일 설정
 var trans_mail = require('../setting/mail.js')
 
-// 세션 연결
-var session = require('../setting/session.js')
-router.use(session)
-
 // 시간 설정
 var { now_time, tomorrow_time } = require('../setting/time.js');
 

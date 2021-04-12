@@ -4,16 +4,22 @@ let createError = require('http-errors');
 let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
+
 let dotenv = require('dotenv')
 dotenv.config({
   "path" : "./env"
 })
 require('dotenv').config();
 
+
 require('./auto_run/anno_crawling.js');
 require('./auto_run/member_rank.js');
 
 var app = express();
+
+// 세션 연결
+let session = require('./setting/session.js')
+app.use(session)
 
 // request body undefined 에러 처리
 app.use(bodyParser.urlencoded({extended:true}));

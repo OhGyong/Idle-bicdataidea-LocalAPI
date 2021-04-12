@@ -4,22 +4,17 @@
  var express = require('express');
  var router = express.Router();
 
- // db 연결
-var getConnection = require('../setting/db.js');
-
-// 응답 설정
-var { success_request, error_request } = require('../setting/request.js');
-
 // 게시판 설정
-var { idea_list, 
-    cs_list, cs_look,
+var {
+    idea_list, 
+    cs_list, cs_look, cs_write, cs_update_page, cs_update, 
     anno_list, anno_look,
-    inter_anno_list, notice_list,
-    notice_look, member_list,
-    member_log_list,
-    admin_log_list
+    notice_list, notice_look,
 } = require('../setting/board.js');
 
+// 파일 업로드 설정
+const multer = require('multer');
+var upload = require('../setting/file_path.js');
 
 /**
  *      본문 시작
@@ -96,14 +91,64 @@ router.get('/cs', (req, res)=>{
     });
 })
 
+
 /**
  * 문의게시판 내용, http://localhost:3000/user_boards/cs/번호
  */
 router.get('/cs/:cs_num', (req, res)=>{
     console.log("선택한 게시물: ", req.params.cs_num)  // 검색 내용
 
+    //  검색내용, 관리자 체크
     cs_look(req.params.cs_num, 0).then(cs_look=>{
         res.send(cs_look);
+    });
+})
+
+
+/**
+ * 문의게시판 업로드, http://localhost:3000/user_boards/cs/write
+ */
+router.post('/cs/write', upload.single('image'), (req, res)=>{
+    console.log("작성한 제목: ", req.body.cs_title);  // 제목
+    console.log("작성한 내용: ", req.body.cs_contents); // 내용
+    console.log("회원 이메일: ", req.session.member_email); // 회원 이메일
+    console.log("비밀글 여부: ", req.body.cs_secret);
+    console.log("첨부파일 : ", req.file);// 첨부 파일 
+
+
+    cs_write(req.session.member_email ,req.body.cs_title, req.body.cs_contents, req.body.cs_secret, req.file).then(cs_write=>{
+        res.send(cs_write);
+    });
+})
+
+
+/**
+ * 문의게시판 수정 페이지, http://localhost:3000/user_boards/cs/번호/update
+ */
+router.get('/cs/:cs_num/update', (req, res)=>{
+    console.log("선택한 게시물: ", req.params.cs_num)  // 선택한 게시물
+
+    cs_update_page(req.params.cs_num, 0).then(cs_update=>{
+        res.send(cs_update);
+    });
+
+})
+
+
+/**
+ * 문의게시판 내용수정, http://localhost:3000/user_boards/cs/update
+ */
+router.put('/cs/:cs_num/update', upload.single('image'), (req, res)=>{
+    console.log("수정한 제목: ", req.body.cs_title);  // 제목
+    console.log("수정한 내용: ", req.body.cs_contents); // 내용
+    console.log("회원 이메일: ", req.session.member_email); // 회원 이메일
+    console.log("비밀글 여부: ", req.body.cs_secret);
+    console.log("첨부파일 : ", req.file); // 첨부 파일
+
+    console.log("선택한 게시물: ", req.params.cs_num)  // 선택한 게시물
+
+    cs_update(req.session.member_email ,req.body.cs_title, req.body.cs_contents, req.body.cs_secret, req.file, req.params.cs_num).then(cs_update=>{
+        res.send(cs_update);
     });
 })
 

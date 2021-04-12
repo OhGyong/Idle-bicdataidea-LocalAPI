@@ -1,16 +1,19 @@
 var moment = require('moment');
 
-require('moment-timezone');
+//require('moment-timezone');
 
 moment.tz.setDefault("Asia/Seoul");
 
 //현재시간
-var now_time = new Date();
-var now_time = moment(new Date()).format('YYYY-MM-DD HH:mm:ss'); //moment
+function now_time(){
+    console.log(1)
+    var now_date = moment(new Date()).format('YYYY-MM-DD HH:mm:ss'); //moment
+    return now_date
+}
 
 //내일시간
-var tomorrow_time = new Date(new Date().setDate(new Date().getDate() + 1));
-var tomorrow_time = moment(tomorrow_time).format('YYYY-MM-DD HH:mm:ss'); //moment
+let tomorrow_time = new Date(new Date().setDate(new Date().getDate() + 1));
+tomorrow_time = moment(tomorrow_time).format('YYYY-MM-DD HH:mm:ss'); //moment
 
 //db에서 내보낼때 시간처리
 var korea_time = function(db_time){
@@ -18,4 +21,5 @@ var korea_time = function(db_time){
     return time_change
 }
 
-module.exports={'now_time':now_time, 'tomorrow_time':tomorrow_time, 'korea_time':korea_time};
+module.exports={'now_time':now_time, 'tomorrow_time':tomorrow_time};
+// module.exports=now_time()
