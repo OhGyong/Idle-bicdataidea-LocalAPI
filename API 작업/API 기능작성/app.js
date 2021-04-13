@@ -1,9 +1,9 @@
 let express = require('express');
 let  bodyParser = require('body-parser');
 let createError = require('http-errors');
-let path = require('path');
 let cookieParser = require('cookie-parser');
 let logger = require('morgan');
+let path = require('path');
 
 let dotenv = require('dotenv')
 dotenv.config({

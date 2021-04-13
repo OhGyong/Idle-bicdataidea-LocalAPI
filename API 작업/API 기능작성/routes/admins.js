@@ -708,5 +708,4 @@ router.post('/contact/:contact_num/answer', (req, res)=>{
     }
 })
 
-
 module.exports = router;

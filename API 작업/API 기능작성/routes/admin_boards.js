@@ -65,7 +65,6 @@ router.get('/admin-log', (req, res)=>{
     console.log("관리자 이메일: ", req.session.admin_email); // 관리자 이메일
     console.log("첨부파일 : ", req.file);// 첨부 파일 
 
-
     notice_write(req.session.admin_email ,req.body.notice_title, req.body.notice_contents, req.file).then(notice_write=>{
         res.send(notice_write);
     });

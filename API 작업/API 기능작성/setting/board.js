@@ -1013,7 +1013,6 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
                 notice_write_params = [notice_title, notice_contents, get_email];
                 conn.query(notice_write_sql, notice_write_params, function (err, rows) {
                     console.log(rows)
-                    notice_id=rows.insertId;
                     console.log(3)
                     if (err || rows == '') {
                         console.log(err);
@@ -1021,6 +1020,7 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
                         error_request.message = "notice 테이블 저장 실패";
                         return rej(err)
                     }
+                    notice_id=rows.insertId;
                     conn.release();
                     res();
                 })
