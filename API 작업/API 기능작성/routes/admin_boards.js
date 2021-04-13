@@ -15,6 +15,8 @@ const getConnection = require('../setting/db.js');
 
 // 파일 업로드 설정
 var upload = require('../setting/file_path.js');
+
+// 응답 설정
 const { error_request, success_request } = require('../setting/request.js');
 
 
@@ -193,7 +195,7 @@ router.delete('/notice/:notice_num/delete', (req, res)=>{
 /**
  * 문의게시판 답변, http://localhost:3000/admin_boards/cs/:cs_num/answer
  */
-router.post('/cs/:cs_num/answer', upload.single('image'), (req,res)=>{
+router.post('/cs/:cs_num/answer', (req,res)=>{
     console.log("답변 내용: ", req.body.cs_contents); // 내용
     console.log("관리자 이메일: ", req.session.admin_email); // 관리자 이메일
 
