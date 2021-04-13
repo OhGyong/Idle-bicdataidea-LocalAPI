@@ -21,9 +21,11 @@ var {idea_list, cs_list, anno_list, anno_look, inter_anno_list, notice_list, mem
 // 게시판 수정 목록 설정
 var {modified_idea, modified_cs} = require('../setting/modified_board.js')
 
+// 메일 설정
+var trans_mail = require('../setting/mail.js')
+
 // 시간 설정
 var {now_time, tomorrow_time} = require('../setting/time.js');
-
 
 
 /**
@@ -570,6 +572,140 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
             res.send(err);
         }
     })
+})
+
+
+/**
+ * 고객센터 목록, http://localhost:3000/admins/contact
+ */
+router.get('/contact', (req, res) => {
+    getConnection(async (conn) => {
+        try {
+            let page_num = (req.query.page - 1)*10; // 페이지 번호
+            let contact_search = req.query.contact_search; // 검색 내용
+
+            //쿼리 조건
+            let conatct_list_sql, contact_params;
+
+            await new Promise((res, rej) => {
+                if(contact_search == undefined){
+                    // 검색 안한 경우
+                    conatct_list_sql = 'SELECT contact.contact_id, email, contact_title, contact_send, contact_response FROM contact JOIN contact_log ON (contact.contact_id = contact_log.contact_id) LIMIT 10 OFFSET ?;';
+                    contact_list_params = page_num;
+                }else if( contact_search != undefined){
+                    // 검색 한 경우
+                    conatct_list_sql = 'SELECT contact.contact_id, email, contact_title, contact_send, contact_response FROM contact JOIN contact_log ON (contact.contact_id = contact_log.contact_id) WHERE MATCH(email) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+                    contact_list_params = [contact_search + '*' , page_num];
+                }
+                conn.query(conatct_list_sql, contact_list_params, function (err, rows) {
+                    console.log(rows)
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "고객센터 데이터 조회 실패";
+                        rej(error_request);
+                    }
+                    success_request.data = rows;
+                    res();
+                })
+            })
+            conn.release();
+            success_request.message = "고객센터 데이터 조회 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err);
+        }
+
+    })
+})
+
+
+/**
+ * 고객센터 내용, http://localhost:3000/admins/contact/:contact_num
+ */
+router.get('/contact/:contact_num', (req, res) => {
+    getConnection(async (conn) => {
+        try {
+            await new Promise((res, rej) => {
+                let contact_sql = 'SELECT email, contact_title, contact_contents FROM contact WHERE contact_id=?;';
+                conn.query(contact_sql, req.params.contact_num, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "contact 데이터 불러오기 실패";
+                        rej(error_request);
+                    }
+                    success_request.data = rows;
+                    res();
+                })
+            })
+            conn.release();
+            success_request.message = "contact 데이터 불러오기 성공";
+            res.send(success_request);
+        } catch (err) {
+            res.send(err);
+        }
+    })
+})
+
+
+/**
+ * 고객센터 답변, http://localhost:3000/admins/contact/:contact_num/answer
+ */
+router.post('/contact/:contact_num/answer', (req, res)=>{
+    try {
+        let get_email = req.body.email; // 받는 사람 이메일
+        let get_title = req.body.contact_title; // 보낼 제목
+        let get_contents = req.body.contact_content // 보낼 내용
+        let get_num = req.params.contact_num;
+
+        // 메일 전송 ( 관리자 이메일 → 문의 넣은 사람)
+        trans_mail.sendMail({
+            from: process.env.GMAIL_EMAIL,
+            to: get_email,
+            subject: get_title,
+            text: get_contents
+        }, function (err) {
+            console.log(111)
+            if (err) {
+                error_request.message = "메일 전송 실패";
+                res.send(error_request);
+            }
+
+            getConnection(async (conn) => {
+                try {
+                    await new Promise((res, rej)=>{
+                        let contact_answer_sql='UPDATE contact_log SET contact_response=now() WHERE contact_id=?;';
+                        let contact_answer_params=get_num;
+                        conn.query(contact_answer_sql, contact_answer_params, function(err, rows){
+                            console.log(rows)
+                            if(err || rows==''){
+                                console.log(err)
+                                conn.release();
+                                error_request.message="contact_log 업데이트 실패";
+                                rej(error_request);
+                            }
+                            res();
+                        })
+                    })
+
+                    conn.release();
+
+                    success_request.data={
+                        "email":get_email,
+                        "contact_title":get_title,
+                        "contact_content":get_contents
+                    }
+                    success_request.message="contact_log 업데이트 성공";
+                    res.send(success_request);
+                } catch (err) {
+                    res.send(err);
+                }
+            })
+        })
+    } catch (err) {
+        res.send(err);
+    }
 })
 
 

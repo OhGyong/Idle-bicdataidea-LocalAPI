@@ -20,6 +20,7 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 // 게시판 설정
 var {idea_list, inter_anno_list, cs_list} = require('../setting/board.js');
 
+
 /**
  *      본문 시작
  */
@@ -47,7 +48,7 @@ router.get('/idle/signup/agree/check', (req, res) => {
 
 
 /**
- * 회원 이메일 중복 확인, http://localhost:3000/idle/has-same-email
+ * 회원 이메일 중복 확인, http://localhost:3000/members/idle/has-same-email
  * session.js 확인
  * 1. 입력된 json 값 value 값만 가져오기
  * 2. member 테이블에 입력받은 이메일 값이 있는지 확인해서 있으면 생성불가, 없으면 생성가능 응답처리
@@ -85,7 +86,7 @@ router.post('/idle/has-same-email', (req, res) => {
 
 
 /**
- * 회원 이메일 인증키 보내기, http://localhost:3000/idle/sign-up/send-email
+ * 회원 이메일 인증키 보내기, http://localhost:3000/members/idle/sign-up/send-email
  * 1. 난수 6자리 생성
  * 2. json 입력받은 값 value 값만 뽑아내기
  * 3. 현재시간, 24시간 뒤 계산해서 유효기간 설정
@@ -164,7 +165,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
 
 
 /**
- * 회원 이메일 인증키 입력, http://localhost:3000/idle/sign-up/check-email-num
+ * 회원 이메일 인증키 입력, http://localhost:3000/members/idle/sign-up/check-email-num
  * 1. 서버에서 이메일 값을 받아서 email_auth 테이블에서 이메일, 인증값, 폐기 값이 0인 데이터를 찾음
  * 2. 1.조건을 만족하지 못한 경우 처리
  * 3. 1.조건을 만족하면 현재날짜와 유효기간을 비교 ( 현재날짜가 더 크면 폐기처리)
@@ -252,7 +253,7 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
 
 
 /**
- * 회원가입 API , http://localhost:3000/idle/signup/fillout
+ * 회원가입 API , http://localhost:3000/members/idle/signup/fillout
  * try catch 로 primary키 오류 발생 못잡음 
  * 1. 배열에 입력받은 값과 member 테이블의 NOTNULL인 값들 처리해서 저장
  * 2. 패스워드 해시키 변경 (crypto 사용)
@@ -331,7 +332,7 @@ router.post('/idle/signup/fillout', (req, res, err) => {
 
 
 /**
- * 회원 비밀번호 찾기(메일전송), http://localhost:3000/idel/find-password
+ * 회원 비밀번호 찾기(메일전송), http://localhost:3000/members/idel/find-password
  * 1. 사용자가 입력한 이메일이 db에 저장되어 있는지 확인
  * 2. pw_find 테이블에서 비밀번호 키 값 생성 (random 7자리 만들어서 해시화)해서 메일 전송
  * 3. 전송하면서 유효기간 설정
@@ -423,7 +424,7 @@ router.post('/idle/find-password', (req, res) => {
 
 
 /**
- * 회원 비밀번호 재설정, http://localhost:3000/idle/reset-password=?해시키
+ * 회원 비밀번호 재설정, http://localhost:3000/members/idle/reset-password=?해시키
  * 1. url에 있는 query 값으로 이메일과 해시값을 가져옴
  * 2. pw_find 테이블에서 해당이메일 해시값이 일치하고 재설정 값, 폐기값이 0인 경우를 찾는다.
  * 3. 현재날짜와 비교해서 폐기여부를 정한다.
@@ -516,7 +517,7 @@ router.put('/idle/reset-password', (req, res) => {
 
 
 /**
- * 회원 로그인, http://localhost:3000/idle/signin
+ * 회원 로그인, http://localhost:3000/members/idle/signin
  * 1. 회원이 입력한 이메일과 비밀번호를 array에 저장
  * 2. 입력한 비밀번호는 해시화해서 db에서 조회
  * 3. 로그시간 업로드
@@ -604,7 +605,7 @@ router.post('/idle/signin', (req, res) => {
 
 
 /**
- * 회원 로그아웃, http://localhost:3000/idle/logout
+ * 회원 로그아웃, http://localhost:3000/members/idle/logout
  * 1. destroy로 삭제
  */
 router.post('/idle/logout', (req, res) => {
@@ -624,7 +625,7 @@ router.post('/idle/logout', (req, res) => {
 
 
 /**
- * 회원정보 불러오기(수정페이지에 사용), http://localhost:3000/idle/mypage/update
+ * 회원정보 불러오기(수정페이지에 사용), http://localhost:3000/members/idle/mypage/update
  * 1. 세션 테이블에서 현재 로그인한 이메일을 찾는다.
  * 2. member 테이블에서 위에서 찾은 이메일과 일치하는 정보들을 가져온다.
  * 3. json 응답처리
@@ -656,7 +657,7 @@ router.get('/idle/mypage/update', (req, res) => {
 
 
 /**
- * 회원정보 수정, http://localhost:3000/idle/mypage/update/modify
+ * 회원정보 수정, http://localhost:3000/members/idle/mypage/update/modify
  * 1. 세션이메일 사용
  * 2. array에 입력받은 값 저장하고 쿼리에 쓸 sql과 param 작성, db 업데이트
  * 3. json 응답
@@ -693,7 +694,7 @@ router.put('/idle/mypage/update/modify', (req, res) => {
 
 
 /**
- * 회원탈퇴, http://localhost:3000/idle/member-secede
+ * 회원탈퇴, http://localhost:3000/members/idle/member-secede
  * 1. 세션 이메일 사용 (잘못된 이메일 일수가 없음)
  * 2. member 테이블에서 member_secede 값을 1로 변경 (애초에 secede 값이 1이면 로그인 불가)
  * 3. 세션 날리고 홈으로 이동
@@ -740,7 +741,7 @@ router.put('/idle/member-secede', (req, res) => {
 
 
 /**
- * 회원 포인트 현황, http://localhost:3000/idle/mypage/point/state
+ * 회원 포인트 현황, http://localhost:3000/members/idle/mypage/point/state
  * 1. 세션 이메일을 가지고 member 테이블에서 일치하는 이메일을 찾아 보유 포인트, 누적 포인트, 사용 포인트를 가져온다.
  * 2. member 테이블에서 누적 포인트 값을 다 가져와서 키 값으로 분류하고 내림차순 정렬 (정지 안당한 사람)
  * 3. 정련된 값에서 나의 누적포인트랑 같은 값을 찾는다 (랭킹)
@@ -786,7 +787,7 @@ router.get('/idle/mypage/point/state', (req, res) => {
 
 
 /**
- * 회원 포인트 사용내역, http://localhost:3000/idle/mypage/point/use.
+ * 회원 포인트 사용내역, http://localhost:3000/members/idle/mypage/point/use.
  * 1. 세션이메일을 가지고 point 테이블에서 사용날짜 사용내역을 가져온다. , 회원이 사용안한경우 처리
  * 2. json 응답처리
  */
@@ -822,7 +823,7 @@ router.get('/idle/mypage/point/use', (req, res) => {
 
 
 /**
- * 회원 포인트 적립내역, http://localhost:3000/idle/mypage/point/save
+ * 회원 포인트 적립내역, http://localhost:3000/members/idle/mypage/point/save
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 얻은 포인트, 적립날짜를 가져온다. (사용 포인트는 1000) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
@@ -859,7 +860,7 @@ router.get('/idle/mypage/point/save', (req, res) => {
 
 
 /**
- * 회원 아이디어 목록, http://localhost:3000/idle/mypage/idea
+ * 회원 아이디어 목록, http://localhost:3000/members/idle/mypage/idea
  * 1. 세션이메일을 가지고 idea 테이블에서 제목, 내용, 작성일을 가져온다. (삭제여부가 0일 때) , 회원이 등록안힌경우 처리
  * 2. json 응답처리
  */
@@ -876,7 +877,7 @@ router.get('/idle/mypage/idea', (req, res) => {
 
 
 /**
- * 관심사업 등록, http://localhost:3000/idle/mypage/marked-on
+ * 관심사업 등록, http://localhost:3000/members/idle/mypage/marked-on
  * inter_anno 테이블에 체크됐는지 안됐는지 팔별해주는 컬럼하나 넣고 등록 해제 api 한번에 하는거 괜찮아 보임
  * 1. 내가 누른 공고게시물의 id값 저장 ( 포스트맨에서 받기 )
  * 2. 세션 이메일 즐겨찾기 등록하면 inter_anno 테이들에 삽입
@@ -921,7 +922,7 @@ router.post('/idle/mypage/marked-on', (req, res) => {
 
 
 /**
- * 관심사업 해제, http://localhost:3000/idle/mypage/marked-off
+ * 관심사업 해제, http://localhost:3000/members/idle/mypage/marked-off
  * 1. 내가 누른 공고게시물의 id값 저장 ( 포스트맨에서 받기 )
  * 2. 세션 이메일 가지고 inter_anno 테이블에서 해당 id 찾아서 삭제
  * 3. json 응답처리
@@ -965,7 +966,7 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
 
 
 /**
- * 관심사업 목록, http://localhost:3000/idle/mypage/marked
+ * 관심사업 목록, http://localhost:3000/members/idle/mypage/marked
  * 1. 세션 이메일을 가지고 inter_anno 테이블, anno 테이블, anno_img_dir 테이블을 join해서 값을 가져온다. ( 삭제여부 값 0)
  * 2. json 응답처리
  */
@@ -978,6 +979,81 @@ router.get('/idle/mypage/marked', (req, res) => {
         res.send(member_inter_anno_list);
     });
 
+})
+
+
+/**
+ * 고객센터 메일전송, http://localhost:3000/members/idle/contact
+ */
+router.post('/idle/contact', (req, res) => {
+    try {
+        let get_email = req.body.email; // 보내는 사람 이메일
+        let get_title = req.body.contact_title; // 보낼 제목
+        let get_contents = req.body.contact_content // 보낼 내용
+
+        // 메일 전송 ( 문의 넣은 살마 → 관리자 이메일)
+        trans_mail.sendMail({
+            from: get_email,
+            to: process.env.GMAIL_EMAIL,
+            subject: '고객센터 제목',
+            text: "고객센터 내용"
+        }, function (err) {
+            if (err) {
+                error_request.message = "메일 전송 실패";
+                res.send(error_request);
+            }
+            getConnection(async (conn) => {
+                try {
+                    let conatct_id;
+                    let contact_sql;
+                    let contact_params;
+
+                    // 인증키, 유효기간, 수신메일 db에 저장
+                    await new Promise((res, rej) => {
+                        contact_sql = 'INSERT INTO contact (email, contact_title, contact_contents) VALUES(?,?,?);';
+                        contact_params = [get_email, get_title, get_contents]; //파라미터를 값들로 줌(배열로 생성)
+                        conn.query(contact_sql, contact_params, function (err, rows) {
+                            conatct_id = rows.insertId
+                            if (err || rows == '') {
+                                console.log(err)
+                                conn.release();
+                                error_request.message = "contact 테이블 에러";
+                                rej(error_request);
+                            }
+                            res();
+                        })
+                    })
+
+                    await new Promise((res, rej) => {
+                        contact_sql = 'INSERT INTO contact_log (contact_id, contact_send) VALUES(?,now());';
+                        contact_params = [conatct_id];
+                        conn.query(contact_sql, contact_params, function (err, rows) {
+                            if (err || rows == '') {
+                                console.log(err)
+                                conn.release();
+                                error_request.message = "contact_log 테이블 에러";
+                                rej(error_request);
+                            }
+                            res();
+                        })
+                    })
+
+                    conn.release();
+                    success_request.data = {
+                        "email": get_email,
+                        "contact_title": get_title,
+                        "contact_content": get_contents
+                    }
+                    success_request.message = "이메일 전송 성공";
+                    return res.send(success_request); // db 입력하고 보내는것까지 성공. 이메일과 인증키 전송(서버에서 사용)
+                } catch (err) {
+                    res.send(err);
+                }
+            })
+        })
+    } catch (err) {
+        res.send(err);
+    }
 })
 
 

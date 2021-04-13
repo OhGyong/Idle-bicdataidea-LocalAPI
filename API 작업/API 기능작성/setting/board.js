@@ -1288,7 +1288,7 @@ async function member_list(search_title, page) {
 
         if (member_name == undefined) {
             // 공고정보게시판 목록  ( 검색안했을 때 )
-            member_list_sql='SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) LIMIT 10 OFFSET ?';
+            member_list_sql = 'SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) LIMIT 10 OFFSET ?';
             member_list_params = [page_num];
         }
         else if(member_name != undefined){
