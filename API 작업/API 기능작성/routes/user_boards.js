@@ -151,6 +151,32 @@ router.post('/cs/write', upload.single('image'), (req, res)=>{
 
 
 /**
+ * 문의게시판 첨부파일 다운로드, http://localhost:3000/user_boards/cs/:cs_num/:file_name
+ */
+router.get('/cs/:cs_num/:file_name', (req, res)=>{
+    var upload_folder = './public/image/';
+    var file = upload_folder + req.params.file_name; // 파일 경로
+    try {
+        if (fs.existsSync(file)) { // 파일이 존재하는지 체크
+            var filename = path.basename(file); // 파일 경로에서 파일명(확장자포함)만 추출
+            var mimetype = mime.getType(file); // 파일의 타입(형식)을 가져옴
+
+            res.setHeader('Content-disposition', 'attachment; filename=' + filename); // 다운받아질 파일명 설정
+            res.setHeader('Content-type', mimetype); // 파일 형식 지정
+
+            var filestream = fs.createReadStream(file);
+            filestream.pipe(res);
+        } else {
+            return res.send('해당 파일이 없습니다.');
+        }
+    } catch (err) { // 에러 발생시
+        console.log(err);
+        return res.send('파일을 다운로드하는 중에 에러가 발생하였습니다.');
+    }
+})
+
+
+/**
  * 문의게시판 수정 페이지, http://localhost:3000/user_boards/cs/번호/update
  */
 router.get('/cs/:cs_num/update', (req, res)=>{
@@ -227,6 +253,32 @@ router.post('/idea/write', upload.single('image'), (req, res)=>{
 
 
 /**
+ * 아이디어 첨부파일 다운로드, http://localhost:3000/user_boards/idea/:idea_num/:file_name
+ */
+ router.get('/idea/:idea_num/:file_name', (req, res)=>{
+    var upload_folder = './public/image/';
+    var file = upload_folder + req.params.file_name; // 파일 경로
+    try {
+        if (fs.existsSync(file)) { // 파일이 존재하는지 체크
+            var filename = path.basename(file); // 파일 경로에서 파일명(확장자포함)만 추출
+            var mimetype = mime.getType(file); // 파일의 타입(형식)을 가져옴
+
+            res.setHeader('Content-disposition', 'attachment; filename=' + filename); // 다운받아질 파일명 설정
+            res.setHeader('Content-type', mimetype); // 파일 형식 지정
+
+            var filestream = fs.createReadStream(file);
+            filestream.pipe(res);
+        } else {
+            return res.send('해당 파일이 없습니다.');
+        }
+    } catch (err) { // 에러 발생시
+        console.log(err);
+        return res.send('파일을 다운로드하는 중에 에러가 발생하였습니다.');
+    }
+})
+
+
+/**
  * 아이디어 내용수정, http://localhost:3000/user_boards/idea/번호/update
  */
 router.put('/idea/:idea_num/update',upload.single('image'), (req, res)=>{
@@ -242,10 +294,4 @@ router.put('/idea/:idea_num/update',upload.single('image'), (req, res)=>{
     });
 })
 
-
-
-
-
-
 module.exports=router;
-
