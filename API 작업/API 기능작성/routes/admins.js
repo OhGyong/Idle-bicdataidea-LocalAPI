@@ -122,6 +122,9 @@ router.post('/idle/signin', (req, res)=>{
             //세션 저장
             req.session.admin_email = admin_email;
             req.session.save(function () {
+                success_request.data={
+                    "admin_email" : admin_email
+                }
                 success_request.message="로그인에 성공하였습니다."
                 conn.release();
                 //res.redirect('/home'); // 홈으로 이동하게 하자

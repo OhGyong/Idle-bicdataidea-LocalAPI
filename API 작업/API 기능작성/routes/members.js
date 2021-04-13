@@ -525,14 +525,11 @@ router.put('/idle/reset-password', (req, res) => {
  */
 router.post('/idle/signin', (req, res) => {
 
-    // 회원이 입력한 이메일(0)과 비밀번호(1)
-    var member = new Array();
-    for (k in req.body) { 
-        member.push(req.body[k]);
-    }
+    let member_email = req.body.member_email; // 입력한 이메일
+    let member_pw = req.body.member_pw; // 입력한 비밀번호
 
     //비밀번호 해시화
-    member[1] = crypto.createHash('sha512').update(member[1]).digest('base64');
+    member_pw = crypto.createHash('sha512').update(member_pw).digest('base64');
 
     // db 연결
     getConnection(async (conn) => {
@@ -540,8 +537,8 @@ router.post('/idle/signin', (req, res) => {
 
             await new Promise((res, rej) => {
                 // db에 일치하는 이메일과 비밀번호가 있는지 확인
-                var login_sql = 'SELECT * FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
-                var login_param = [member[0], member[1], 0];
+                var login_sql = 'SELECT member_email FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
+                var login_param = [member_email, member_pw, 0];
                 conn.query(login_sql, login_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -553,7 +550,7 @@ router.post('/idle/signin', (req, res) => {
             })
 
             // 로그인한 시간 확인, member_log 테이블 업데이트)
-            var memberlog_param = [member[0]];
+            var memberlog_param = [member_email];
             await new Promise((res, rej) => {
                 var memberlog_sql = 'UPDATE member_log SET member_login_lately=now() WHERE member_email=?;';
                 conn.query(memberlog_sql, memberlog_param, (err, row) => {
@@ -579,9 +576,9 @@ router.post('/idle/signin', (req, res) => {
                 });
             })
 
+            // 세션 저장
             await new Promise((res, rej) => {
-                //세션 저장
-                req.session.member_email = member[0];
+                req.session.member_email = member_email;
                 req.session.save(function (err) {
                     if (err) {
                         error_request.message = "세션 저장 실패";
@@ -592,7 +589,7 @@ router.post('/idle/signin', (req, res) => {
             })
             conn.release();
             success_request.data={
-                member_email:member[0]
+                member_email:member_email
             }
             success_request.message = "로그인 성공";
             res.send(success_request);
@@ -610,9 +607,10 @@ router.post('/idle/signin', (req, res) => {
  */
 router.post('/idle/logout', (req, res) => {
     try {
+        let member_email = req.session.member_email;
         req.session.destroy(function () {
             req.session;
-            success_request.data="null";
+            success_request.data={ "member_email":member_email}
             success_request.message = "로그아웃에 성공하였습니다.";
             res.send(success_request)
             //res.redirect('/home'); // 홈으로 이동하게 하자

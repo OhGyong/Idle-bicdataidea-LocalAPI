@@ -31,12 +31,14 @@ let adminsapp = require('./routes/admins');
 let pointsapp = require('./routes/points');
 let user_boardsapp = require('./routes/user_boards');
 let admin_boardsapp = require('./routes/admin_boards');
+let common_boardsapp = require('./routes/common_boards');
 
 app.use('/members', membersapp);
 app.use('/admins', adminsapp);
 app.use('/points', pointsapp);
 app.use('/user_boards', user_boardsapp);
 app.use('/admin_boards', admin_boardsapp);
+app.use('/common_boards', common_boardsapp);
 
 
 // view engine setup
