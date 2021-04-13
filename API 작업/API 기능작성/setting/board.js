@@ -3,8 +3,8 @@ var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
 var {now_time} = require('./time.js');
 
-// 아이디어 목록 불러오기
-async function idea_list(get_email, search_title, page) {
+// 아이디어 목록
+async function idea_list(get_email, search_title, page, admin_check) {
 
     try {
         var member_email = get_email; // 회원 이메일
@@ -15,23 +15,39 @@ async function idea_list(get_email, search_title, page) {
         let idea_list_sql;
         let idea_list_params;
 
-        if (member_email != undefined && idea_title == undefined) {
-            // 회원 아이디어 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
+        if (member_email != undefined && idea_title == undefined && admin_check ==0) {
+            // 내 아이디어 목록 (마이페이지), ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
             idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, 0, page_num];
-
-        } else if (member_email != undefined && idea_title != undefined) {
-            // 회원 아이디어 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
+        } else if (member_email != undefined && idea_title != undefined && admin_check ==0) {
+            // 내 아이디어 목록 (마이페이지) 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
             idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, 0, idea_title + '*', page_num];
-        } else if (member_email == undefined && idea_title == undefined){
-            // 유저 아이디어 목록, (검색안함)
+        } else if (member_email == undefined && idea_title == undefined && admin_check ==0){
+            // 유저 관점 아이디어 목록 (아이디어 플랫폼), (검색안함)
             idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? LIMIT 10 OFFSET ?;';
-            idea_list_params = [0, page_num]
-        } else if (member_email == undefined && idea_title != undefined){
-            // 유저 아이디어 목록, (검색함)
+            idea_list_params = [0, page_num];
+        } else if (member_email == undefined && idea_title != undefined && admin_check ==0){
+            // 유저 관점 아이디어 목록 (아이디어 플랫폼), (검색함)
+            console.log(11)
             idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';            
             idea_list_params = [0, idea_title + '*', page_num];
+        } else if (member_email == undefined && idea_title == undefined && admin_check == 1){
+            // 관리자 관점 아이디어 목록 (검색안함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea LIMIT 10 OFFSET ?;';
+            idea_list_params = [page_num]
+        } else if (member_email == undefined && idea_title != undefined && admin_check == 1){
+            // 관리자 관점 아이디어 목록 (검색함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';            
+            idea_list_params = [idea_title + '*', page_num];
+        }else if (member_email != undefined && idea_title == undefined && admin_check ==1){
+            // 회원 상세페이지 아이디어 목록 (검색안함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE member_email=? LIMIT 10 OFFSET ?;';
+            idea_list_params = [member_email, page_num];
+        } else if(member_email != undefined && idea_title != undefined && admin_check == 1){
+            // 회원 상세페이지 아이디어 목록 (검색함)
+            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE member_email=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            idea_list_params = [member_email, idea_title + '*', page_num];
         }
 
         // db 조회 시작
@@ -294,8 +310,78 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
 }
 
 
+// 아이디어 삭제
+async function idea_delete(idea_num) {
+
+    try {
+        // 쿼리문 조건
+        let idea_delete_sql = 'UPDATE idea SET idea_delete=? WHERE idea_id=?;';
+        let idea_delete_params = [1, idea_num];
+
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                conn.query(idea_delete_sql, idea_delete_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "아이디어 삭제 실패";
+                        return rej(error_request);
+                    }
+
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message = "아이디어 삭제 성공";
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 아이디어 수정 로그
+async function idea_log(idea_num){
+    try {
+        
+        let idea_log_num = idea_num // 게시물 번호
+    
+        // 쿼리문 조건
+        let idea_log_sql;
+        let idea_log_params;
+    
+        idea_log_sql='SELECT * FROM idea_log WHERE idea_id=?;';
+        idea_log_params=idea_log_num;
+    
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(idea_log_sql, idea_log_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공지사항 로그 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+    
+        success_request.message="공지사항 로그 불러오기 성공";
+        return success_request;
+    } catch (err) {
+    return(err);
+    }
+}
+
+
 // 문의게시판 목록
-async function cs_list(get_email, search_title, admin_check, page) {
+async function cs_list(get_email, search_title, page, admin_check) {
 
     try {
         let member_email = get_email; // 회원 이메일
@@ -307,22 +393,30 @@ async function cs_list(get_email, search_title, admin_check, page) {
         let cs_list_params;
 
         if (member_email != undefined && cs_title == undefined && admin_check == 1)  {
-            // 회원 상세 문의게시판, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
-            cs_list_sql = 'SELECT * FROM cs WHERE member_email=? LIMIT 10 OFFSET ?;';
+            // 회원 상세 문의게시판 (검색 안함)
+            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs.member_email=? LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, page_num];
         } 
         else if (member_email != undefined && cs_title != undefined && admin_check == 1) {
-            // 회원 상세 문의게시판 검색한 경우, ( 세션 이메일 값과 검색 값이 둘 다 존재)
-            cs_list_sql = 'SELECT * FROM cs WHERE member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            // 회원 상세 문의게시판 (검색 함)
+            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs.member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, cs_title + '*', page_num];
+        }else if(member_email == undefined && cs_title == undefined && admin_check == 1){
+            // 관리자 관점 문의게시판 (검색안함)
+            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) LIMIT 10 OFFSET ?;';
+            cs_list_params = [page_num];
+        }else if(member_email == undefined && cs_title != undefined && admin_check == 1){
+            // 관리자 관점 문의게시판 (검색 함)
+            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_params = [cs_title + '*', page_num];
         }else if (member_email == undefined && cs_title == undefined && admin_check == 0){
             // 유저 관점 문의게시판
-            cs_list_sql = 'SELECT * FROM cs;';
-            cs_list_params=page_num;
+            cs_list_sql = 'SELECT cs_title, member_name, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs_delete=? LIMIT 10 OFFSET ?;';
+            cs_list_params=[0, page_num];
         }else if (member_email == undefined && cs_title != undefined && admin_check == 0){
             // 유저 관점 문의게시판 검색한 경우
-            cs_list_sql = 'SELECT * FROM cs WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
-            cs_list_params=[cs_title + '*', page_num];
+            cs_list_sql = 'SELECT cs_title, member_name, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs_delete=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_params=[0, cs_title + '*', page_num];
         }
 
         // db 조회 시작
@@ -483,19 +577,49 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
 }
 
 
+// 문의게시판 삭제
+async function cs_delete(cs_num) {
+
+    try {
+        // 쿼리문 조건
+        let cs_delete_sql = 'UPDATE cs SET cs_delete=? WHERE cs_id=?;';
+        let cs_delete_params = [1, cs_num];
+
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                conn.query(cs_delete_sql, cs_delete_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "문의게시판 삭제 실패";
+                        return rej(error_request);
+                    }
+
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message = "문의게시판 삭제 성공";
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
 // 문의게시판 수정 페이지
-async function cs_update_page(cs_num){
+async function cs_update_page(get_email, cs_num){
     try{
 
+        let member_email = get_email; // 회원 이메일
         let cs_update_num = cs_num // 게시물 번호
 
-        // 쿼리문 조건
-        let cs_update_sql;
-        let cs_update_params;
-
-        // 회원관점 문의게시판 내용
-        cs_update_sql = 'SELECT member_name, cs_secret, cs_title, cs_contents, cs_file_name, cs_file_path FROM member JOIN cs ON (member.member_email = cs.member_email) JOIN cs_file_dir ON (cs.cs_id = cs_file_dir.cs_id) WHERE cs.cs_id=?;';
-        cs_update_params = cs_update_num;
+        // 쿼리문 조건, member_table, cs 테이블,  cs_file_dir 테이블 join
+        let cs_update_sql = 'SELECT cs.member_email, member_name, cs_secret, cs_title, cs_contents, cs_file_name, cs_file_path FROM member JOIN cs ON (member.member_email = cs.member_email) JOIN cs_file_dir ON (cs.cs_id = cs_file_dir.cs_id) WHERE cs.cs_id=?;';
+        let cs_update_params = cs_update_num;
 
         await new Promise((res, rej)=>{
             getConnection(conn => {
@@ -504,6 +628,11 @@ async function cs_update_page(cs_num){
                         console.log(err)
                         conn.release();
                         error_request.message = "문의게시판 정보 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    if(member_email != rows[0].member_email){
+                        conn.release();
+                        error_request.message = "본인 게시물만 수정할 수 있습니다.";
                         return rej(error_request);
                     }
                     
@@ -520,7 +649,6 @@ async function cs_update_page(cs_num){
     }catch(err){
         return err;
     }
-
 }
 
 
@@ -942,6 +1070,210 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
 }
 
 
+// 공지사항 수정 페이지
+async function notice_update_page(notice_num){
+    try{
+
+        let notice_update_num = notice_num // 게시물 번호
+
+        // 쿼리문 조건
+        let notice_update_sql = 'SELECT notice.admin_email, notice_title, notice_contents, notice_file_name, notice_file_path FROM admin JOIN notice ON (admin.admin_email = notice.admin_email) JOIN notice_file_dir ON (notice.notice_id = notice_file_dir.notice_id) WHERE notice.notice_id=?;';
+        let notice_update_params = notice_update_num;
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(notice_update_sql, notice_update_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공지사항 정보 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="공지사항 내용 불러오기 성공";
+        return success_request;
+
+    }catch(err){
+        return err;
+    }
+}
+
+
+// 공지사항 내용수정
+async function notice_update(get_email, notice_title, notice_contents, notice_file, notice_num){
+    try {
+        console.log();
+        console.log("받은 이메일:", get_email, " 받은 제목:", notice_title, " 받은 내용:", notice_contents);
+        console.log("첨부파일: ", notice_file);
+        console.log("게시물 번호: ", notice_num);
+
+        // 쿼리문 조건
+        let notice_write_sql;
+        let notice_write_params;
+
+        let notice_file_originalname, notice_file_path; // 파일 이름, 파일 경로
+        console.log(1)
+
+        //conn.beginTransaction();
+        console.log(2)
+        // 관리자가 입력한 정보 notice 테이블에 업데이트
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                notice_write_sql = 'UPDATE notice SET notice_title=?, notice_contents=?, admin_email=? WHERE notice_id=?;';
+                notice_write_params = [notice_title, notice_contents, get_email, notice_num];
+                conn.query(notice_write_sql, notice_write_params, function (err, rows) {
+                    console.log(3)
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "notice 테이블 저장 실패";
+                        return rej(error_request)
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+
+        // 첨부파일 notice_file_dir 테이블에 저장(업데이트)
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                if(notice_file == undefined){
+                    //파일 첨부 하지 않은 경우
+                    notice_file_originalname=null;
+                    notice_file_path=null;
+                }else{
+                    //파일 첨부 한 경우
+                    notice_file_originalname=notice_file.originalname;
+                    notice_file_path=notice_file.path;
+                }
+                notice_write_sql = 'UPDATE notice_file_dir SET notice_id=?, notice_file_name=?, notice_file_path=? WHERE notice_id=?;';
+                notice_write_params = [notice_num, notice_file_originalname, notice_file_path, notice_num];
+                conn.query(notice_write_sql, notice_write_params, function (err, rows) {
+                    console.log(5)
+                    console.log(rows)
+                    if (err || rows == '') {
+                        error_request.message = "notice_file_dir 테이블 저장 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        // 수정날짜 notice_log 테이블에 저장
+        await new Promise((res, rej)=>{
+            getConnection(conn =>{
+                notice_write_sql='INSERT INTO notice_log (notice_id, notice_edit_date) VALUES (?, now());';
+                notice_list_params=notice_num
+                conn.query(notice_write_sql, notice_list_params ,function(err, rows){
+                    if(err || rows==''){
+                        console.log(err)
+                        conn.release();
+                        error_request.message="notice_log 테이블 입력 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    res();
+                })
+            })
+        })
+
+        console.log(6)
+        success_request.data = {
+            "notice_title": notice_title,
+            "notice_contents": notice_contents,
+            "admin_email": get_email,
+            "notice_file_name": notice_file_originalname,
+            "notice_file_path": notice_file_path
+        }
+        success_request.message = "문의게시판 수정 성공"
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 공지사항 삭제
+async function notice_delete(notice_num) {
+
+    try {
+        // 쿼리문 조건
+        let notice_delete_sql = 'UPDATE notice SET notice_delete=? WHERE notice_id=?;';
+        let notice_delete_params = [1, notice_num];
+
+        await new Promise((res, rej) => {
+            getConnection(conn => {
+                conn.query(notice_delete_sql, notice_delete_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공지사항 삭제 실패";
+                        return rej(error_request);
+                    }
+
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message = "공지사항 삭제 성공";
+        return success_request;
+    } catch (err) {
+        return err;
+    }
+}
+
+
+// 공지사항 수정 로그
+async function notice_log(notice_num){
+    try {
+        
+        let notice_log_num = notice_num // 게시물 번호
+
+        // 쿼리문 조건
+        let notice_log_sql;
+        let notice_log_params;
+
+        notice_log_sql='SELECT * FROM notice_log WHERE notice_id=?;';
+        notice_log_params=notice_log_num;
+
+        await new Promise((res, rej)=>{
+            getConnection(conn => {
+                conn.query(notice_log_sql, notice_log_params, function (err, rows) {
+                    if (err || rows == '') {
+                        console.log(err)
+                        conn.release();
+                        error_request.message = "공지사항 로그 불러오기 실패";
+                        return rej(error_request);
+                    }
+                    conn.release();
+                    success_request.data = rows;
+                    res(rows);
+                })
+            })
+        })
+
+        success_request.message="공지사항 로그 불러오기 성공";
+        return success_request;
+    } catch (err) {
+    return(err);
+    }
+}
+
+
 // 회원 목록
 async function member_list(search_title, page) {
 
@@ -1111,16 +1443,18 @@ async function admin_log_list(search_email, page){
 
 
 
-module.exports={
-    idea_list:idea_list, idea_look:idea_look, idea_write:idea_write, idea_update:idea_update,
 
-    cs_list:cs_list, cs_look:cs_look, cs_write:cs_write, cs_update_page:cs_update_page, cs_update:cs_update, 
+
+module.exports={
+    idea_list:idea_list, idea_look:idea_look, idea_write:idea_write, idea_update:idea_update, idea_log, idea_delete,
+
+    cs_list:cs_list, cs_look:cs_look, cs_write:cs_write, cs_update_page:cs_update_page, cs_delete:cs_delete ,cs_update:cs_update,
 
     anno_list:anno_list, anno_look:anno_look,
 
     inter_anno_list:inter_anno_list,
 
-    notice_list:notice_list, notice_look:notice_look, notice_write:notice_write,
+    notice_list:notice_list, notice_look:notice_look, notice_write:notice_write, notice_update_page:notice_update_page, notice_update, notice_log, notice_delete,
     
     member_list:member_list,
 

@@ -868,7 +868,8 @@ router.get('/idle/mypage/idea', (req, res) => {
     console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page)
 
-    idea_list(req.session.member_email, req.query.idea_search, req.query.page).then(member_idea_list=>{
+    let admin_check = 0;
+    idea_list(req.session.member_email, req.query.idea_search, req.query.page, admin_check).then(member_idea_list=>{
         res.send(member_idea_list);
     });
 })

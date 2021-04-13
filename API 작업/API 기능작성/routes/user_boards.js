@@ -18,6 +18,7 @@ var upload = require('../setting/file_path.js');
 /**
  *      본문 시작
  */
+const admin_check=0 // 관리자 확인 체크( 아닌경우 )
 
 
 /**
@@ -85,7 +86,7 @@ router.get('/cs', (req, res)=>{
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
     // (회원 이메일, 검색 내용, 관리자 여부, 페이징 번호)
-    cs_list(null, req.query.cs_search, 0 ,req.query.page).then(notice_list=>{
+    cs_list(null, req.query.cs_search, req.query.page, admin_check).then(notice_list=>{
         res.send(notice_list);
     });
 })
@@ -125,9 +126,10 @@ router.post('/cs/write', upload.single('image'), (req, res)=>{
  * 문의게시판 수정 페이지, http://localhost:3000/user_boards/cs/번호/update
  */
 router.get('/cs/:cs_num/update', (req, res)=>{
+    console.log("회원 이메일: ", req.session.member_email)
     console.log("선택한 게시물: ", req.params.cs_num)  // 선택한 게시물
 
-    cs_update_page(req.params.cs_num, 0).then(cs_update=>{
+    cs_update_page(req.session.member_email, req.params.cs_num).then(cs_update=>{
         res.send(cs_update);
     });
 
@@ -135,7 +137,7 @@ router.get('/cs/:cs_num/update', (req, res)=>{
 
 
 /**
- * 문의게시판 내용수정, http://localhost:3000/user_boards/cs/update
+ * 문의게시판 내용수정, http://localhost:3000/user_boards/cs/번호/update
  */
 router.put('/cs/:cs_num/update', upload.single('image'), (req, res)=>{
     console.log("수정한 제목: ", req.body.cs_title);  // 제목
@@ -159,7 +161,7 @@ router.get('/idea', (req, res)=>{
     console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    idea_list(undefined, req.query.idea_search, req.query.page).then(idea_list=>{
+    idea_list(undefined, req.query.idea_search, req.query.page, admin_check).then(idea_list=>{
         res.send(idea_list);
     });
 })

@@ -1321,7 +1321,7 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 ## 관리자 관점 게시물 관련 API
 
 
-### 공지사항 로그 페이지
+### 공지사항 수정 로그
 
 
 * **URL**
@@ -1389,76 +1389,6 @@ _    `{member_login_result:"member_log 테이블 에러"}`
 
     * **Code:** 400 </br>
     `{idea_log:"Error"}` 
-
----
-
-
-### 공고정보 로그 페이지
-
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/anno-log
-
-* **동작설명**
-
-    anno_log 테이블에서 공고정보 로그들을 가져옴
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{idea_log:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{idea_log:"Error"}` 
-
----
-
-
-### 공고정보 게시판 목록
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/board/announcement
-
-* **동작설명**
-
-    공고정보 게시판으로 가는 버튼을 클릭하면 anno 테이블에서 게시물들을 가져옴 </br>
-    회원 목록과 달리 삭제여부(y/n)를 표시하여 모든 게시물을 볼 수 있음
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_announcement:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_announcement:"Error"}`
-
----
-
-### 공고정보 게시물 보기
-
-* **URL**
-
-    [GET] http://{IP}:{PORT}/idle/admins/board/announcement/anno-look
-
-* **동작설명**
-
-    공고정보 게시물을 클릭하면 anno 테이블에서 공고내용을 펼침
-
-* **성공 시 응답**
-
-    * **Code:** 200 </br>
-    `{admin_anno_look:"Success"}`
-
-* **실패 시 응답**
-
-    * **Code:** 400 </br>
-    `{admin_anno_look:"Error"}`
 
 ---
 

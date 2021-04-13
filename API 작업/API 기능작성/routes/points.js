@@ -214,4 +214,33 @@ router.put('/member/use/:member_email', (req, res)=>{
 
 })
 
+
+/**
+ * 회원 포인트 현황, http://localhost:3000/points/list
+ */
+router.get('/list', (req, res)=>{
+    try{
+        getConnection(async(conn)=>{
+            await new Promise((res, rej)=>{
+                let point_list_sql = 'SELECT member_email, member_name, member_point, save_point, use_point, member_rank FROM member;';
+                conn.query(point_list_sql, function(err, rows){
+                    console.log(rows)
+                    if(err || rows==''){
+                        conn.release();
+                        error_request.message="멤버 포인트 불러오기 실패";
+                        rej(error_request);
+                    }
+                    conn.release();
+                    success_request.data=rows;
+                    res(rows)
+                })
+            })
+            success_request.message = "멤버 포인트 불러오기 성공";
+            res.send(success_request);
+        })
+    }catch(err){
+        res.send(err);
+    }
+})
+
 module.exports=router;

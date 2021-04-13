@@ -29,7 +29,7 @@ var {now_time, tomorrow_time} = require('../setting/time.js');
 /**
  *      본문 시작
  */
- const admin_check=1 // 관리자 확인 체크/ 게시물에서 사용
+ const admin_check=1 // 관리자 확인 체크
 
 
 /**
@@ -269,7 +269,8 @@ router.get('/idle/member-list/:member_email/idea-list', (req, res)=>{
     console.log("검색할 내용: ",req.query.idea_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    idea_list(req.params.member_email, req.query.idea_search, req.query.page).then(member_idea_list=>{
+    
+    idea_list(req.params.member_email, req.query.idea_search, req.query.page, admin_check).then(member_idea_list=>{
         res.send(member_idea_list);
     });
 
@@ -379,7 +380,7 @@ router.get('/idle/member-list/:member_email/cs-list', (req, res)=>{
     console.log("검색할 내용: ", req.query.cs_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    cs_list(req.params.member_email, req.query.cs_search, admin_check, req.query.page).then(member_cs_list=>{
+    cs_list(req.params.member_email, req.query.cs_search, req.query.page, admin_check).then(member_cs_list=>{
         res.send(member_cs_list);
     });
 })
@@ -569,47 +570,6 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
             res.send(err);
         }
     })
-})
-
-
-
-
-
-
-
-/**
- * 공고정보게시판 목록, http://localhost:3000/admins/idle/board/anno
- * 아이디어 플랫폼에서 끌어오면 문제가 생길 수 있으니, 학교 도서관 게시물 사이트를 이용하자 (공부 목적)
- */
-router.get('/idle/board/anno',(req, res) => {
-
-    console.log("검색할 내용: ", req.query.anno_search)  // 검색 내용
-    console.log("페이지 번호: ", req.query.page) // 페이지 번호
-
-    anno_list(req.query.anno_search, req.query.page).then(anno_list=>{
-        res.send(anno_list);
-    });
-
-})
-
-
-/**
- * 공고정보게시판 목록 보기, http://localhost:3000/admins/idle/board/anno/번호
- */
-router.get('/idle/board/anno/:anno_num', (req, res)=>{
-    console.log("선택한 게시물: ", req.params.anno_num)  // 검색 내용
-
-    anno_list_look(req.params.anno_num).then(anno_look=>{
-        res.send(anno_look);
-    });
-})
-
-
-/**
- * 회원 포인트 현황 목록
- */
-router.get('', (req,res)=>{
-
 })
 
 

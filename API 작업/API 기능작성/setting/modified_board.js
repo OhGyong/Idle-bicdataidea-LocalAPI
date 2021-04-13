@@ -13,12 +13,12 @@ async function modified_idea(serarch_id, search_title, page){
         let idea_list_params;
 
         if (idea_id != undefined && idea_title == undefined) {
-            // 회원 아이디어 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
+            // 회원 아이디어 목록
             idea_list_sql = 'SELECT * FROM idea_log WHERE idea_id=? LIMIT 10 OFFSET ?;';
             idea_list_params = [idea_id, page_num];
 
         } else if (idea_id != undefined && idea_title != undefined) {
-            // 회원 아이디어 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
+            // 회원 아이디어 목록 검색 조회 
             idea_list_sql = 'SELECT * FROM idea_log WHERE idea_id=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             idea_list_params = [idea_id, idea_title + '*', page_num];
         }
