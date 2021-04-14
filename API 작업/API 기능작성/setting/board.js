@@ -863,11 +863,13 @@ async function inter_anno_list(search_title, page) {
         if (member_email != undefined && inter_anno_title == undefined && admin_check == undefined) {
             // 회원 관심사업 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
             inter_anno_list_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? LIMIT 10 OFFSET ?;';
+            inter_anno_list_sql = 'SELECT @inter_anno_num := @inter_anno_num + 1 AS inter_anno_num, T.inter_anno_email, inter_anno_name, inter_anno_gender, inter_anno_ban, inter_anno_phone, inter_anno_rank, save_point, inter_anno_log_join FROM inter_anno T JOIN inter_anno_log ON (T.inter_anno_email = inter_anno_log.inter_anno_email), (SELECT @inter_anno_num :=0) TMP ORDER BY inter_anno_log_join ASC LIMIT 10 OFFSET ?;';
             inter_anno_list_params = [member_email, 0, page_num];
 
         } else if (member_email != undefined && inter_anno_title != undefined && admin_check == undefined) {
             // 회원 관심사업 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
             inter_anno_list_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? AND MATCH(anno_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            inter_anno_list_sql = 'SELECT @member_num := @member_num + 1 AS member_num, T.member_email, member_name, member_gender, member_ban, member_phone, member_rank, save_point, member_log_join FROM member T JOIN member_log ON (T.member_email = member_log.member_email), (SELECT @member_num :=0) TMP WHERE MATCH(member_name) AGAINST(? IN boolean mode) ORDER BY member_log_join LIMIT 10 OFFSET ?';
             inter_anno_list_params = [mem_email, 0, anno_title + '*', page_num];
         } else if (member_email != undefined && inter_anno_title == undefined && admin_check == 1) {
             // 관리자의 회원 관심사업 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
@@ -925,7 +927,7 @@ async function notice_list(search_title, page, admin_check) {
         }
         else if (notice_title != undefined && admin_check == 0) {
             // 유저 관점 공지사항 목록 (검색 한 경우)
-            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date FROM notice T,(SELECT @notice_num :=0) TMP WHERE notice_delete=? AND MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date FROM notice T,(SELECT @notice_num :=0) TMP WHERE notice_delete=? AND MATCH(notice_title) AGAINST(? IN boolean mode) ORDER BY notice_date LIMIT 10 OFFSET ?;';
             notice_list_params = [0, notice_title + '*', page_num];
         } else if (notice_title == undefined && admin_check == 1) {
             // 관리자 관점 공지사항 목록 (검색 안한 경우)
@@ -933,7 +935,7 @@ async function notice_list(search_title, page, admin_check) {
             notice_list_params = [page_num];
         } else if (notice_title != undefined && admin_check == 1) {
             // 관리자 관점 공지사항 목록 (검색 한 경우)
-            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date, notice_delete, admin_email FROM notice T,(SELECT @notice_num :=0) TMP WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date, notice_delete, admin_email FROM notice T,(SELECT @notice_num :=0) TMP WHERE MATCH(notice_title) AGAINST(? IN boolean mode) ORDER BY notice_date LIMIT 10 OFFSET ?;';
             notice_list_params = [notice_title + '*', page_num];
         }
 
@@ -1313,12 +1315,14 @@ async function member_list(search_title, page) {
 
         if (member_name == undefined) {
             // 회원 목록  ( 검색안했을 때 )
-            member_list_sql = 'SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) LIMIT 10 OFFSET ?';
+            //member_list_sql = 'SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) LIMIT 10 OFFSET ?';
+            member_list_sql = 'SELECT @member_num := @member_num + 1 AS member_num, T.member_email, member_name, member_gender, member_ban, member_phone, member_rank, save_point, member_log_join FROM member T JOIN member_log ON (T.member_email = member_log.member_email), (SELECT @member_num :=0) TMP ORDER BY member_log_join ASC LIMIT 10 OFFSET ?;';
             member_list_params = [page_num];
         }
         else if (member_name != undefined) {
             // 회원 목록  ( 검색했을 때 )
-            member_list_sql = 'SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) WHERE MATCH(member_name) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?';
+            //member_list_sql = 'SELECT * FROM member JOIN member_log ON (member.member_email=member_log.member_email) WHERE MATCH(member_name) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?';
+            member_list_sql = 'SELECT @member_num := @member_num + 1 AS member_num, T.member_email, member_name, member_gender, member_ban, member_phone, member_rank, save_point, member_log_join FROM member T JOIN member_log ON (T.member_email = member_log.member_email), (SELECT @member_num :=0) TMP WHERE MATCH(member_name) AGAINST(? IN boolean mode) ORDER BY member_log_join LIMIT 10 OFFSET ?';
             member_list_params = [member_name + '*', page_num]
         }
 
@@ -1390,6 +1394,7 @@ async function member_log_list(get_email, page) {
         await new Promise((res, rej) => {
             getConnection(conn => {
                 member_log_list_sql = 'SELECT member_login FROM member_login_log WHERE member_email=? LIMIT 10 OFFSET ?;';
+                member_log_list_sql = 'SELECT @meber_login_num := @meber_login_num + 1 AS meber_login_num, T.member_login FROM member_login_log T,(SELECT @meber_login_num :=0) TMP WHERE member_email=? ORDER BY member_login  ASC LIMIT 10 OFFSET ?;';
                 member_log_list_params = [member_email, page_num]
                 conn.query(member_log_list_sql, member_log_list_params, function (err, rows) {
                     // 실패한 경우
@@ -1432,12 +1437,12 @@ async function admin_log_list(search_email, page) {
 
         if (admin_email == undefined) {
             // 관리자 로그 조회
-            admin_log_list_sql = 'SELECT * FROM admin_log ORDERES LIMIT 10 OFFSET ?;';
+            admin_log_list_sql = 'SELECT @admin_num := @admin_num + 1 AS admin_num, T.* FROM admin_log T,(SELECT @admin_num :=0) TMP ORDER BY admin_log_join ASC LIMIT 10 OFFSET ?;';
             admin_log_list_params = [page_num];
         }
         else if (admin_email != undefined) {
             // 관리자 로그 조회(검색)
-            admin_log_list_sql = 'SELECT * FROM admin_log WHERE MATCH(admin_email) AGAINST(?);';
+            admin_log_list_sql = 'SELECT @admin_num := @admin_num + 1 AS admin_num, T.* FROM admin_log T,(SELECT @admin_num :=0) TMP WHERE MATCH(admin_email) AGAINST(? IN boolean mode) ORDER BY admin_log_join ASC LIMIT 10 OFFSET ?;';
             admin_log_list_params = [admin_email + '*', page_num];
         }
 
