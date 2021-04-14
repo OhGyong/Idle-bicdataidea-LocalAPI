@@ -1,7 +1,5 @@
-const e = require('express');
 var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
-var { now_time } = require('./time.js');
 
 // 아이디어 목록
 async function idea_list(get_email, search_title, page, admin_check) {
@@ -772,6 +770,9 @@ async function anno_list(search_title, page) {
         // 쿼리문 조건
         let anno_list_sql;
         let anno_list_params;
+
+        // 게시물 번호
+        let anno_num;
 
         if (anno_title == undefined) {
             // 공고정보게시판 목록  ( 검색안했을 때 )
