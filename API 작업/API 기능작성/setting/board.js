@@ -771,17 +771,15 @@ async function anno_list(search_title, page) {
         let anno_list_sql;
         let anno_list_params;
 
-        // 게시물 번호
-        let anno_num;
-
+        // anno_num은 게시물 순서 , anno_id 게시물 식별 번호
         if (anno_title == undefined) {
             // 공고정보게시판 목록  ( 검색안했을 때 )
-            anno_list_sql = 'SELECT anno_id, anno_title, anno_date FROM anno ORDERS LIMIT 10 OFFSET ?;';
+            anno_list_sql = 'SELECT @anno_num := @anno_num + 1 AS anno_num, T.anno_id, anno_title, anno_date FROM anno T,(SELECT @anno_num :=0) TMP ORDER BY anno_date ASC LIMIT 10 OFFSET ?;';
             anno_list_params = [page_num];
         }
         else if (anno_title != undefined) {
             // 공고정보게시판 목록  ( 검색했을 때 )
-            anno_list_sql = 'SELECT anno_id, anno_title, anno_date FROM anno WHERE MATCH(anno_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            anno_list_sql = 'SELECT @anno_num := @anno_num + 1 AS anno_num, T.anno_id, anno_title, anno_date FROM anno T,(SELECT @anno_num :=0) TMP WHERE MATCH(anno_title) AGAINST(? IN boolean mode) ORDER BY anno_date ASC LIMIT 10 OFFSET ?;';
             anno_list_params = [anno_title + '*', page_num];
         }
 
