@@ -1234,10 +1234,12 @@ async function notice_delete(notice_num) {
         // 쿼리문 조건
         let notice_delete_sql = 'UPDATE notice SET notice_delete=? WHERE notice_id=?;';
         let notice_delete_params = [1, notice_num];
-
+        console.log(1)
         await new Promise((res, rej) => {
             getConnection(conn => {
+                console.log(2)
                 conn.query(notice_delete_sql, notice_delete_params, function (err, rows) {
+                    console.log(3)
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
@@ -1252,7 +1254,7 @@ async function notice_delete(notice_num) {
                 })
             })
         })
-
+        console.log(4)
         success_request.message = "공지사항 삭제 성공";
         return success_request;
     } catch (err) {
