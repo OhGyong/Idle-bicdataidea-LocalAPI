@@ -397,28 +397,28 @@ async function cs_list(get_email, search_title, page, admin_check) {
 
         if (member_email != undefined && cs_title == undefined && admin_check == 1) {
             // 회원 상세 문의게시판 (검색 안함)
-            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs.member_email=? LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE T.member_email=? ORDER BY cs_date ASC LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, page_num];
         }
         else if (member_email != undefined && cs_title != undefined && admin_check == 1) {
             // 회원 상세 문의게시판 (검색 함)
-            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs.member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE T.member_email=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [member_email, cs_title + '*', page_num];
         } else if (member_email == undefined && cs_title == undefined && admin_check == 1) {
             // 관리자 관점 문의게시판 (검색안함)
-            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP ORDER BY cs_date ASC LIMIT 10 OFFSET ?;';
             cs_list_params = [page_num];
         } else if (member_email == undefined && cs_title != undefined && admin_check == 1) {
             // 관리자 관점 문의게시판 (검색 함)
-            cs_list_sql = 'SELECT cs_title, member_name, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [cs_title + '*', page_num];
         } else if (member_email == undefined && cs_title == undefined && admin_check == 0) {
             // 유저 관점 문의게시판
-            cs_list_sql = 'SELECT cs_title, member_name, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs_delete=? LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_secret, cs_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE cs_delete=? ORDER BY cs_date ASC LIMIT 10 OFFSET ?;';
             cs_list_params = [0, page_num];
         } else if (member_email == undefined && cs_title != undefined && admin_check == 0) {
             // 유저 관점 문의게시판 검색한 경우
-            cs_list_sql = 'SELECT cs_title, member_name, cs_date, admin_email, cs_resp, cs_resp_date  FROM cs JOIN member ON (cs.member_email = member.member_email) WHERE cs_delete=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_secret, cs_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE cs_delete=? AND MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [0, cs_title + '*', page_num];
         }
 
