@@ -6,7 +6,6 @@ moment.tz.setDefault("Asia/Seoul");
 
 //현재시간
 function now_time(){
-    console.log(1)
     var now_date = moment(new Date()).format('YYYY-MM-DD HH:mm:ss'); //moment
     return now_date
 }
@@ -22,4 +21,3 @@ var korea_time = function(db_time){
 }
 
 module.exports={'now_time':now_time, 'tomorrow_time':tomorrow_time};
-// module.exports=now_time()

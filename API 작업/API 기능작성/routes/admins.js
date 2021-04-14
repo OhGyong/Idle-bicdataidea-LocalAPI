@@ -28,9 +28,9 @@ var trans_mail = require('../setting/mail.js')
 var {now_time, tomorrow_time} = require('../setting/time.js');
 
 
-/**
- *      본문 시작
- */
+/*                    본문시작                    */
+
+
  const admin_check=1 // 관리자 확인 체크
 
 

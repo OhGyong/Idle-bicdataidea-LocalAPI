@@ -6,9 +6,9 @@
 
 // 게시판 설정
 var {
-    idea_list, idea_look, idea_write, idea_update,
-    cs_list, cs_look, cs_write, cs_update_page, cs_update,
-    notice_list, notice_look, idea_write,
+    idea_list, idea_write, idea_update,
+    cs_list, cs_write, cs_update_page, cs_update,
+    notice_list, idea_write,
 } = require('../setting/board.js');
 
 // 파일 업로드 설정

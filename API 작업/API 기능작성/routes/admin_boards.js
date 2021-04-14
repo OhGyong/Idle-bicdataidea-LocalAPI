@@ -20,10 +20,10 @@ var upload = require('../setting/file_path.js');
 const { error_request, success_request } = require('../setting/request.js');
 
 
-/**
- *      본문 시작
- */
- const admin_check=1 // 관리자 확인 체크
+/*                    본문시작                    */
+
+
+const admin_check=1 // 관리자 확인 체크
 
 
  /**

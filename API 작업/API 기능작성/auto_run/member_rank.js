@@ -5,10 +5,10 @@ var cron = require('node-cron');
 var getConnection = require('../setting/db.js');
 
 /**
- * 1. ROWNUM를 누적 포인트 기준으로 내림차순 정렬
+ * 1. ROWNUM 사용해서 누적 포인트 기준으로 내림차순 정렬
  * 2. ROWNUM 값 랭킹으로 사용해서 member_rank 업데이트
  */
-cron.schedule('* * * * */8 *', function(){
+cron.schedule('1 * 3 * * *', function(){
     getConnection(async (conn) => {
         try {
     
@@ -30,7 +30,6 @@ cron.schedule('* * * * */8 *', function(){
             })
     
             console.log("?")
-            
             
             for (k in save_point_ROWNUM) {
                 await new Promise((res, rej) => {
