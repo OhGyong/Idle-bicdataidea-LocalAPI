@@ -920,20 +920,20 @@ async function notice_list(search_title, page, admin_check) {
 
         if (notice_title == undefined && admin_check == 0) {
             // 유저 관점 공지사항 목록 (검색 안한 경우)
-            notice_list_sql = 'SELECT notice_title, notice_date FROM notice WHERE notice_delete=? LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date FROM notice T,(SELECT @notice_num :=0) TMP WHERE notice_delete=? ORDER BY notice_date ASC LIMIT 10 OFFSET ?;';
             notice_list_params = [0, page_num];
         }
         else if (notice_title != undefined && admin_check == 0) {
             // 유저 관점 공지사항 목록 (검색 한 경우)
-            notice_list_sql = 'SELECT notice_title, notice_date FROM notice WHERE notice_delete=? AND MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date FROM notice T,(SELECT @notice_num :=0) TMP WHERE notice_delete=? AND MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             notice_list_params = [0, notice_title + '*', page_num];
         } else if (notice_title == undefined && admin_check == 1) {
             // 관리자 관점 공지사항 목록 (검색 안한 경우)
-            notice_list_sql = 'SELECT notice_title, notice_contents, admin_email, notice_delete ,notice_date FROM notice ORDERS LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date, notice_delete, admin_email FROM notice T,(SELECT @notice_num :=0) TMP ORDER BY notice_date ASC LIMIT 10 OFFSET ?;';
             notice_list_params = [page_num];
         } else if (notice_title != undefined && admin_check == 1) {
             // 관리자 관점 공지사항 목록 (검색 한 경우)
-            notice_list_sql = 'SELECT notice_title, notice_contents, admin_email, notice_delete ,notice_date FROM notice WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            notice_list_sql = 'SELECT @notice_num := @notice_num + 1 AS notice_num, T.notice_id, notice_title, notice_date, notice_delete, admin_email FROM notice T,(SELECT @notice_num :=0) TMP WHERE MATCH(notice_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             notice_list_params = [notice_title + '*', page_num];
         }
 
