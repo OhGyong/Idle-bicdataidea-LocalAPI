@@ -15,36 +15,35 @@ async function idea_list(get_email, search_title, page, admin_check) {
 
         if (member_email != undefined && idea_title == undefined && admin_check == 0) {
             // 내 아이디어 목록 (마이페이지), ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date FROM idea T,(SELECT @idea_num :=0) TMP WHERE member_email=? AND idea_delete=? ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, 0, page_num];
         } else if (member_email != undefined && idea_title != undefined && admin_check == 0) {
             // 내 아이디어 목록 (마이페이지) 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date FROM idea T,(SELECT @idea_num :=0) TMP WHERE member_email=? AND idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, 0, idea_title + '*', page_num];
         } else if (member_email == undefined && idea_title == undefined && admin_check == 0) {
             // 유저 관점 아이디어 목록 (아이디어 플랫폼), (검색안함)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date FROM idea T,(SELECT @idea_num :=0) TMP WHERE idea_delete=? ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [0, page_num];
         } else if (member_email == undefined && idea_title != undefined && admin_check == 0) {
             // 유저 관점 아이디어 목록 (아이디어 플랫폼), (검색함)
-            console.log(11)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date FROM idea WHERE idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date FROM idea T,(SELECT @idea_num :=0) TMP WHERE idea_delete=? AND MATCH(idea_title) AGAINST(? IN boolean mode) ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [0, idea_title + '*', page_num];
         } else if (member_email == undefined && idea_title == undefined && admin_check == 1) {
             // 관리자 관점 아이디어 목록 (검색안함)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date, idea_delete FROM idea T,(SELECT @idea_num :=0) TMP ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [page_num]
         } else if (member_email == undefined && idea_title != undefined && admin_check == 1) {
             // 관리자 관점 아이디어 목록 (검색함)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date, idea_delete FROM idea T,(SELECT @idea_num :=0) TMP WHERE MATCH(idea_title) AGAINST(? IN boolean mode) ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [idea_title + '*', page_num];
         } else if (member_email != undefined && idea_title == undefined && admin_check == 1) {
             // 회원 상세페이지 아이디어 목록 (검색안함)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE member_email=? LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date, idea_delete FROM idea T,(SELECT @idea_num :=0) TMP WHERE member_email=? ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, page_num];
         } else if (member_email != undefined && idea_title != undefined && admin_check == 1) {
             // 회원 상세페이지 아이디어 목록 (검색함)
-            idea_list_sql = 'SELECT idea_title, idea_contents, idea_date, idea_delete FROM idea WHERE member_email=? AND MATCH(idea_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
+            idea_list_sql = 'SELECT @idea_num := @idea_num + 1 AS idea_num, T.idea_id, idea_title, idea_date, idea_delete FROM idea T,(SELECT @idea_num :=0) TMP WHERE member_email=? AND MATCH(idea_title) AGAINST(? IN boolean mode) ORDER BY idea_date ASC LIMIT 10 OFFSET ?;';
             idea_list_params = [member_email, idea_title + '*', page_num];
         }
 
