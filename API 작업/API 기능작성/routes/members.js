@@ -19,7 +19,6 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 
 // 게시판 설정
 var {idea_list, inter_anno_list} = require('../setting/board.js');
-const e = require('express');
 
 
 /*                    본문시작                    */
