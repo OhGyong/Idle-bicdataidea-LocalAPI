@@ -1,6 +1,6 @@
 var moment = require('moment');
 
-//require('moment-timezone');
+require('moment-timezone');
 
 moment.tz.setDefault("Asia/Seoul");
 

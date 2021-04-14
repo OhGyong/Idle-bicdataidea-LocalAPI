@@ -38,6 +38,7 @@ router.get('/idle/signup/agree/check', (req, res) => {
     req.session.signup_check = check_num;
     req.session.save(function (err) {
         if(err){
+            error_request.data=null;
             error_request.message="세션 에러"
             res.send(error_request);
         }
@@ -69,6 +70,7 @@ router.post('/idle/has-same-email', (req, res) => {
                 conn.query(same_email_sql, check_email, function (err, rows) {
                     if (err) {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member 테이블 조회 실패";
                         return rej(error_request);
                     }else if(rows == ''){
@@ -80,6 +82,7 @@ router.post('/idle/has-same-email', (req, res) => {
                 });
             });
             conn.release();
+            error_request.data=null;
             error_request.message = "아이디 생성 불가능"
             res.send(error_request);
         } catch (req) {
@@ -120,6 +123,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
                 text: "인증키 입니다 : " + send_key // 난수 입력
             }, async function (err) {
                 if (err) {
+                    error_request.data=err;
                     error_request.message = "인증 메일 보내기 실패";
                     res.send(error_request)
                 }
@@ -131,6 +135,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
                     conn.query(send_email_sql, send_email_params, function (err, rows) {
                         if (err || rows == '') {
                             conn.release();
+                            error_request.data = err;
                             error_request.message = "email_auth 테이블 저장 실패";
                             rej(error_request);
                         }
@@ -145,6 +150,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
                     req.session.signup_email = get_email;
                     req.session.save(function (err) {
                         if (err) {
+                            error_request.data = err;
                             error_request.message = "세션 저장실패";
                             rej(error_request);
                         }
@@ -194,6 +200,7 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
                     console.log(rows)
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="잘못된 키 값을 입력하였습니다.";
                         return rej(error_request);
                     }
@@ -212,10 +219,12 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
                     conn.query(set_dispose_sql, set_dispose_param, function (err, rows) {
                         if (err || rows == '') {
                             conn.release();
+                            error_request.data=err;
                             error_request.message="email_auth 테이블 오류";
                             return rej(error_request);
                         }else{
                             conn.release()
+                            error_request.data=null;
                             error_request.message="이미 폐기된 인증키 입니다.";
                             return rej(error_request);
                         }
@@ -230,6 +239,7 @@ router.post('/idle/sign-up/check-email-num', (req, res) => {
                 conn.query(set_sql, set_parm, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="페기처리 실패";
                         return rej(error_request)
                     }
@@ -288,6 +298,7 @@ router.post('/idle/signup/fillout', (req, res, err) => {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message="member 테이블 오류"
                         return rej(error_request);
                     }
@@ -302,6 +313,7 @@ router.post('/idle/signup/fillout', (req, res, err) => {
                 conn.query(singup_date_sql, parm_time, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="member_log 테이블 오류"
                         return rej(error_request);
                     }
@@ -343,6 +355,7 @@ router.post('/idle/find-password', (req, res) => {
                     console.log(rows)
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="db에 해당 이메일 없음";
                         return rej(error_request.message);
                     }
@@ -373,6 +386,7 @@ router.post('/idle/find-password', (req, res) => {
                 }, function (err, info) {
                     if (err) {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="메일전송 실패"
                         return rej(error_request);
                     }
@@ -383,6 +397,7 @@ router.post('/idle/find-password', (req, res) => {
                         if (err || rows == '') {
                             console.log(err)
                             conn.release();
+                            error_request.data=err;
                             error_request.message="pw_find 테이블 에러"
                             return rej(error_request);
                         }
@@ -430,6 +445,7 @@ router.put('/idle/reset-password', (req, res) => {
 
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "인증키 유효기간이 지났거나 해당 회원이 없습니다."
                         return rej(error_request);
                     }
@@ -447,10 +463,12 @@ router.put('/idle/reset-password', (req, res) => {
                     conn.query(set_dispose_sql, set_dispose_param, function (err, rows) {
                         if (err || rows == '') {
                             conn.release();
+                            error_request.data=err;
                             error_request.message = "폐기 값 1 업데이트 에러";
                             return rej(error_res)
                         }
                         conn.release();
+                        error_request.data=null;
                         error_request.message = "폐기되었습니다.";
                         rej(error_request)
                     });
@@ -471,6 +489,7 @@ router.put('/idle/reset-password', (req, res) => {
                 conn.query(reset_pass_sql, reset_pass_params, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "비밀번호 업데이트 실패";
                         return rej(error_request)
                     }
@@ -485,6 +504,7 @@ router.put('/idle/reset-password', (req, res) => {
                 conn.query(reset_pass_sql, reset_pass_params, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "재설정 값, 폐기 값 오류";
                         rej(error_request);
                     }
@@ -531,6 +551,7 @@ router.post('/idle/signin', (req, res) => {
                 conn.query(login_sql, login_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "이메일 혹은 비밀번호가 틀렸습니다.";
                         rej(error_request)
                     }
@@ -545,6 +566,7 @@ router.post('/idle/signin', (req, res) => {
                 conn.query(memberlog_sql, memberlog_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member_log 테이블 에러";
                         rej(error_request);
                     }
@@ -558,6 +580,7 @@ router.post('/idle/signin', (req, res) => {
                 conn.query(memberloginlog_sql, memberlog_param, (err, row) => {
                     if (err || row == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member_login_log 테이블 에러";
                         rej(error_request);
                     }
@@ -570,6 +593,7 @@ router.post('/idle/signin', (req, res) => {
                 req.session.member_email = member_email;
                 req.session.save(function (err) {
                     if (err) {
+                        error_request.data=err;
                         error_request.message = "세션 저장 실패";
                         rej(error_request);
                     }
@@ -605,6 +629,7 @@ router.post('/idle/logout', (req, res) => {
             //res.redirect('/home'); // 홈으로 이동하게 하자
         });
     } catch {
+        error_request.data=null;
         error_request.message = "로그아웃에 실패하였습니다.";
         res.send(error_res)
     }
@@ -627,6 +652,7 @@ router.get('/idle/mypage/update', (req, res) => {
             conn.query(update_sql, member_email, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
+                    error_request.data=err;
                     error_request.message = "회원 정보 가져오기 실패";
                     res.send(error_request);
                 }
@@ -669,6 +695,7 @@ router.put('/idle/mypage/update/modify', (req, res) => {
                 if (err || rows == '') {
                     console.log(err)
                     conn.release();
+                    error_request.data=err;
                     error_request.message="수정 실패하였습니다."
                     return res.send(error_request);
                 }
@@ -712,6 +739,7 @@ router.put('/idle/member-secede', (req, res) => {
                 conn.query(secede_sql, secede_param, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="회원 탈퇴 실패";
                         res(error_request);
                     }
@@ -723,6 +751,7 @@ router.put('/idle/member-secede', (req, res) => {
             await new Promise((res, rej)=>{
                 req.session.destroy(function(err) {
                     if(err){
+                        error_request.data=err;
                         error_request.message="세션 삭제 실패"
                         rej(error_request);
                     }
@@ -764,6 +793,7 @@ router.get('/idle/mypage/point/state', (req, res) => {
                 conn.query(mypoint_sql, mem_email, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "현재 회원 포인트 가져오기 실패"
                         rej(error_request);
                     }
@@ -805,6 +835,7 @@ router.get('/idle/mypage/point/use', (req, res) => {
                 if (err || rows == '') {
                     console.log(err)
                     conn.release();
+                    error_request.data=err;
                     error_request.message="사용내역이 없습니다.";
                     return res.send(error_request);
                 }
@@ -842,6 +873,7 @@ router.get('/idle/mypage/point/save', (req, res) => {
             conn.query(save_point_sql, save_point_params, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
+                    error_request.data=err;
                     error_request.message="등록된 아이디어가 없습니다.";
                     return res.send(error_request);
                 }
@@ -900,6 +932,7 @@ router.post('/idle/mypage/marked-on', (req, res) => {
                 if (err || rows == '') {
                     console.log(err)
                     conn.release();
+                    error_request.data=err;
                     error_request.message="관심사업 등록실패";
                     return res.send(error_request);
                 }
@@ -944,6 +977,7 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
                 if (err || rows == '') {
                     conn.release();
                     //json 응답처리
+                    error_request.data=err;
                     error_request.message="관심사업 해제 실패";
                     return res.send(error_request);
                 }
@@ -998,6 +1032,7 @@ router.post('/idle/contact', (req, res) => {
             text: "고객센터 내용"
         }, function (err) {
             if (err) {
+                error_request.data=err;
                 error_request.message = "메일 전송 실패";
                 res.send(error_request);
             }
@@ -1016,6 +1051,7 @@ router.post('/idle/contact', (req, res) => {
                             if (err || rows == '') {
                                 console.log(err)
                                 conn.release();
+                                error_request.data=err;
                                 error_request.message = "contact 테이블 에러";
                                 rej(error_request);
                             }
@@ -1030,6 +1066,7 @@ router.post('/idle/contact', (req, res) => {
                             if (err || rows == '') {
                                 console.log(err)
                                 conn.release();
+                                error_request.data=err;
                                 error_request.message = "contact_log 테이블 에러";
                                 rej(error_request);
                             }

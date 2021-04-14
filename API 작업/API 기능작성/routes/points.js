@@ -12,7 +12,7 @@ var getConnection = require('../setting/db.js');
 var { success_request, error_request } = require('../setting/request.js');
 
 // 시간 설정
-var { now_time, tomorrow_time } = require('../setting/time.js');
+var { now_time } = require('../setting/time.js');
 
 /**
  *      본문 시작
@@ -49,6 +49,7 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                     if(err || rows==''){
                         console.log(err)
                         conn.release()
+                        error_request.data=err;
                         error_request.message="add_point 가져오기 실패";
                         return rej(error_request);
                     }
@@ -66,6 +67,7 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                     if(err || rows ==''){
                         console.log(err);
                         conn.release();
+                        error_request.data=err;
                         error_request.member_email="idea 테이블 포인트 업데이트 실패";
                         return rej(error_request);
                     }
@@ -81,6 +83,7 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                 conn.query(point_mange_sql, point_mange_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="save_point, idea_point 가져오기 실패";
                         rej(error_request);
                     }
@@ -99,6 +102,7 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                     console.log(err)
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="member 테이블 업데이트 실패";
                         rej(error_request);
                     }
@@ -153,6 +157,7 @@ router.put('/member/use/:member_email', (req, res)=>{
                 conn.query(use_point_sql, use_point_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="회원 포인트 가져오기 실패";
                         rej(error_request);
                     }
@@ -164,6 +169,10 @@ router.put('/member/use/:member_email', (req, res)=>{
 
             // 회원이 입력한 포인트와 비교하여 낮으면 에러 발생
             if(member_point<use_point){
+                error_request.data={
+                    "member_point":member_point,
+                    "use_point":use_point
+                };
                 error_request.message="회원 포인트 부족";
                 return res.send(error_request);
             }
@@ -179,6 +188,7 @@ router.put('/member/use/:member_email', (req, res)=>{
                     console.log(err)
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message='회원 사용 포인트 업데이트 실패';
                         rej(error_request);
                     }
@@ -193,6 +203,7 @@ router.put('/member/use/:member_email', (req, res)=>{
                 conn.query(use_point_sql, use_point_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="point 테이블 추가 실패";
                         rej(error_request);
                     }
@@ -227,6 +238,7 @@ router.get('/list', (req, res)=>{
                     console.log(rows)
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="멤버 포인트 불러오기 실패";
                         rej(error_request);
                     }

@@ -58,6 +58,7 @@ async function idea_list(get_email, search_title, page, admin_check) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "아이디어 목록 불러오기 실패";
                         return rej(error_request);
                     }
@@ -97,16 +98,19 @@ async function idea_look(get_email, idea_num, admin_check) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "아이디어 내용 불러오기 실패";
                         return rej(error_request);
                     } else if (member_email != undefined && rows[0].member_email != member_email && admin_check == 0) {
                         // 본인 아이디어가 아닌 경우
                         conn.release();
+                        error_request.data={"member_email":member_email, "idea_member_email:":rows[0].member_email};
                         error_request.message = "본인 아이디어만 열람할 수 있습니다";
                         return rej(error_request);
                     } else if (member_email == undefined && admin_check == 0) {
                         // 유저 관점에서 로그인 안한경우
                         conn.release();
+                        error_request.data={"member_email":null};
                         error_request.message = "로그인이 필요합니다";
                         return rej(error_request);
                     }
@@ -154,6 +158,7 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "idea 테이블 저장 실패";
                         return rej(error_request)
                     }
@@ -182,6 +187,7 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
                     console.log(5)
                     console.log(rows)
                     if (err || rows == '') {
+                        error_request.data=err;
                         error_request.message = "idea_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -200,6 +206,7 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "idea_log 테이블 입력 실패";
                         return rej(error_request);
                     }
@@ -253,6 +260,7 @@ async function idea_write(get_email, idea_title, idea_contents, idea_file) {
                     if (err || rows == '') {
                         console.log(err);
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "idea 테이블 저장 실패";
                         return rej(err)
                     }
@@ -280,6 +288,7 @@ async function idea_write(get_email, idea_title, idea_contents, idea_file) {
                     console.log(rows)
                     if (err || rows == '') {
                         console.log(err)
+                        error_request.data=err;
                         error_request.message = "idea_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -319,6 +328,7 @@ async function idea_delete(idea_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "아이디어 삭제 실패";
                         return rej(error_request);
                     }
@@ -357,6 +367,7 @@ async function idea_log(idea_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 로그 불러오기 실패";
                         return rej(error_request);
                     }
@@ -422,6 +433,7 @@ async function cs_list(get_email, search_title, page, admin_check) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "문의게시판 목록 가져오기 실패";
                         return rej(error_request);
                     }
@@ -457,6 +469,7 @@ async function cs_look(cs_num, admin_check) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "문의게시판 내용 불러오기 실패";
                         return rej(error_request);
                     }
@@ -464,6 +477,7 @@ async function cs_look(cs_num, admin_check) {
                     // 회원 관점에서 비밀글 설정되어있으면 못보게 처리
                     if (rows[0].cs_secret == 1 && admin_check == 0) {
                         conn.release();
+                        error_request.data={"cs_secret": cs_secret};
                         error_request.message = "비밀글은 작성자 본인만 볼 수 있습니다.";
                         return rej(error_request)
                     }
@@ -512,6 +526,7 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
                     if (err || rows == '') {
                         console.log(err);
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "cs 테이블 저장 실패";
                         return rej(err)
                     }
@@ -539,6 +554,7 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
                     console.log(rows)
                     if (err || rows == '') {
                         console.log(err)
+                        error_request.data=err;
                         error_request.message = "cs_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -579,6 +595,7 @@ async function cs_delete(cs_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "문의게시판 삭제 실패";
                         return rej(error_request);
                     }
@@ -615,11 +632,13 @@ async function cs_update_page(get_email, cs_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "문의게시판 정보 불러오기 실패";
                         return rej(error_request);
                     }
                     if (member_email != rows[0].member_email) {
                         conn.release();
+                        error_request.data={"member_email":member_email, "cs_email":rows[0].member_email};
                         error_request.message = "본인 게시물만 수정할 수 있습니다.";
                         return rej(error_request);
                     }
@@ -667,6 +686,7 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "cs 테이블 저장 실패";
                         return rej(error_request)
                     }
@@ -695,6 +715,7 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
                     console.log(5)
                     console.log(rows)
                     if (err || rows == '') {
+                        error_request.data=err;
                         error_request.message = "cs_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -713,6 +734,7 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "cs_log 테이블 입력 실패";
                         return rej(error_request);
                     }
@@ -770,6 +792,7 @@ async function anno_list(search_title, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "관심사업 목록 가져오기 실패";
                         return rej(error_request);
                     }
@@ -808,6 +831,7 @@ async function anno_look(anno_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공고정보게시판 내용 불러오기 실패";
                         rej(error_request);
                     }
@@ -865,6 +889,7 @@ async function inter_anno_list(search_title, page) {
                     // 실패한 경우
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "관심사업 목록 가져오기 실패";
                         return rej(error_request);
                     }
@@ -922,6 +947,7 @@ async function notice_list(search_title, page, admin_check) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 목록 가져오기 실패";
                         return rej(error_request);
                     }
@@ -960,6 +986,7 @@ async function notice_look(notice_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 내용 불러오기 실패";
                         return rej(error_request);
                     }
@@ -1005,11 +1032,12 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
                     if (err || rows == '') {
                         console.log(err);
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "notice 테이블 저장 실패";
-                        return rej(err)
+                        return rej(error_request)
                     }
-                    notice_id = rows.insertId;
                     conn.release();
+                    notice_id = rows.insertId;
                     res();
                 })
             })
@@ -1020,9 +1048,11 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
             getConnection(conn => {
 
                 if (notice_file == undefined) {
+                    // 파일 첨부를 안했을 경우
                     notice_file_originalname = null;
                     notice_file_path = null;
                 } else {
+                    // 파일 첨부를 한 경우
                     notice_file_originalname = notice_file.originalname;
                     notice_file_path = notice_file.path;
                 }
@@ -1033,6 +1063,7 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
                     console.log(rows)
                     if (err || rows == '') {
                         console.log(err)
+                        error_request.data=err;
                         error_request.message = "notice_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -1074,6 +1105,7 @@ async function notice_update_page(notice_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 정보 불러오기 실패";
                         return rej(error_request);
                     }
@@ -1121,6 +1153,7 @@ async function notice_update(get_email, notice_title, notice_contents, notice_fi
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "notice 테이블 저장 실패";
                         return rej(error_request)
                     }
@@ -1149,6 +1182,7 @@ async function notice_update(get_email, notice_title, notice_contents, notice_fi
                     console.log(5)
                     console.log(rows)
                     if (err || rows == '') {
+                        error_request.data=err;
                         error_request.message = "notice_file_dir 테이블 저장 실패";
                         return rej(error_request);
                     }
@@ -1167,6 +1201,7 @@ async function notice_update(get_email, notice_title, notice_contents, notice_fi
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "notice_log 테이블 입력 실패";
                         return rej(error_request);
                     }
@@ -1206,6 +1241,7 @@ async function notice_delete(notice_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 삭제 실패";
                         return rej(error_request);
                     }
@@ -1244,6 +1280,7 @@ async function notice_log(notice_num) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "공지사항 로그 불러오기 실패";
                         return rej(error_request);
                     }
@@ -1293,6 +1330,7 @@ async function member_list(search_title, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "회원 목록 가져오기 실패";
                         return rej(error_request);
                     }
@@ -1337,6 +1375,7 @@ async function member_log_list(get_email, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member_log 데이터 가져오기 실패";
                         return rej(error_request);
                     }
@@ -1357,6 +1396,7 @@ async function member_log_list(get_email, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member_login_log 데이터 가져오기 실패";
                         return rej(error_request);
                     }
@@ -1409,6 +1449,7 @@ async function admin_log_list(search_email, page) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "관리자 로그 정보 가져오기 실패";
                         return rej(error_request);
                     }

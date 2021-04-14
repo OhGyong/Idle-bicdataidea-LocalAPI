@@ -44,8 +44,8 @@ router.post('/idle/has-same-id', (req, res) => {
 
     console.log(now_time());
 
-    // 포스트맨에서 얻어온 이메일 값
-    var check_email = req.body.admin_email;
+    // 관리자가 입력한 이메일 값
+    let check_email = req.body.admin_email;
     console.log("입력 이메일 확인 : " + check_email);
 
     // db 연결
@@ -53,21 +53,27 @@ router.post('/idle/has-same-id', (req, res) => {
         try{
             await new Promise((res, rej)=>{
                 // db에서 admin_email 값들 가져와서 check_email 과 같은지 비교
-                var same_email_sql = 'SELECT admin_email FROM admin WHERE admin_email=?;';
+                let same_email_sql = 'SELECT admin_email FROM admin WHERE admin_email=?;';
                 conn.query(same_email_sql, check_email, function (err, rows) {
-                        if (err || rows == '') {
-                            return rej(err)
-                        }
-                    res(rows);
+                    if (err) {
+                        conn.release();
+                        error_request.data=err;
+                        error_request.message = "member 테이블 조회 실패";
+                        return rej(error_request);
+                    }else if(rows == ''){
+                        success_request.data={"use_email":check_email}
+                        success_request.message = "아이디 생성가능"
+                        return rej(success_request)
+                    }
+                    res();
                 });
             });
             conn.release();
+            error_request.data=null;
             error_request.message = "아이디 생성 불가능"
             res.send(error_request);
-        }catch (err) {
-            conn.release();
-            success_request.message = "아이디 생성가능"
-            res.send(success_request);
+        } catch (req) {
+            res.send(req);
         }
     })
 });
@@ -97,6 +103,7 @@ router.post('/idle/signin', (req, res)=>{
             await new Promise((res, rej)=>{
                 conn.query(admin_login_sql, admin_login_param, function (err, rows){
                     if (err || rows == '') {
+                        error_request.data=err;
                         error_request.message="이메일 혹은 비밀번호가 틀렸습니다."
                         conn.release();
                         rej(error_request);
@@ -112,6 +119,7 @@ router.post('/idle/signin', (req, res)=>{
                 conn.query(admin_log_sql,admin_log_param, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="amdin_log 테이블 에러"
                         rej(error_request);
                     }
@@ -150,6 +158,7 @@ router.post('/idle/signin', (req, res)=>{
             res.send(success_res)
         });
     } catch {
+        error_request.data=null;
         error_request.message("로그아웃에 실패하였습니다.")
         res.send(error_res)
     }
@@ -173,6 +182,7 @@ router.delete('/idle/admin-secede', (req, res)=>{
                 conn.query(secede_sql, secede_param, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
+                        error_request.data=err;
                         error_request.message="admin_secede 값 변경 실패";
                         return rej(error_request);
                     }
@@ -225,6 +235,7 @@ router.get('/idle/member-list/:member_email', (req, res)=>{
                 var member_detail_inform = 'SELECT * FROM member WHERE member_email=?'
                 conn.query(member_detail_inform, member_email, function(err, rows){
                     if(err || rows==''){
+                        error_request.data=err;
                         error_request.message="member 테이블에서 데이터 불러오기 실패";
                         conn.release();
                         return rej(error_request);
@@ -302,6 +313,7 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id', (req, res)=>{
                     if(err || rows==''){
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message="해당 아이디어 정보를 가져오는데 실패했습니다.";
                         rej(error_request);
                     }
@@ -357,6 +369,7 @@ router.get('/idle/member-list/:member_email/idea-list/:idea_id/modified/:modify_
                 conn.query(modifyidea_look_sql, modifyidea_look_param, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="수정 전 데이터 가져오기 실패";
                         rej(error_request);
                     }
@@ -409,6 +422,7 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id', (req, res)=>{
                 conn.query(cslist_look_sql,cslist_look_param, function(err, rows){
                     if(err || rows==''){
                         conn.release();
+                        error_request.data=err;
                         error_request.message="해당 cs 정보를 가져오는데 실패했습니다.";
                         rej(error_request);
                     }
@@ -459,6 +473,7 @@ router.get('/idle/member-list/:member_email/cs-list/:cs_id/modified', (req,res)=
                     if(err || rows==''){
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message="수정 전 데이터 가져오기 실패";
                         rej(error_request);
                     }
@@ -508,6 +523,7 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
                     if(err || rows==''){
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message="관심사업 데이터 불러오기 실패";
                         rej(error_request);
                     }
@@ -546,6 +562,7 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "선택한 회원이 없음"
                         return rej(error_request);
                     }
@@ -561,6 +578,7 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "member_ban 테이블에 기록 실패";
                         return rej(error_request);
                     }
@@ -605,6 +623,7 @@ router.get('/contact', (req, res) => {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "고객센터 데이터 조회 실패";
                         rej(error_request);
                     }
@@ -635,6 +654,7 @@ router.get('/contact/:contact_num', (req, res) => {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
+                        error_request.data=err;
                         error_request.message = "contact 데이터 불러오기 실패";
                         rej(error_request);
                     }
@@ -671,6 +691,7 @@ router.post('/contact/:contact_num/answer', (req, res)=>{
         }, function (err) {
             console.log(111)
             if (err) {
+                error_request.data=err;
                 error_request.message = "메일 전송 실패";
                 res.send(error_request);
             }
@@ -685,6 +706,7 @@ router.post('/contact/:contact_num/answer', (req, res)=>{
                             if(err || rows==''){
                                 console.log(err)
                                 conn.release();
+                                error_request.data=err;
                                 error_request.message="contact_log 업데이트 실패";
                                 rej(error_request);
                             }
