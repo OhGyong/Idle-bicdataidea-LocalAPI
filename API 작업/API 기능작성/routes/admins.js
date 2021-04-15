@@ -151,15 +151,17 @@ router.post('/idle/signin', (req, res)=>{
  */
  router.post('/idle/logout', (req, res) => {
     try {
+        let admin_email = req.session.admin_email;
         req.session.destroy(function () {
             req.session;
+            success_request.data={ "member_email":admin_email}
+            success_request.message = "로그아웃에 성공하였습니다.";
+            res.send(success_request)
             //res.redirect('/home'); // 홈으로 이동하게 하자
-           success_request.message("로그아웃에 성공하였습니다.")
-            res.send(success_res)
         });
     } catch {
         error_request.data=null;
-        error_request.message("로그아웃에 실패하였습니다.")
+        error_request.message = "로그아웃에 실패하였습니다.";
         res.send(error_res)
     }
 })
