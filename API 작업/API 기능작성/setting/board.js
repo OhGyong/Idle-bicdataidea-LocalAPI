@@ -849,7 +849,7 @@ async function anno_look(anno_num) {
 
 
 // 관심사업 목록
-async function inter_anno_list(search_title, page) {
+async function inter_anno_list(get_email ,search_title, page) {
 
     try {
         let member_email = get_email; // 회원 이메일
@@ -860,26 +860,14 @@ async function inter_anno_list(search_title, page) {
         let inter_anno_list_sql;
         let inter_anno_list_params;
 
-        if (member_email != undefined && inter_anno_title == undefined && admin_check == undefined) {
-            // 회원 관심사업 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
-            inter_anno_list_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? LIMIT 10 OFFSET ?;';
-            inter_anno_list_sql = 'SELECT @inter_anno_num := @inter_anno_num + 1 AS inter_anno_num, T.inter_anno_email, inter_anno_name, inter_anno_gender, inter_anno_ban, inter_anno_phone, inter_anno_rank, save_point, inter_anno_log_join FROM inter_anno T JOIN inter_anno_log ON (T.inter_anno_email = inter_anno_log.inter_anno_email), (SELECT @inter_anno_num :=0) TMP ORDER BY inter_anno_log_join ASC LIMIT 10 OFFSET ?;';
-            inter_anno_list_params = [member_email, 0, page_num];
-
-        } else if (member_email != undefined && inter_anno_title != undefined && admin_check == undefined) {
-            // 회원 관심사업 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
-            inter_anno_list_sql = 'SELECT anno.anno_id, anno.anno_title, anno.anno_date FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND anno_delete=? AND MATCH(anno_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
-            inter_anno_list_sql = 'SELECT @member_num := @member_num + 1 AS member_num, T.member_email, member_name, member_gender, member_ban, member_phone, member_rank, save_point, member_log_join FROM member T JOIN member_log ON (T.member_email = member_log.member_email), (SELECT @member_num :=0) TMP WHERE MATCH(member_name) AGAINST(? IN boolean mode) ORDER BY member_log_join LIMIT 10 OFFSET ?';
-            inter_anno_list_params = [mem_email, 0, anno_title + '*', page_num];
-        } else if (member_email != undefined && inter_anno_title == undefined && admin_check == 1) {
-            // 관리자의 회원 관심사업 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
-            inter_anno_list_sql = 'SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? LIMIT 10 OFFSET ?;';
-            inter_anno_list_params = [member_email, 0, page_num];
-
-        } else if (member_email != undefined && inter_anno_title != undefined && admin_check == 1) {
-            // 관리자의 회원 관심사업 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
-            inter_anno_list_sql = 'SELECT * FROM anno JOIN inter_anno ON (anno.anno_id = inter_anno.anno_id) WHERE member_email=? AND MATCHED(anno_contents) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
-            inter_anno_list_params = [mem_email, 0, anno_title + '*', page_num];
+        if (member_email != undefined && inter_anno_title == undefined) {
+            // 관심사업 목록, ( 세션 이메일 값은 있지만 검색 값은 없는 경우)
+            inter_anno_list_sql = 'SELECT @inter_anno_num := @inter_anno_num + 1 AS inter_anno_num, T.anno_id, anno_title, anno_date FROM anno T JOIN inter_anno ON (T.anno_id = inter_anno.anno_id), (SELECT @inter_anno_num :=0) TMP WHERE member_email=? ORDER BY anno_date ASC LIMIT 10 OFFSET ?;';
+            inter_anno_list_params = [member_email, page_num];
+        } else if (member_email != undefined && inter_anno_title != undefined) {
+            // 관심사업 목록 검색 조회, ( 세션 이메일 값과 검색 값이 둘 다 존재)
+            inter_anno_list_sql = 'SELECT @inter_anno_num := @inter_anno_num + 1 AS inter_anno_num, T.anno_id, anno_title, anno_date FROM anno T JOIN inter_anno ON (T.anno_id = inter_anno.anno_id), (SELECT @inter_anno_num :=0) TMP WHERE member_email=? AND MATCH(anno_title) AGAINST(? IN boolean mode) ORDER BY anno_date ASC LIMIT 10 OFFSET ?;';
+            inter_anno_list_params = [member_email, inter_anno_title + '*', page_num];
         }
 
         // db 조회 시작
@@ -888,6 +876,7 @@ async function inter_anno_list(search_title, page) {
                 conn.query(inter_anno_list_sql, inter_anno_list_params, function (err, rows) {
                     // 실패한 경우
                     if (err || rows == '') {
+                        console.log(err)
                         conn.release();
                         error_request.data=err;
                         error_request.message = "관심사업 목록 가져오기 실패";

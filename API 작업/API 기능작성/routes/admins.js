@@ -501,7 +501,7 @@ router.get('/idle/member-list/:member_email/inter-anno-list', (req, res)=>{
     console.log("검색할 내용: ",req.query.inter_anno_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    inter_anno_list(req.session.member_email, req.query.inter_anno_search, admin_check, req.query.page).then(member_inter_anno_list=>{
+    inter_anno_list(req.session.member_email, req.query.inter_anno_search, req.query.page).then(member_inter_anno_list=>{
         res.send(member_inter_anno_list);
     });
 })

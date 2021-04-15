@@ -1007,8 +1007,9 @@ router.get('/idle/mypage/marked', (req, res) => {
     
     console.log("세션 이메일: ",req.session.member_email) // 세션 이메일
     console.log("검색할 내용: ",req.query.inter_anno_search)  // 검색 내용
+    console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    inter_anno_list(req.session.member_email, req.query.inter_anno_search).then(member_inter_anno_list=>{
+    inter_anno_list(req.session.member_email, req.query.inter_anno_search, req.query.page).then(member_inter_anno_list=>{
         res.send(member_inter_anno_list);
     });
 
