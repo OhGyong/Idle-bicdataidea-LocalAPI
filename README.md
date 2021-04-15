@@ -14,13 +14,17 @@
 
 **7. 비주얼 코드에서 node.js 작업, 포스트맨 가입**
 
-**8. API 기능 작성**
-
-- **회원 API작성**
-- **서버 환경에서 테스트(termius 사용)**
-    - **node 작업한 내용(코딩)을 깃에서 pull 해서 받아옴**
-    - **5번에서 node설치는 했지만 mysql 설치를 안해서 다시 설치**
+**8. API 기능 작성** </br>
+- **로컬 환경**
     - **express-gernerator로 계층화**
-    - **Mysql connection.pool로 변경, 비동기화 async-await-promise 로 해결 (기존 코드 수정)**
-    - **request.js 만들어서 응답부분 모듈화**
+    - **1. 회원 API 작성**
+    - **2. 관리자 API 작성**
+    - **3. 포인트 API 작성**
+    - **4. 관리자 게시판 API 작성**
+    - **5. 유저 게시판 API 작성**
+    - **6. 공용 게시판 API 작성**
+    - **기타 부분은 setting 파일에서 처리**
+    - 자세한 내용은 `https://github.com/OhGyong/Idle_Project_Local/tree/main/API%20%EC%9E%91%EC%97%85/API%20%EA%B8%B0%EB%8A%A5%EC%9E%91%EC%84%B1`
+
+- **서버 환경에서 테스트(termius 사용)**
     - 
