@@ -1,4 +1,4 @@
-# WebPage_Project
+# Project 진행 순서
 
 **1. 오라클 클라우드 인스턴스 환경설정**
 
