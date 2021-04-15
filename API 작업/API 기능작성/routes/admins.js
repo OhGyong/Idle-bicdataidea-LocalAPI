@@ -551,16 +551,20 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
  */
  router.post('/idle/member-list/:member_email/ban', (req, res) => {
 
-    var member_email=req.params.member_email; // 회원 이메일
-    var admin_email= req.session.admin_email; // 관리자 이메일
+    let member_email=req.params.member_email; // 회원 이메일
+    let admin_email= req.session.admin_email; // 관리자 이메일
 
     getConnection(async (conn) => {
         try {
+
+            let member_ban_sql;
+            let member_ban_params;
             // 선택한 회원을 찾아서 member_ban 값을 1로 변경
             await new Promise((res, rej) => {
-                var member_ban_sql = 'UPDATE member SET member_ban=? WHERE member_email=?;';
-                var member_ban_param = [1, member_email];
-                conn.query(member_ban_sql, member_ban_param, function (err, rows) {
+                member_ban_sql = 'UPDATE member SET member_ban=? WHERE member_email=?;';
+                member_ban_params = [1, member_email];
+                conn.query(member_ban_sql, member_ban_params, function (err, rows) {
+                    console.log(1)
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
@@ -575,8 +579,8 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
             // member_ban 테이블에 기록
             await new Promise((res, rej) => {
                 member_ban_sql = 'INSERT INTO member_ban (member_email, member_ban_reason, member_ban_date, admin_email) VALUES(?,?,?,?);';
-                member_ban_param = [member_email, req.body.member_ban_reason, now_time, admin_email];
-                conn.query(member_ban_sql, member_ban_param, function (err, rows) {
+                member_ban_params = [member_email, req.body.member_ban_reason, now_time(), admin_email];
+                conn.query(member_ban_sql, member_ban_params, function (err, rows) {
                     if (err || rows == '') {
                         console.log(err)
                         conn.release();
@@ -589,6 +593,7 @@ router.get('/idle/member-list/:member_email/inter-anno-list/:anno_id', (req, res
             });
 
             conn.release();
+            success_request.data={"member_email":member_email}
             success_request.message = "정지처리가 성공적으로 되었습니다."
             res.send(success_request);
         } catch (err) {
