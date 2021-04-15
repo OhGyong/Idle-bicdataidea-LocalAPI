@@ -35,4 +35,6 @@
     - **git에 API 작업한 부분만 따로 복제 (서버용)** https://github.com/OhGyong/Idle_Proejct_Server
     - **POSTMAN에 서버부분 따로 복제**
 
-**9. 안드로이드 스튜디오 설치**
+**9. Firebase 가입 및 프로젝트 생성**
+
+**10. 안드로이드 스튜디오 설치**
