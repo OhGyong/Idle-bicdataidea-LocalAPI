@@ -62,7 +62,7 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
             // idea 테이블 업데이트
             await new Promise((res, rej)=>{
                 point_mange_sql='UPDATE idea SET admin_email=?, add_point=?, date_point=? WHERE idea_id=? AND member_email=?;';
-                point_mange_params=[admin_email, idea_point, now_time, idea_id, member_email];
+                point_mange_params=[admin_email, idea_point, now_time(), idea_id, member_email];
                 conn.query(point_mange_sql, point_mange_params, function(err, rows){
                     if(err || rows ==''){
                         console.log(err);
@@ -199,7 +199,7 @@ router.put('/member/use/:member_email', (req, res)=>{
             // point 테이블 추가
             await new Promise((res, rej)=>{
                 use_point_sql='INSERT INTO point (member_email, use_date, use_contents, point) VALUES (?,?,?,?);';
-                use_point_params=[member_email, now_time, use_contents, use_point];
+                use_point_params=[member_email, now_time(), use_contents, use_point];
                 conn.query(use_point_sql, use_point_params, function(err, rows){
                     if(err || rows==''){
                         conn.release();

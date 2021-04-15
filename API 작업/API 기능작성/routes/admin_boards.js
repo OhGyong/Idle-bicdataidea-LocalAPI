@@ -19,6 +19,9 @@ var upload = require('../setting/file_path.js');
 // 응답 설정
 const { error_request, success_request } = require('../setting/request.js');
 
+// 시간 설정
+var { now_time } = require('../setting/time.js');
+
 
 /*                    본문시작                    */
 
@@ -199,8 +202,8 @@ router.post('/cs/:cs_num/answer', (req,res)=>{
     console.log("관리자 이메일: ", req.session.admin_email); // 관리자 이메일
 
     getConnection(conn=>{
-        let cs_answer_sql = 'UPDATE cs SET admin_email=?, cs_resp=?, cs_resp_date=now() WHERE cs_id=?;';
-        let cs_answer_params = [req.session.admin_email, req.body.cs_contents, req.params.cs_num];
+        let cs_answer_sql = 'UPDATE cs SET admin_email=?, cs_resp=?, cs_resp_date=? WHERE cs_id=?;';
+        let cs_answer_params = [req.session.admin_email, req.body.cs_contents, now_time(),req.params.cs_num];
         conn.query(cs_answer_sql, cs_answer_params, function(err, rows){
             if(err || rows==''){
                 conn.release();

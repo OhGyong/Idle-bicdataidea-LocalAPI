@@ -131,7 +131,7 @@ router.post('/idle/sign-up/send-email', (req, res) => {
                 // 인증키, 유효기간, 수신메일 db에 저장
                 await new Promise((res, rej) => {
                     let send_email_sql = 'INSERT INTO email_auth (email_key, email_date, rec_email) VALUES(?,?,?)';
-                    let send_email_params = [send_key, tomorrow_time, get_email]; //파라미터를 값들로 줌(배열로 생성)
+                    let send_email_params = [send_key, tomorrow_time(), get_email]; //파라미터를 값들로 줌(배열로 생성)
                     conn.query(send_email_sql, send_email_params, function (err, rows) {
                         if (err || rows == '') {
                             conn.release();
@@ -357,7 +357,7 @@ router.post('/idle/find-password', (req, res) => {
                         conn.release();
                         error_request.data=err;
                         error_request.message="db에 해당 이메일 없음";
-                        return rej(error_request.message);
+                        return rej(error_request);
                     }
                     res();
                 })
@@ -392,7 +392,7 @@ router.post('/idle/find-password', (req, res) => {
                     }
                     // 해시키, 유효기간 메일 pw_find 테이블 삽입
                     var find_password_sql = 'INSERT INTO pw_find (pw_key, pw_date, member_email) VALUES(?,?,?)';
-                    var find_password_params = [hash_key, tomorrow_time, check_email]; //파라미터를 값들로 줌(배열로 생성)
+                    var find_password_params = [hash_key, tomorrow_time(), check_email]; //파라미터를 값들로 줌(배열로 생성)
                     conn.query(find_password_sql, find_password_params, function (err, rows) {
                         if (err || rows == '') {
                             console.log(err)
@@ -546,9 +546,9 @@ router.post('/idle/signin', (req, res) => {
 
             await new Promise((res, rej) => {
                 // db에 일치하는 이메일과 비밀번호가 있는지 확인
-                var login_sql = 'SELECT member_email FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
-                var login_param = [member_email, member_pw, 0];
-                conn.query(login_sql, login_param, (err, row) => {
+                let login_sql = 'SELECT member_email FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
+                let login_params = [member_email, member_pw, 0];
+                conn.query(login_sql, login_params, (err, row) => {
                     if (err || row == '') {
                         conn.release();
                         error_request.data=err;
@@ -560,10 +560,10 @@ router.post('/idle/signin', (req, res) => {
             })
 
             // 로그인한 시간 확인, member_log 테이블 업데이트)
-            var memberlog_param = [member_email];
             await new Promise((res, rej) => {
-                var memberlog_sql = 'UPDATE member_log SET member_login_lately=now() WHERE member_email=?;';
-                conn.query(memberlog_sql, memberlog_param, (err, row) => {
+                memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
+                memberlog_params = [now_time(), member_email]
+                conn.query(memberlog_sql, memberlog_params, (err, row) => {
                     if (err || row == '') {
                         conn.release();
                         error_request.data=err;
@@ -576,8 +576,8 @@ router.post('/idle/signin', (req, res) => {
 
             // 로그인 시간 데이터 축적, member_login_log 테이블 추가
             await new Promise((res, rej) => {
-                var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(now(),?);';
-                conn.query(memberloginlog_sql, memberlog_param, (err, row) => {
+                var memberloginlog_sql = 'INSERT INTO member_login_log (member_login, member_email) VALUES(?,?);';
+                conn.query(memberloginlog_sql, memberlog_params, (err, row) => {
                     if (err || row == '') {
                         conn.release();
                         error_request.data=err;
@@ -959,7 +959,7 @@ router.post('/idle/mypage/marked-on', (req, res) => {
  * 2. 세션 이메일 가지고 inter_anno 테이블에서 해당 id 찾아서 삭제
  * 3. json 응답처리
  */
-router.delete('/idle/mypage/marked-off', (req, res) => {
+ router.delete('/idle/mypage/marked-off', (req, res) => {
 
     getConnection(conn => {
         try {
@@ -974,13 +974,14 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
             var anno_markoff_param = [anno_markoff_id, mem_email];
             var anno_markoff_sql = 'DELETE FROM inter_anno WHERE anno_id =? AND member_email=?;';
             conn.query(anno_markoff_sql, anno_markoff_param, function (err, rows) {
-                if (err || rows == '') {
+                if (err || rows == '' || rows.affectedRows==0) {
                     conn.release();
                     //json 응답처리
                     error_request.data=err;
                     error_request.message="관심사업 해제 실패";
                     return res.send(error_request);
                 }
+                
                 //json 응답처리
                 var anno_markoff_success_res = {
                     "anno_id": anno_markoff_id,
@@ -988,7 +989,6 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
                 success_request.data=anno_markoff_success_res;
                 success_request.message="관심사업 해제 성공";
                 return res.send(success_request)
-
             })
         } catch(err) {
             //json 응답처리
@@ -1061,8 +1061,8 @@ router.post('/idle/contact', (req, res) => {
                     })
 
                     await new Promise((res, rej) => {
-                        contact_sql = 'INSERT INTO contact_log (contact_id, contact_send) VALUES(?,now());';
-                        contact_params = [conatct_id];
+                        contact_sql = 'INSERT INTO contact_log (contact_id, contact_send) VALUES(?,?);';
+                        contact_params = [conatct_id, now_time()];
                         conn.query(contact_sql, contact_params, function (err, rows) {
                             if (err || rows == '') {
                                 console.log(err)

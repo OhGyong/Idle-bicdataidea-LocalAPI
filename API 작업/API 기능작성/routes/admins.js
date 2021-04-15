@@ -113,8 +113,8 @@ router.post('/idle/signin', (req, res)=>{
             })
             
             // 로그인한 시간 확인, admin_log 테이블 업데이트
-            var admin_log_sql ='UPDATE admin_log SET admin_login_lately=now() WHERE admin_email=?;';
-            var admin_log_param = [admin_email];
+            var admin_log_sql ='UPDATE admin_log SET admin_login_lately=? WHERE admin_email=?;';
+            var admin_log_param = [now_time(), admin_email];
             await new Promise((res,rej)=>{
                 conn.query(admin_log_sql,admin_log_param, function(err, rows){
                     if(err || rows==''){
@@ -699,8 +699,8 @@ router.post('/contact/:contact_num/answer', (req, res)=>{
             getConnection(async (conn) => {
                 try {
                     await new Promise((res, rej)=>{
-                        let contact_answer_sql='UPDATE contact_log SET contact_response=now() WHERE contact_id=?;';
-                        let contact_answer_params=get_num;
+                        let contact_answer_sql='UPDATE contact_log SET contact_response=? WHERE contact_id=?;';
+                        let contact_answer_params=[now_time(), get_num];
                         conn.query(contact_answer_sql, contact_answer_params, function(err, rows){
                             console.log(rows)
                             if(err || rows==''){

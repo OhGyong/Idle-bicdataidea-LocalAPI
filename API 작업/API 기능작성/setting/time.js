@@ -11,13 +11,10 @@ function now_time(){
 }
 
 //내일시간
-let tomorrow_time = new Date(new Date().setDate(new Date().getDate() + 1));
-tomorrow_time = moment(tomorrow_time).format('YYYY-MM-DD HH:mm:ss'); //moment
-
-//db에서 내보낼때 시간처리
-var korea_time = function(db_time){
-    var time_change=moment(db_time.format('YYYY-MM-DD HH:mm:ss'))
-    return time_change
+function tomorrow_time(){
+    let tomorrow_date = new Date(new Date().setDate(new Date().getDate() + 1));
+    tomorrow_date = moment(tomorrow_date).format('YYYY-MM-DD HH:mm:ss'); //moment
+    return tomorrow_date;
 }
 
 module.exports={'now_time':now_time, 'tomorrow_time':tomorrow_time};

@@ -1,5 +1,6 @@
 var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
+var { now_time, tomorrow_time } = require('./time.js');
 
 // 아이디어 목록
 async function idea_list(get_email, search_title, page, admin_check) {
@@ -197,8 +198,8 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
         // 수정날짜 idea_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                idea_write_sql = 'INSERT INTO idea_log (idea_id, idea_edit_date) VALUES (?, now());';
-                idea_list_params = idea_num
+                idea_write_sql = 'INSERT INTO idea_log (idea_id, idea_edit_date) VALUES (?, ?);';
+                idea_list_params = [idea_num, now_time()];
                 conn.query(idea_write_sql, idea_list_params, function (err, rows) {
                     if (err || rows == '') {
                         console.log(err)
@@ -248,8 +249,8 @@ async function idea_write(get_email, idea_title, idea_contents, idea_file) {
         // 회원이 입력한 정보 idea 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                idea_write_sql = 'INSERT INTO idea (idea_title, idea_contents, member_email, add_point, idea_date, date_point) VALUES (?,?,?,?,now(),now());';
-                idea_write_params = [idea_title, idea_contents, get_email, 500];
+                idea_write_sql = 'INSERT INTO idea (idea_title, idea_contents, member_email, add_point, idea_date, date_point) VALUES (?,?,?,?,?,?);';
+                idea_write_params = [idea_title, idea_contents, get_email, 500, now_time(), now_time()];
                 conn.query(idea_write_sql, idea_write_params, function (err, rows) {
                     console.log(rows)
                     idea_id = rows.insertId;
@@ -513,8 +514,8 @@ async function cs_write(get_email, cs_title, cs_contents, cs_secret, cs_file) {
         // 회원이 입력한 정보 cs 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                cs_write_sql = 'INSERT INTO cs (cs_title, cs_contents, member_email, cs_secret, cs_date) VALUES (?,?,?,?,now());';
-                cs_write_params = [cs_title, cs_contents, get_email, cs_secret];
+                cs_write_sql = 'INSERT INTO cs (cs_title, cs_contents, member_email, cs_secret, cs_date) VALUES (?,?,?,?,?);';
+                cs_write_params = [cs_title, cs_contents, get_email, cs_secret, now_time()];
                 conn.query(cs_write_sql, cs_write_params, function (err, rows) {
                     console.log(rows)
                     cs_id = rows.insertId;
@@ -725,8 +726,8 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
         // 수정날짜 cs_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                cs_write_sql = 'INSERT INTO cs_log (cs_id, cs_edit_date) VALUES (?, now());';
-                cs_list_params = cs_num
+                cs_write_sql = 'INSERT INTO cs_log (cs_id, cs_edit_date) VALUES (?,?));';
+                cs_list_params = [cs_num, now_time()];
                 conn.query(cs_write_sql, cs_list_params, function (err, rows) {
                     if (err || rows == '') {
                         console.log(err)
@@ -1013,8 +1014,8 @@ async function notice_write(get_email, notice_title, notice_contents, notice_fil
         // 회원이 입력한 정보 notice 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                notice_write_sql = 'INSERT INTO notice (notice_title, notice_contents, admin_email, notice_date) VALUES (?,?,?,now());';
-                notice_write_params = [notice_title, notice_contents, get_email];
+                notice_write_sql = 'INSERT INTO notice (notice_title, notice_contents, admin_email, notice_date) VALUES (?,?,?,?);';
+                notice_write_params = [notice_title, notice_contents, get_email, now_time()];
                 conn.query(notice_write_sql, notice_write_params, function (err, rows) {
                     console.log(rows)
                     console.log(3)
@@ -1184,8 +1185,8 @@ async function notice_update(get_email, notice_title, notice_contents, notice_fi
         // 수정날짜 notice_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                notice_write_sql = 'INSERT INTO notice_log (notice_id, notice_edit_date) VALUES (?, now());';
-                notice_list_params = notice_num
+                notice_write_sql = 'INSERT INTO notice_log (notice_id, notice_edit_date) VALUES (?,?));';
+                notice_list_params = [notice_num, now_time()];
                 conn.query(notice_write_sql, notice_list_params, function (err, rows) {
                     if (err || rows == '') {
                         console.log(err)
