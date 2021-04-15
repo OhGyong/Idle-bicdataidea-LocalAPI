@@ -28,12 +28,11 @@ var { now_time } = require('../setting/time.js');
  * 4. member 테이블에서 해당 회원의 member_point, save_point 값을 가져와서 idea_point와 더한다.
  * 5. member 테이블에서 포인트 부분 업데이트
  */ 
-router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
+ router.put('/admin/manage/:member_email/:idea_id', (req, res)=>{
     let member_email=req.params.member_email; 
     let idea_id = req.params.idea_id;
-    let admin_email = req.params.admin_email; // 세션 값 (관리자 이메일)
+    let admin_email = req.session.admin_email; // 세션 값 (관리자 이메일)
     let idea_point = req.body.idea_point; // 관리자가 부여할 포인트
-    
 
     getConnection(async(conn)=>{
         try{
@@ -57,7 +56,6 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                     res(rows);
                 })
             })
-
 
             // idea 테이블 업데이트
             await new Promise((res, rej)=>{
@@ -93,7 +91,6 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
                 })
             })
 
-
             // member 테이블 업데이트
             await new Promise((res, rej)=>{
                 point_mange_sql='UPDATE member SET member_point=?, save_point=? WHERE member_email=?;';
@@ -121,7 +118,6 @@ router.put('/admin/manage/:member_email/:idea_id/:admin_email', (req, res)=>{
             res.send(err)
         }
     })
-
 })
 
 

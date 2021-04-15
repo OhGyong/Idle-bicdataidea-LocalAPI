@@ -198,7 +198,7 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
         // 수정날짜 idea_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                idea_write_sql = 'INSERT INTO idea_log (idea_id, idea_edit_date) VALUES (?, ?);';
+                idea_write_sql = 'INSERT INTO idea_log (idea_id, idea_edit_date) VALUES (?,?);';
                 idea_list_params = [idea_num, now_time()];
                 conn.query(idea_write_sql, idea_list_params, function (err, rows) {
                     if (err || rows == '') {
@@ -411,6 +411,7 @@ async function cs_list(get_email, search_title, page, admin_check) {
             cs_list_params = [page_num];
         } else if (member_email == undefined && cs_title != undefined && admin_check == 1) {
             // 관리자 관점 문의게시판 (검색 함)
+            console.log(22)
             cs_list_sql = 'SELECT @cs_num := @cs_num + 1 AS cs_num, T.member_email, cs_title, cs_delete, cs_secret, cs_date, admin_email, cs_resp, cs_resp_date FROM cs T JOIN member ON (T.member_email = member.member_email), (SELECT @cs_num :=0) TMP WHERE MATCH(cs_title) AGAINST(? IN boolean mode) LIMIT 10 OFFSET ?;';
             cs_list_params = [cs_title + '*', page_num];
         } else if (member_email == undefined && cs_title == undefined && admin_check == 0) {
@@ -437,7 +438,7 @@ async function cs_list(get_email, search_title, page, admin_check) {
                     }
                     conn.release();
                     success_request.data = rows;
-                    res(rows);
+                    res();
                 })
             })
         })
@@ -1185,7 +1186,7 @@ async function notice_update(get_email, notice_title, notice_contents, notice_fi
         // 수정날짜 notice_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                notice_write_sql = 'INSERT INTO notice_log (notice_id, notice_edit_date) VALUES (?,?));';
+                notice_write_sql = 'INSERT INTO notice_log (notice_id, notice_edit_date) VALUES (?,?);';
                 notice_list_params = [notice_num, now_time()];
                 conn.query(notice_write_sql, notice_list_params, function (err, rows) {
                     if (err || rows == '') {
