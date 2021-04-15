@@ -24,7 +24,7 @@
     - **5. 유저 게시판 API 작성**
     - **6. 공용 게시판 API 작성**
     - **기타 부분은 setting 파일에서 처리**
-    - 자세한 내용은 `https://github.com/OhGyong/Idle_Project_Local/tree/main/API%20%EC%9E%91%EC%97%85/API%20%EA%B8%B0%EB%8A%A5%EC%9E%91%EC%84%B1`
+    - 자세한 내용은 https://github.com/OhGyong/Idle_Project_Local/tree/main/API%20%EC%9E%91%EC%97%85/API%20%EA%B8%B0%EB%8A%A5%EC%9E%91%EC%84%B1
 
 - **서버 환경에서 테스트(termius 사용)**
     - 
