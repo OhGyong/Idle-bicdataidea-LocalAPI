@@ -15,7 +15,7 @@
 **5. 서버 개발 및 배포 환경설정**
     - **오라클 ubuntu**
         - **node js, mysql 설치**
-        
+
 **6. API 기능명세** 
 
 **7. 비주얼 코드에서 node.js 작업, POSTMAN 가입**
@@ -30,10 +30,9 @@
     - **5. 유저 게시판 API 작성**
     - **6. 공용 게시판 API 작성**
     - **기타 부분은 setting 파일에서 처리**
-    - **자세한 내용은** https://github.com/OhGyong/Idle_Project_Local/tree/main/API%20%EC%9E%91%EC%97%85/API%20%EA%B8%B0%EB%8A%A5%EC%9E%91%EC%84%B1
-
-    - **서버 환경에서 테스트 (termius 사용)**
-        - **git에 API 작업한 부분만 따로 복제 (서버용)** https://github.com/OhGyong/Idle_Proejct_Server
-        - **POSTMAN에 서버부분 따로 복제**
+    - **자세한 내용은** https://github.com/OhGyong/Idle_Project_Local/tree/main/API%20%EC%9E%91%EC%97%85/API%20%EA%B8%B0%EB%8A%A5%EC%9E%91%EC%84%B1 </br>
+- **서버 환경에서 테스트 (termius 사용)**
+    - **git에 API 작업한 부분만 따로 복제 (서버용)** https://github.com/OhGyong/Idle_Proejct_Server
+    - **POSTMAN에 서버부분 따로 복제**
 
 **9. 안드로이드 스튜디오 설치**
