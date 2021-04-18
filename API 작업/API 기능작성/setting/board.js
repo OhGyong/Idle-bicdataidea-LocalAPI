@@ -1,6 +1,6 @@
 var getConnection = require('./db.js');
 var { success_request, error_request } = require('./request.js');
-var { now_time, tomorrow_time } = require('./time.js');
+var { now_time} = require('./time.js');
 
 // 아이디어 목록
 async function idea_list(get_email, search_title, page, admin_check) {
