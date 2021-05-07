@@ -4,6 +4,7 @@
 var express = require('express');
 var router = express.Router();
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken')
 
 // db 연결
 var getConnection = require('../setting/db.js');
@@ -19,6 +20,10 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 
 // 게시판 설정
 var {idea_list, inter_anno_list} = require('../setting/board.js');
+
+// jwt 컨트롤러
+let jwt_controller = require('../setting/jwt_middleware')
+
 
 
 /*                    본문시작                    */
@@ -588,6 +593,22 @@ router.post('/idle/signin', (req, res) => {
                 });
             })
 
+            // 회원 이름 가져오기
+            let memberName
+            await new Promise((res, rej)=>{
+                var memberNameSql = 'Select member_name From member WHERE member_email=?'
+                conn.query(memberNameSql, member_email, (err, row)=>{
+                    if (err || row == '') {
+                        conn.release();
+                        error_request.data=err;
+                        error_request.message = "memberName 가져오기 에러";
+                        rej(error_request);
+                    }
+                    memberName=row[0].member_name
+                    res(row);
+                })
+            })
+
             // 세션 저장
             await new Promise((res, rej) => {
                 req.session.member_email = member_email;
@@ -600,13 +621,68 @@ router.post('/idle/signin', (req, res) => {
                     res();
                 })
             })
+
+            // Access Token, Refresh Token 생성
+            let memberAccessToken
+            let memberRefreshToken
+
+            await new Promise((res,rej)=>{
+                // Access Token 인증시간 15분
+                jwt.sign(
+                    {token_name:memberName}, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn:'15m'} ,(err, token)=>{
+                        if(err){
+                            error_request.data=err;
+                            error_request.message = "AccessToken 생성 실패";
+                            rej(error_request);
+                        }
+                        memberAccessToken=token
+                        res()
+                    }
+                )
+            })
+
+            await new Promise((res,rej)=>{
+                // Refresh Token 인증기간 2주
+                jwt.sign(
+                    {token_name:memberName}, process.env.REFRESH_TOKEN_SECRET_KEY, {expiresIn:'15m'}, (err, token)=>{
+                        if(err){
+                            error_request.data=err;
+                            error_request.message = "RefreshToken 생성 실패";
+                            rej(error_request);
+                        }
+                        memberRefreshToken=token
+                        res()
+                    }
+                )
+            })
+
+            // 로그인 시간 데이터 축적, member_login_log 테이블 추가
+            await new Promise((res, rej) => {
+                var memberRefreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
+                var memberRefreshTokenPARAMS = [memberName, memberRefreshToken]
+                conn.query(memberRefreshTokenSQL, memberRefreshTokenPARAMS, (err, row) => {
+                    if (err || row == '') {
+                        conn.release();
+                        error_request.data=err;
+                        error_request.message = "refresh_token 삽입 오류";
+                        rej(error_request);
+                    }
+                    res(row);
+                });
+            })
+            
             conn.release();
+
+            // json 성공 응답
             success_request.data={
-                member_email:member_email
+                member_email:member_email,
+                access_token:memberAccessToken,
+                refresh_token:memberRefreshToken
             }
+
             success_request.message = "로그인 성공";
             res.send(success_request);
-            //res.redirect('/home'); // 홈으로 이동하게 하자
+            
         } catch (err) {
             res.send(err);
         }
@@ -621,13 +697,37 @@ router.post('/idle/signin', (req, res) => {
 router.post('/idle/logout', (req, res) => {
     try {
         let member_email = req.session.member_email;
-        req.session.destroy(function () {
-            req.session;
-            success_request.data={ "member_email":member_email}
-            success_request.message = "로그아웃에 성공하였습니다.";
-            res.send(success_request)
-            //res.redirect('/home'); // 홈으로 이동하게 하자
-        });
+        let refresh_token = req.body.refresh_token
+
+        // refresh_token 테이블에서 invalid 값 1로 변경
+        getConnection(async conn=>{
+            try{
+                await new Promise((res, rej)=>{
+                    let refreshTokenSQL = 'UPDATE refresh_token SET token_invalid=? WHERE token=?';
+                    conn.query(refreshTokenSQL, [1,refresh_token], function(err, rows){
+                        if (err || rows == '') {
+                            conn.release();
+                            error_request.data=err;
+                            error_request.message = "refresh_token 테이블 오류";
+                            rej(error_request);
+                        }
+                        res()
+                    })
+                })
+
+                req.session.destroy(function () {
+                    req.session;
+                    success_request.data={ "member_email":member_email}
+                    success_request.message = "로그아웃에 성공하였습니다.";
+                    res.send(success_request)
+                    //res.redirect('/home'); // 홈으로 이동하게 하자
+                });
+
+            }catch{
+
+            }
+        })
+
     } catch {
         error_request.data=null;
         error_request.message = "로그아웃에 실패하였습니다.";

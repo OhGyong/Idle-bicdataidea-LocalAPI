@@ -17,13 +17,6 @@ var session_setting=session({
           password: process.env.DB_PASS,
           database: 'test_api'
       })
-
-    /*
-    cookie:{
-        maxAge:5000
-    },
-    */
-      
   });
 
   module.exports=session_setting;
