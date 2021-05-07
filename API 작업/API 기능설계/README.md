@@ -50,9 +50,21 @@
 * **성공 시 응답**
 
     * **Code:** 200 </br>
-    `{signup_agree:"동의(1)"}`
+    ``` json
+    {
+        "request": "success",
+        "message": "이욕약관 선택 여부 확인",
+        "data": 1
+    }
+    ```
     </br>OR</br>
-    `{signup_agree:"비동의(0)"}`
+    ```json
+    {
+        "request": "success",
+        "message": "이욕약관 선택 여부 확인",
+        "data": 1
+    }
+    ```
 
 * **실패 시 응답**
 
@@ -90,12 +102,40 @@
 * **성공시 응답**
 
     * **Code:** 200 </br>
-    `{member_login_result:"회원가입 성공"}`
+    ```json
+    {
+        "request": "success",
+        "message": "회원가입 성공",
+        "data": {
+            "member_email": "김갑수@gmail.com",
+            "member_name": "김갑수",
+            "member_gender": "여",
+            "member_birth": "1964-02-18",
+            "member_company": "서울어딘가",
+            "member_state": "서울",
+            "member_pw": "1234",
+            "member_phone": "010-1234-5678"
+        }
+    }
+    ```
 
 * **실패시 응답**
 
     * **Code:** 400 </br>
-    `{member_login_result:"member 테이블 에러"}`
+    ``` json
+    {
+        "request": "error",
+        "message": "member 테이블 오류",
+        "data": {
+            "code": "ER_DUP_ENTRY",
+            "errno": 1062,
+            "sqlMessage": "Duplicate entry 'tlatnfus@naver.com' for key 'member.PRIMARY'",
+            "sqlState": "23000",
+            "index": 0,
+            "sql": "INSERT INTO member (member_email, member_name, member_gender, member_birth, member_company, member_state, member_pw, member_phone, chosen_agree) VALUES('tlatnfus@naver.com','심수련','여','1964-02-18','가구회사','서울','1ARVn2Auq2/WAqx2gNrL+q3RNjAzXpUfCXrzkA6d4Xa22yhRLy4AC50E+6UTPoscbo31nbOoq51gvkuXzJ6B2w==','010-1234-5678',0);"
+        }
+    }
+    ```
     </br>OR</br>
 _    `{member_login_result:"member_log 테이블 에러"}`
 
