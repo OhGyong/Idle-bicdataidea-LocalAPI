@@ -629,7 +629,7 @@ router.post('/idle/signin', (req, res) => {
             await new Promise((res,rej)=>{
                 // Access Token 인증시간 15분
                 jwt.sign(
-                    {token_name:memberName}, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn:'15m'} ,(err, token)=>{
+                    {token_name:memberName}, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn:'15m'}, (err, token)=>{
                         if(err){
                             error_request.data=err;
                             error_request.message = "AccessToken 생성 실패";
