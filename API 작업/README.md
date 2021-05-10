@@ -18,6 +18,10 @@
     - member 전화번호 암호화
     - url 간소화
 
+    - 05/10
+        - jwt_middleware 구현 (검증 처리 마무리)
+        - `next()로 값을 어떻게 넘길 수 있을까`
+
     - 05/07
         - jwt_middleware 생성 (구현 못함)
 
