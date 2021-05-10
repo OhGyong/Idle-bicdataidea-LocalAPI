@@ -22,7 +22,7 @@ var { now_time, tomorrow_time } = require('../setting/time.js');
 var {idea_list, inter_anno_list} = require('../setting/board.js');
 
 // jwt 컨트롤러
-let jwt_controller = require('../setting/jwt_middleware')
+var jwt_middleware = require('../setting/jwt_middleware');
 
 
 
@@ -629,7 +629,10 @@ router.post('/idle/signin', (req, res) => {
             await new Promise((res,rej)=>{
                 // Access Token 인증시간 15분
                 jwt.sign(
-                    {token_name:memberName}, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn:'15m'}, (err, token)=>{
+                    {
+                        token_email:member_email,
+                        token_name:memberName
+                    }, process.env.ACCESS_TOKEN_SECRET_KEY, {expiresIn:'15m'}, (err, token)=>{
                         if(err){
                             error_request.data=err;
                             error_request.message = "AccessToken 생성 실패";
@@ -644,7 +647,10 @@ router.post('/idle/signin', (req, res) => {
             await new Promise((res,rej)=>{
                 // Refresh Token 인증기간 2주
                 jwt.sign(
-                    {token_name:memberName}, process.env.REFRESH_TOKEN_SECRET_KEY, {expiresIn:'15m'}, (err, token)=>{
+                    {   
+                        token_email:member_email,
+                        token_name:memberName
+                    }, process.env.REFRESH_TOKEN_SECRET_KEY, {expiresIn:'14d'}, (err, token)=>{
                         if(err){
                             error_request.data=err;
                             error_request.message = "RefreshToken 생성 실패";
@@ -656,7 +662,7 @@ router.post('/idle/signin', (req, res) => {
                 )
             })
 
-            // 로그인 시간 데이터 축적, member_login_log 테이블 추가
+            // refresh_token 테이블 삽입
             await new Promise((res, rej) => {
                 var memberRefreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
                 var memberRefreshTokenPARAMS = [memberName, memberRefreshToken]
@@ -695,13 +701,13 @@ router.post('/idle/signin', (req, res) => {
  * 1. destroy로 삭제
  */
 router.post('/idle/logout', (req, res) => {
-    try {
-        let member_email = req.session.member_email;
-        let refresh_token = req.body.refresh_token
 
-        // refresh_token 테이블에서 invalid 값 1로 변경
         getConnection(async conn=>{
             try{
+                let member_email = req.session.member_email;
+                let refresh_token = req.body.refresh_token
+
+               // refresh_token 테이블에서 invalid 값 1로 변경
                 await new Promise((res, rej)=>{
                     let refreshTokenSQL = 'UPDATE refresh_token SET token_invalid=? WHERE token=?';
                     conn.query(refreshTokenSQL, [1,refresh_token], function(err, rows){
@@ -724,15 +730,11 @@ router.post('/idle/logout', (req, res) => {
                 });
 
             }catch{
-
+                error_request.data=null;
+                error_request.message = "로그아웃에 실패하였습니다.";
+                res.send(error_res)
             }
         })
-
-    } catch {
-        error_request.data=null;
-        error_request.message = "로그아웃에 실패하였습니다.";
-        res.send(error_res)
-    }
 })
 
 
@@ -742,9 +744,12 @@ router.post('/idle/logout', (req, res) => {
  * 2. member 테이블에서 위에서 찾은 이메일과 일치하는 정보들을 가져온다.
  * 3. json 응답처리
  */
-router.get('/idle/mypage/update', (req, res) => {
+router.get('/idle/mypage/update', jwt_middleware, (req, res) => {
     getConnection(conn=>{
         try {
+
+            conso.log(req.next)
+
             let member_email = req.session.member_email; // 세션에 있는 이메일
             console.log("세션이메일: " + member_email);
             // 수정을 위한 회원 정보 가져오기
