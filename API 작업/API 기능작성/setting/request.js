@@ -1,7 +1,9 @@
 success_request={
     request: "success",
     message: null,
-    data: null
+    data: null,
+    accessToken: null,
+    refreshToken: null
 }
 
 error_request={

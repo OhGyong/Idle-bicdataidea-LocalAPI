@@ -23,6 +23,7 @@ var { idea_list, inter_anno_list } = require('../setting/board.js');
 
 // jwt 컨트롤러
 var jwt_middleware = require('../setting/jwt_middleware');
+const { access } = require('fs');
 
 
 
@@ -594,7 +595,7 @@ router.post('/idle/signin', (req, res) => {
             })
 
             // 회원 이름 가져오기
-            let memberName
+            let memberName;
             await new Promise((res, rej) => {
                 var memberNameSql = 'Select member_name From member WHERE member_email=?'
                 conn.query(memberNameSql, member_email, (err, row) => {
@@ -623,8 +624,8 @@ router.post('/idle/signin', (req, res) => {
             })
 
             // Access Token, Refresh Token 생성
-            let memberAccessToken
-            let memberRefreshToken
+            let accessToken, refreshToken;
+            
 
             await new Promise((res, rej) => {
                 // Access Token 인증시간 15분
@@ -638,7 +639,7 @@ router.post('/idle/signin', (req, res) => {
                             error_request.message = "AccessToken 생성 실패";
                             rej(error_request);
                         }
-                        memberAccessToken = token
+                        accessToken=token;
                         res()
                     }
                 )
@@ -656,7 +657,7 @@ router.post('/idle/signin', (req, res) => {
                             error_request.message = "RefreshToken 생성 실패";
                             rej(error_request);
                         }
-                        memberRefreshToken = token
+                        refreshToken = token
                         res()
                     }
                 )
@@ -664,9 +665,9 @@ router.post('/idle/signin', (req, res) => {
 
             // refresh_token 테이블 삽입
             await new Promise((res, rej) => {
-                var memberRefreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
-                var memberRefreshTokenPARAMS = [memberName, memberRefreshToken]
-                conn.query(memberRefreshTokenSQL, memberRefreshTokenPARAMS, (err, row) => {
+                var refreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
+                var refreshTokenPARAMS = [memberName, refreshToken]
+                conn.query(refreshTokenSQL, refreshTokenPARAMS, (err, row) => {
                     if (err || row == '') {
                         conn.release();
                         error_request.data = err;
@@ -681,10 +682,10 @@ router.post('/idle/signin', (req, res) => {
 
             // json 성공 응답
             success_request.data = {
-                member_email: member_email,
-                access_token: memberAccessToken,
-                refresh_token: memberRefreshToken
+                member_email: member_email
             }
+            success_request.accessToken = accessToken;
+            success_request.refreshToken = refreshToken;
 
             success_request.message = "로그인 성공";
             res.send(success_request);
@@ -747,13 +748,10 @@ router.post('/idle/logout', (req, res) => {
 router.get('/idle/mypage/update', jwt_middleware, (req, res) => {
     getConnection(conn => {
         try {
-            let memberEmail = req.memberEmail;
-            let accessToken = req.accessToken;
-            let refreshToken = req.refreshToken;
 
             // 수정을 위한 회원 정보 가져오기
             let update_sql = 'SELECT member_email, member_name, member_pw, member_gender, member_birth, member_phone, member_company, member_state FROM member WHERE member_email=?';
-            conn.query(update_sql, memberEmail, function (err, rows) {
+            conn.query(update_sql, req.memberEmail, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
                     error_request.data = err;
@@ -762,24 +760,12 @@ router.get('/idle/mypage/update', jwt_middleware, (req, res) => {
                 }
                 conn.release();
 
-                // accessToken 갱신했을 경우
-                if (accessToken != undefined && refreshToken == undefined) {
-                    rows[0].accessToken = accessToken
-                    success_request.data = rows;
-                    success_request.message = "회원 정보 가져오기 성공";
-                    res.send(success_request);
-                }
-                // refreshToken 갱신했을 경우
-                else if (accessToken == undefined && refreshToken != undefined) {
-                    rows[0].accessToken = refreshToken
-                    success_request.data = rows;
-                    success_request.message = "회원 정보 가져오기 성공";
-                    res.send(success_request);
-                }else if (accessToken == undefined && refreshToken == undefined){
-                    success_request.data = rows;
-                    success_request.message = "회원 정보 가져오기 성공";
-                    res.send(success_request);
-                }
+                success_request.message = "회원 정보 가져오기 성공";
+                success_request.data = rows;
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
+                res.send(success_request);
+
             })
         } catch (err) {
             res.send(err);
@@ -798,16 +784,13 @@ router.put('/idle/mypage/update/modify', jwt_middleware, (req, res) => {
 
     getConnection(conn => {
         try {
-            let memberEmail = req.memberEmail;
-            let accessToken = req.accessToken;
-            let refreshToken = req.refreshToken;
 
             // 입력받은 값
             let memberModify = new Array();
             for (idx in req.body) {
                 memberModify.push(req.body[idx]);
             }
-            memberModify.push(memberEmail); // 쿼리 조건을 위해서 푸쉬
+            memberModify.push(req.memberEmail); // 쿼리 조건을 위해서 푸쉬
 
             //암호 해시키 변경
             memberModify[1] = crypto.createHash('sha512').update(memberModify[1]).digest('base64');
@@ -823,51 +806,20 @@ router.put('/idle/mypage/update/modify', jwt_middleware, (req, res) => {
                 }
                 conn.release;
 
-                // accessToken 갱신했을 경우
-                if (accessToken != undefined && refreshToken == undefined) {
-                    success_request.data = {
-                        "member_email": memberModify[7],
-                        "member_name": memberModify[0],
-                        "member_pw": memberModify[1],
-                        "member_gender": memberModify[2],
-                        "member_birth": memberModify[3],
-                        "member_phone": memberModify[4],
-                        "member_company": memberModify[5],
-                        "member_state": memberModify[6],
-                        "access_token": accessToken
-                    }
-                    success_request.message = "정보가 수정되었습니다.";
-                    res.send(success_request);
+                success_request.message = "정보가 수정되었습니다.";
+                success_request.data = {
+                    "member_email": memberModify[7],
+                    "member_name": memberModify[0],
+                    "member_pw": memberModify[1],
+                    "member_gender": memberModify[2],
+                    "member_birth": memberModify[3],
+                    "member_phone": memberModify[4],
+                    "member_company": memberModify[5],
+                    "member_state": memberModify[6],
                 }
-                // refreshToken 갱신했을 경우
-                else if (accessToken == undefined && refreshToken != undefined) {
-                    success_request.data = {
-                        "member_email": memberModify[7],
-                        "member_name": memberModify[0],
-                        "member_pw": memberModify[1],
-                        "member_gender": memberModify[2],
-                        "member_birth": memberModify[3],
-                        "member_phone": memberModify[4],
-                        "member_company": memberModify[5],
-                        "member_state": memberModify[6],
-                        "access_token": refreshToken
-                    }
-                    success_request.message = "회원 정보 가져오기 성공";
-                    res.send(success_request);
-                }else if (accessToken == undefined && refreshToken == undefined){
-                    success_request.data = {
-                        "member_email": memberModify[7],
-                        "member_name": memberModify[0],
-                        "member_pw": memberModify[1],
-                        "member_gender": memberModify[2],
-                        "member_birth": memberModify[3],
-                        "member_phone": memberModify[4],
-                        "member_company": memberModify[5],
-                        "member_state": memberModify[6],
-                    }
-                    success_request.message = "정보가 수정되었습니다.";
-                    res.send(success_request);
-                }
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
+                res.send(success_request);
             })
         } catch (err) {
             return res.send(err);
@@ -886,11 +838,10 @@ router.put('/idle/member-secede', jwt_middleware,(req, res) => {
 
     getConnection(async (conn) => {
         try {
-            let memberEmail = req.memberEmail;
 
             await new Promise((res, rej) => {
                 var secedeSql = 'UPDATE member SET member_secede=? WHERE member_email=?;';
-                var secedeParams = [1, memberEmail];
+                var secedeParams = [1, req.memberEmail];
                 conn.query(secedeSql, secedeParams, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
@@ -902,7 +853,7 @@ router.put('/idle/member-secede', jwt_middleware,(req, res) => {
                 })
             });
 
-            success_request.data = { "member_email": memberEmail }
+            success_request.data = { "member_email": req.memberEmail }
             success_request.message = "회원 탈퇴 성공";
             res.send(success_request);
             //res.redirect('/home'); // 홈으로 이동하게 하자
@@ -923,11 +874,6 @@ router.put('/idle/member-secede', jwt_middleware,(req, res) => {
  */
 router.get('/idle/mypage/point/state', jwt_middleware, (req, res) => {
 
-    // jwt_middleware 에서 얻은 값
-    let memberEmail = req.memberEmail;
-    let accessToken = req.accessToken;
-    let refreshToken = req.refreshToken;
-
     getConnection(async (conn) => {
         try {
 
@@ -935,7 +881,7 @@ router.get('/idle/mypage/point/state', jwt_middleware, (req, res) => {
             await new Promise((res, rej) => {
                 // 보유포인트, 누적포인트, 사용포인트 가져오기
                 var myPointSql = 'SELECT member_point, save_point, use_point FROM member WHERE member_email=?'
-                conn.query(myPointSql, memberEmail, function (err, rows) {
+                conn.query(myPointSql, req.memberEmail, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
                         error_request.data = err;
@@ -943,28 +889,16 @@ router.get('/idle/mypage/point/state', jwt_middleware, (req, res) => {
                         rej(error_request);
                     }
 
-                    // accessToken 갱신했을 경우
-                    if (accessToken != undefined && refreshToken == undefined) {
-                        rows[0].accessToken = accessToken
-                        success_request.data = rows;
-                    }
-                    // refreshToken 갱신했을 경우
-                    else if (accessToken == undefined && refreshToken != undefined) {
-                        rows[0].accessToken = refreshToken
-                        success_request.data = rows;
-                    }
-                    // Token 갱신없이 바로 될 경우
-                    else if (accessToken == undefined && refreshToken == undefined) {
-                        success_request.data = rows;
-                    }
-                    res()
+                    conn.release();
+
+                    success_request.message = "회원 포인트 현황 반환 성공"
+                    success_request.data = rows;
+                    success_request.accessToken = req.accessToken;
+                    success_request.refreshToken = req.refreshToken;
+
+                    return res.send(success_request);
                 })
             })
-
-            conn.release();
-            success_request.message = "회원 포인트 현황 반환 성공"
-            return res.send(success_request);
-
         } catch (err) {
             res.send(err);
         }
@@ -981,15 +915,11 @@ router.get('/idle/mypage/point/use', jwt_middleware, (req, res) => {
 
     getConnection(conn => {
         try {
-            // jwt_middleware 에서 얻은 값
-            let memberEmail = req.memberEmail;
-            let accessToken = req.accessToken;
-            let refreshToken = req.refreshToken;
             let pageNum = (req.query.page - 1) * 10; // 페이지 번호
 
             // 사용내역 가져오기
             var usePointSql = 'SELECT use_contents, point, use_date FROM point WHERE member_email=? LIMIT 10 OFFSET ?;';
-            var usePointParams = [memberEmail, pageNum];
+            var usePointParams = [req.memberEmail, pageNum];
             conn.query(usePointSql, usePointParams, function (err, rows) {
                 // point를 사용한적이 없어서 point테이블에 회원이 등록이 안된 경우
                 if (err || rows == '') {
@@ -1001,21 +931,10 @@ router.get('/idle/mypage/point/use', jwt_middleware, (req, res) => {
                 }
                 conn.release();
 
-                // accessToken 갱신했을 경우
-                if (accessToken != undefined && refreshToken == undefined) {
-                    rows[0].accessToken = accessToken
-                    success_request.data = rows;
-                }
-                // refreshToken 갱신했을 경우
-                else if (accessToken == undefined && refreshToken != undefined) {
-                    rows[0].accessToken = refreshToken
-                    success_request.data = rows;
-                } else if (accessToken == undefined && refreshToken == undefined) {
-                    success_request.data = rows;
-                }
-
                 //사용내역 응답
                 success_request.message = "사용내역 가져오기 성공";
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
                 return res.send(success_request)
             })
         } catch (err) {
@@ -1033,15 +952,12 @@ router.get('/idle/mypage/point/use', jwt_middleware, (req, res) => {
 router.get('/idle/mypage/point/save', (req, res) => {
     getConnection(conn => {
         try {
-            // jwt_middleware 에서 얻은 값
-            let memberEmail = req.memberEmail;
-            let accessToken = req.accessToken;
-            let refreshToken = req.refreshToken;
+
             let pageNum = (req.query.page - 1) * 10; // 페이지 번호
 
             // idea 테이블에서 제목, 얻은 포인트, 적립날짜 가져오기
             var savePointSql = 'SELECT idea_title, add_point, date_point FROM idea WHERE member_email=? LIMIT 10 OFFSET ?;';
-            let savePointParams = [memberEmail, pageNum];
+            let savePointParams = [req.memberEmail, pageNum];
             conn.query(savePointSql, savePointParams, function (err, rows) {
                 if (err || rows == '') {
                     conn.release();
@@ -1051,23 +967,11 @@ router.get('/idle/mypage/point/save', (req, res) => {
                 }
                 conn.release();
 
-                // accessToken 갱신했을 경우
-                if (accessToken != undefined && refreshToken == undefined) {
-                    rows[0].accessToken = accessToken
-                    success_request.data = rows;
-                }
-                // refreshToken 갱신했을 경우
-                else if (accessToken == undefined && refreshToken != undefined) {
-                    rows[0].accessToken = refreshToken
-                    success_request.data = rows;
-                }
-                // Token 갱신없이 바로 될 경우
-                else if (accessToken == undefined && refreshToken == undefined) {
-                    success_request.data = rows;
-                }
-
                 //사용내역 응답
                 success_request.message = "적립내역 불러오기 성공";
+                success_request.data = rows;
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
                 res.send(success_request);
             })
         } catch (err) {
@@ -1084,13 +988,12 @@ router.get('/idle/mypage/point/save', (req, res) => {
  */
 router.get('/idle/mypage/idea', jwt_middleware, (req, res) => {
     
-    // jwt_middleware 에서 얻은 값
-    let accessToken = req.accessToken;
-    let refreshToken = req.refreshToken;
-
     let admin_check = 0;
-    idea_list(req.memberEmail, req.query.idea_search, req.query.page, admin_check).then(member_idea_list => {
-        res.send(member_idea_list);
+
+    idea_list(req.memberEmail, req.query.idea_search, req.query.page, admin_check).then(memberIdeaList => {
+        memberIdeaList.accessToken = req.accessToken;
+        memberIdeaList.refreshToken = req.refreshToken;
+        res.send(memberIdeaList);
     });
 })
 
@@ -1102,20 +1005,17 @@ router.get('/idle/mypage/idea', jwt_middleware, (req, res) => {
  * 2. 세션 이메일 즐겨찾기 등록하면 inter_anno 테이들에 삽입
  * 3. json 응답처리
  */
-router.post('/idle/mypage/marked-on', (req, res) => {
+router.post('/idle/mypage/marked-on', jwt_middleware,(req, res) => {
 
     getConnection(conn => {
         try {
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
-
-            var anno_markon_id = req.body.anno_id; // 공보정보게시판 id   
-            console.log(anno_markon_id)
+            var annoMarkOnId = req.body.anno_id; // 공보정보게시판 id   
+            console.log(annoMarkOnId)
 
             // inter_anno 테이블에 삽입
-            var anno_markon_sql = 'INSERT INTO inter_anno (member_email, anno_id) VALUES(?,?)'
-            var anno_markon_param = [mem_email, anno_markon_id]
-            conn.query(anno_markon_sql, anno_markon_param, function (err, rows) {
+            var annoMarkOnSql = 'INSERT INTO inter_anno (member_email, anno_id) VALUES(?,?)'
+            var annoMarkOnParams = [req.memberEmail, annoMarkOnId]
+            conn.query(annoMarkOnSql, annoMarkOnParams, function (err, rows) {
 
                 if (err || rows == '') {
                     console.log(err)
@@ -1125,12 +1025,13 @@ router.post('/idle/mypage/marked-on', (req, res) => {
                     return res.send(error_request);
                 }
                 // json 응답처리
-                var anno_markon_success_res = {
-                    "anno_id": anno_markon_id,
-                    "member_email": mem_email
-                }
-                success_request.data = anno_markon_success_res;
                 success_request.message = "관심사업 등록성공";
+                success_request.data = {
+                    "anno_id": annoMarkOnId,
+                    "member_email": req.memberEmail
+                }
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
                 return res.send(success_request);
             })
         } catch (err) {
