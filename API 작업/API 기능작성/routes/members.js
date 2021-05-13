@@ -23,7 +23,6 @@ var { idea_list, inter_anno_list } = require('../setting/board.js');
 
 // jwt 컨트롤러
 var jwt_middleware = require('../setting/jwt_middleware');
-const { access } = require('fs');
 
 
 
@@ -701,17 +700,14 @@ router.post('/idle/signin', (req, res) => {
  * 회원 로그아웃, http://localhost:3000/members/idle/logout
  * 1. destroy로 삭제
  */
-router.post('/idle/logout', (req, res) => {
+router.post('/idle/logout', jwt_middleware, (req, res) => {
 
     getConnection(async conn => {
         try {
-            let member_email = req.session.member_email;
-            let refresh_token = req.body.refresh_token
-
             // refresh_token 테이블에서 invalid 값 1로 변경
             await new Promise((res, rej) => {
                 let refreshTokenSQL = 'UPDATE refresh_token SET token_invalid=? WHERE token=?';
-                conn.query(refreshTokenSQL, [1, refresh_token], function (err, rows) {
+                conn.query(refreshTokenSQL, [1, req.refreshToken], function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
                         error_request.data = err;
@@ -721,15 +717,6 @@ router.post('/idle/logout', (req, res) => {
                     res()
                 })
             })
-
-            req.session.destroy(function () {
-                req.session;
-                success_request.data = { "member_email": member_email }
-                success_request.message = "로그아웃에 성공하였습니다.";
-                res.send(success_request)
-                //res.redirect('/home'); // 홈으로 이동하게 하자
-            });
-
         } catch {
             error_request.data = null;
             error_request.message = "로그아웃에 실패하였습니다.";
@@ -1010,7 +997,6 @@ router.post('/idle/mypage/marked-on', jwt_middleware,(req, res) => {
     getConnection(conn => {
         try {
             var annoMarkOnId = req.body.anno_id; // 공보정보게시판 id   
-            console.log(annoMarkOnId)
 
             // inter_anno 테이블에 삽입
             var annoMarkOnSql = 'INSERT INTO inter_anno (member_email, anno_id) VALUES(?,?)'
@@ -1048,21 +1034,19 @@ router.post('/idle/mypage/marked-on', jwt_middleware,(req, res) => {
  * 2. 세션 이메일 가지고 inter_anno 테이블에서 해당 id 찾아서 삭제
  * 3. json 응답처리
  */
-router.delete('/idle/mypage/marked-off', (req, res) => {
+router.delete('/idle/mypage/marked-off', jwt_middleware, (req, res) => {
 
     getConnection(conn => {
         try {
-            var mem_email = req.session.member_email; // 세션 이메일
-            console.log("세션 이메일 : " + mem_email);
 
             // 해제한 공고정보게시물 id값 
-            var anno_markoff_id = req.body.anno_id;
-            console.log("마크해제 id: " + anno_markoff_id)
+            var annoMarkOffId = req.body.anno_id;
+            console.log("마크해제 id: " + annoMarkOffId)
 
             // 해당 id 값과 일치하는 데이터 삭제
-            var anno_markoff_param = [anno_markoff_id, mem_email];
-            var anno_markoff_sql = 'DELETE FROM inter_anno WHERE anno_id =? AND member_email=?;';
-            conn.query(anno_markoff_sql, anno_markoff_param, function (err, rows) {
+            var annoMarkOffSql = 'DELETE FROM inter_anno WHERE anno_id =? AND member_email=?;';
+            var annoMarkOffParmas = [annoMarkOffId, req.memberEmail];
+            conn.query(annoMarkOffSql, annoMarkOffParmas, function (err, rows) {
                 if (err || rows == '' || rows.affectedRows == 0) {
                     conn.release();
                     //json 응답처리
@@ -1071,12 +1055,13 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
                     return res.send(error_request);
                 }
 
-                //json 응답처리
-                var anno_markoff_success_res = {
-                    "anno_id": anno_markoff_id,
-                }
-                success_request.data = anno_markoff_success_res;
                 success_request.message = "관심사업 해제 성공";
+                success_request.data = {
+                    "anno_id": annoMarkOffId
+                };
+                success_request.accessToken = req.accessToken;
+                success_request.refreshToken = req.refreshToken;
+
                 return res.send(success_request)
             })
         } catch (err) {
@@ -1092,14 +1077,16 @@ router.delete('/idle/mypage/marked-off', (req, res) => {
  * 1. 세션 이메일을 가지고 inter_anno 테이블, anno 테이블, anno_img_dir 테이블을 join해서 값을 가져온다. ( 삭제여부 값 0)
  * 2. json 응답처리
  */
-router.get('/idle/mypage/marked', (req, res) => {
+router.get('/idle/mypage/marked', jwt_middleware ,(req, res) => {
 
-    console.log("세션 이메일: ", req.session.member_email) // 세션 이메일
+    console.log("세션 이메일: ", req.memberEmail) // 세션 이메일
     console.log("검색할 내용: ", req.query.inter_anno_search)  // 검색 내용
     console.log("페이지 번호: ", req.query.page) // 페이지 번호
 
-    inter_anno_list(req.session.member_email, req.query.inter_anno_search, req.query.page).then(member_inter_anno_list => {
-        res.send(member_inter_anno_list);
+    inter_anno_list(req.memberEmail, req.query.inter_anno_search, req.query.page).then(memberInterAnnoList => {
+        memberInterAnnoList.accessToken = req.accessToken;
+        memberInterAnnoList.refreshToken = req.refreshToken;
+        res.send(memberInterAnnoList);
     });
 
 })
@@ -1108,7 +1095,7 @@ router.get('/idle/mypage/marked', (req, res) => {
 /**
  * 고객센터 메일전송, http://localhost:3000/members/idle/contact
  */
-router.post('/idle/contact', (req, res) => {
+router.post('/idle/contact', jwt_middleware,(req, res) => {
     try {
         let get_email = req.body.email; // 보내는 사람 이메일
         let get_title = req.body.contact_title; // 보낼 제목

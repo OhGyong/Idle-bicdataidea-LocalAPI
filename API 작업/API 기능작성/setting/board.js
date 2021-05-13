@@ -120,7 +120,7 @@ async function idea_look(get_email, idea_num, admin_check) {
             })
         })
         console.log(4)
-        success_request.message = "문의게시판 내용 불러오기 성공";
+        success_request.message = "아이디어 내용 불러오기 성공";
         return success_request;
 
     } catch (err) {
@@ -222,7 +222,7 @@ async function idea_update(get_email, idea_title, idea_contents, idea_file, idea
             "idea_file_name": idea_file_originalname,
             "idea_file_path": idea_file_path
         }
-        success_request.message = "문의게시판 수정 성공"
+        success_request.message = "아이디어 수정 성공"
         return success_request;
     } catch (err) {
         return err;
@@ -366,7 +366,7 @@ async function idea_log(idea_num) {
                         console.log(err)
                         conn.release();
                         error_request.data=err;
-                        error_request.message = "공지사항 로그 불러오기 실패";
+                        error_request.message = "아이디어 로그 불러오기 실패";
                         return rej(error_request);
                     }
                     conn.release();
@@ -376,7 +376,7 @@ async function idea_log(idea_num) {
             })
         })
 
-        success_request.message = "공지사항 로그 불러오기 성공";
+        success_request.message = "아이디어 로그 불러오기 성공";
         return success_request;
     } catch (err) {
         return (err);
@@ -727,7 +727,7 @@ async function cs_update(get_email, cs_title, cs_contents, cs_secret, cs_file, c
         // 수정날짜 cs_log 테이블에 저장
         await new Promise((res, rej) => {
             getConnection(conn => {
-                cs_write_sql = 'INSERT INTO cs_log (cs_id, cs_edit_date) VALUES (?,?));';
+                cs_write_sql = 'INSERT INTO cs_log (cs_id, cs_edit_date) VALUES (?,?);';
                 cs_list_params = [cs_num, now_time()];
                 conn.query(cs_write_sql, cs_list_params, function (err, rows) {
                     if (err || rows == '') {

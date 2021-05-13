@@ -17,14 +17,18 @@ function verifyToken(token, kind) {
 
 // 검증된 토큰 처리
 var jwt_check = async function (req, res, next) {
+    let accessToken = req.headers['access_token'];
     let refreshToken = req.headers['refresh_token'];
     let accessPayload, refreshPayload; // 검증 결과 data
 
     accessPayload = verifyToken(req.headers['access_token'], "access");
     refreshPayload = verifyToken(req.headers['refresh_token'], "refresh");
 
-
-    if (accessPayload === null) {
+    // 로그인을 안한 경우
+    if (accessToken == "NOTLOGIN" && refreshToken == "NOTLOGIN") {
+        next();
+    }
+    else if (accessPayload === null) {
         // 1. accessToken과 refreshToken이 둘 다 만료된 경우 -> 로그아웃
         if (refreshPayload === null) {
             console.log("1번째 case")
