@@ -79,12 +79,12 @@ var jwt_check = async function (req, res, next) {
             )
             getConnection(async (conn) => {
                 try {
-                    // 기존 refresh_token 테이블의 token_invalid 값 1로 변경
+                    // 기존 refresh_token 테이블의 token 정보 삭제
                     await new Promise((res, rej) => {
-                        var memberRefreshTokenSQL = 'UPDATE refresh_token SET token_invalid=? WHERE token=?'
-                        var memberRefreshTokenPARAMS = [1, refreshToken]
-                        conn.query(memberRefreshTokenSQL, memberRefreshTokenPARAMS, (err, rpw) => {
-                            if (err || row == '') {
+                        var refreshTokenSQL = 'DELETE FROM refresh_token WHERE token_owner=? AND token=?;';
+                        var refreshTokenPARAMS = [refreshToken.memberEmail, refreshToken]
+                        conn.query(refreshTokenSQL, refreshTokenPARAMS, (err, rows) => {
+                            if (err || rows == '') {
                                 conn.release();
                                 error_request.data = err;
                                 error_request.message = "refresh_token의 token_invalid 업데이트 오류";
@@ -96,9 +96,9 @@ var jwt_check = async function (req, res, next) {
 
                     // 재발급 한 refresh_token 테이블 삽입
                     await new Promise((res, rej) => {
-                        var memberRefreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
-                        var memberRefreshTokenPARAMS = [memberName, refreshToken]
-                        conn.query(memberRefreshTokenSQL, memberRefreshTokenPARAMS, (err, row) => {
+                        var refreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
+                        var refreshTokenPARAMS = [memberName, refreshToken]
+                        conn.query(refreshTokenSQL, refreshTokenPARAMS, (err, row) => {
                             if (err || row == '') {
                                 conn.release();
                                 error_request.data = err;

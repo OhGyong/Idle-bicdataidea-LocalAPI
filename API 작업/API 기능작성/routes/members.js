@@ -539,7 +539,7 @@ router.put('/idle/reset-password', (req, res) => {
  */
 router.post('/idle/signin', (req, res) => {
 
-    let member_email = req.body.member_email; // 입력한 이메일
+    let memberEmail = req.body.member_email; // 입력한 이메일
     let member_pw = req.body.member_pw; // 입력한 비밀번호
 
     //비밀번호 해시화
@@ -552,7 +552,7 @@ router.post('/idle/signin', (req, res) => {
             await new Promise((res, rej) => {
                 // db에 일치하는 이메일과 비밀번호가 있는지 확인
                 let login_sql = 'SELECT member_email FROM member WHERE member_email=? AND member_pw=? AND member_secede=?;';
-                let login_params = [member_email, member_pw, 0];
+                let login_params = [memberEmail, member_pw, 0];
                 conn.query(login_sql, login_params, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -567,7 +567,7 @@ router.post('/idle/signin', (req, res) => {
             // 로그인한 시간 확인, member_log 테이블 업데이트)
             await new Promise((res, rej) => {
                 memberlog_sql = 'UPDATE member_log SET member_login_lately=? WHERE member_email=?;';
-                memberlog_params = [now_time(), member_email]
+                memberlog_params = [now_time(), memberEmail]
                 conn.query(memberlog_sql, memberlog_params, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -597,7 +597,7 @@ router.post('/idle/signin', (req, res) => {
             let memberName;
             await new Promise((res, rej) => {
                 var memberNameSql = 'Select member_name From member WHERE member_email=?'
-                conn.query(memberNameSql, member_email, (err, row) => {
+                conn.query(memberNameSql, memberEmail, (err, row) => {
                     if (err || row == '') {
                         conn.release();
                         error_request.data = err;
@@ -609,28 +609,14 @@ router.post('/idle/signin', (req, res) => {
                 })
             })
 
-            // 세션 저장
-            await new Promise((res, rej) => {
-                req.session.member_email = member_email;
-                req.session.save(function (err) {
-                    if (err) {
-                        error_request.data = err;
-                        error_request.message = "세션 저장 실패";
-                        rej(error_request);
-                    }
-                    res();
-                })
-            })
-
             // Access Token, Refresh Token 생성
             let accessToken, refreshToken;
-            
 
             await new Promise((res, rej) => {
                 // Access Token 인증시간 15분
                 jwt.sign(
                     {
-                        token_email: member_email,
+                        token_email: memberEmail,
                         token_name: memberName
                     }, process.env.ACCESS_TOKEN_SECRET_KEY, { expiresIn: '15m' }, (err, token) => {
                         if (err) {
@@ -648,7 +634,7 @@ router.post('/idle/signin', (req, res) => {
                 // Refresh Token 인증기간 2주
                 jwt.sign(
                     {
-                        token_email: member_email,
+                        token_email: memberEmail,
                         token_name: memberName
                     }, process.env.REFRESH_TOKEN_SECRET_KEY, { expiresIn: '14d' }, (err, token) => {
                         if (err) {
@@ -665,7 +651,7 @@ router.post('/idle/signin', (req, res) => {
             // refresh_token 테이블 삽입
             await new Promise((res, rej) => {
                 var refreshTokenSQL = 'INSERT INTO refresh_token (token_owner, token) VALUES(?,?);';
-                var refreshTokenPARAMS = [memberName, refreshToken]
+                var refreshTokenPARAMS = [memberEmail, refreshToken]
                 conn.query(refreshTokenSQL, refreshTokenPARAMS, (err, row) => {
                     if (err || row == '') {
                         conn.release();
@@ -681,7 +667,7 @@ router.post('/idle/signin', (req, res) => {
 
             // json 성공 응답
             success_request.data = {
-                member_email: member_email
+                member_email: memberEmail
             }
             success_request.accessToken = accessToken;
             success_request.refreshToken = refreshToken;
@@ -704,10 +690,17 @@ router.post('/idle/logout', jwt_middleware, (req, res) => {
 
     getConnection(async conn => {
         try {
+
+            let refreshToken = req.headers['refresh_token']; // 헤더로 받은 refreshToken
+
+            console.log("로그아웃 할 이메일 : " + req.memberEmail);
+            console.log("로그아웃 할 refreshToken : " + refreshToken);
+
             // refresh_token 테이블에서 invalid 값 1로 변경
             await new Promise((res, rej) => {
-                let refreshTokenSQL = 'UPDATE refresh_token SET token_invalid=? WHERE token=?';
-                conn.query(refreshTokenSQL, [1, req.refreshToken], function (err, rows) {
+                let refreshTokenSql = 'DELETE FROM refresh_token WHERE token_owner=? AND token=?;';
+                let refreshTokenParams = [req.memberEmail, refreshToken]
+                conn.query(refreshTokenSql, refreshTokenParams, function (err, rows) {
                     if (err || rows == '') {
                         conn.release();
                         error_request.data = err;
@@ -717,10 +710,15 @@ router.post('/idle/logout', jwt_middleware, (req, res) => {
                     res()
                 })
             })
-        } catch {
-            error_request.data = null;
-            error_request.message = "로그아웃에 실패하였습니다.";
-            res.send(error_res)
+            success_request.message = "로그아웃에 성공하였습니다."
+            success_request.data = {
+                "refreshToken":refreshToken
+            };
+            success_request.accessToken = "NOTLOGIN";
+            success_request.refreshToken = "NOTLOGIN";
+            res.send(success_request)
+        } catch(err) {
+            res.send(err)
         }
     })
 })
