@@ -18,9 +18,19 @@
     - member 전화번호 암호화
     - url 간소화
 
+    - 05/13
+        - common_board.js와 user_board.js 수정
+        - 회원 및 유저 관련한 API 부분을 jwt로 수정
+
+    - 05/12
+        - member.js에서 세션을 jwt로 수정
+
+    - 05/11
+        - member.js에서 세션을 jwt로 수정
+
     - 05/10
         - jwt_middleware 구현 (검증 처리 마무리)
-        - `next()로 값을 어떻게 넘길 수 있을까`
+        - `next()로 값을 어떻게 넘길 수 있을까` - > req.보낼값으로 간단하게 넘김
 
     - 05/07
         - jwt_middleware 생성 (구현 못함)
