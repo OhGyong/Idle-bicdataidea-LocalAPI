@@ -18,6 +18,9 @@
     - member 전화번호 암호화
     - url 간소화
 
+    - 06/20
+        - AOS 작업 중 Bundle().apply{ this.putInt("data", data)}로 값을 전달할 수 있기 때문에 이용약관 체크 여부 API 삭제
+
     - 05/13
         - common_board.js와 user_board.js 수정
         - 회원 및 유저 관련한 API 부분을 jwt로 수정
