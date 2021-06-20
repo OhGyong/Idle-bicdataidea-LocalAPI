@@ -32,11 +32,7 @@ var jwt_check = async function (req, res, next) {
         // 1. accessToken과 refreshToken이 둘 다 만료된 경우 -> 로그아웃
         if (refreshPayload === null) {
             console.log("1번째 case")
-            // error_request.message = "사용 권한이 없습니다. 로그아웃 되었습니다.";
-            error_request.message = {
-                "sadfsadf": "asdfasf",
-                "asdfasdf": "asdfasdf"
-            }
+            error_request.message = "사용 권한이 없습니다. 로그아웃 되었습니다.";
             error_request.data = null;
             res.send(error_request);
         }
