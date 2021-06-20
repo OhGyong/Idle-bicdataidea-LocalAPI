@@ -29,30 +29,6 @@ var jwt_middleware = require('../setting/jwt_middleware');
 /*                    본문시작                    */
 
 
-/**
- * 회원가입 전 이용약관 동의 API, http://localhost:3000/members/idle/signup/agree/check
- * 1. [선택]항목 클릭하면 전역변수 값 agree_check 값 변경 → 회원가입 API에서 사용
- * 2. json 응답처리
-*/
-router.get('/idle/signup/agree/check', (req, res) => {
-
-    let check_num = req.body.signup_agree;
-    console.log(check_num);
-
-    //세션 저장
-    req.session.signup_check = check_num;
-    req.session.save(function (err) {
-        if (err) {
-            error_request.data = null;
-            error_request.message = "세션 에러"
-            res.send(error_request);
-        }
-        success_request.data = check_num;
-        success_request.message = "이욕약관 선택 여부 확인";
-        return res.send(success_request); //save 함수 안에서 쓰면 안됨  
-    })
-});
-
 
 /**
  * 회원 이메일 중복 확인, http://localhost:3000/members/idle/has-same-email
@@ -282,17 +258,8 @@ router.post('/idle/signup/fillout', (req, res, err) => {
         member_value.push(req.body[k]);
     }
 
-    //회원가입 전 [선택]동의 여부
-    member_key[8] = 'chosen_agree';
-    member_value[8] = req.session.signup_check;
-
     //암호 해시키 변경
     member_value[6] = crypto.createHash('sha512').update(member_value[6]).digest('base64');
-
-    //사용한 세션 삭제
-    req.session.destroy(function () {
-        req.session;
-    })
 
     getConnection(async (conn) => {
         try {
