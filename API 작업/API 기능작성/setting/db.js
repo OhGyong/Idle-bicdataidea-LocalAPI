@@ -20,6 +20,6 @@ function getConnection(callback){
             console.log("db 연결실패")
         }
     })
-    
 }
+
 module.exports = getConnection;
